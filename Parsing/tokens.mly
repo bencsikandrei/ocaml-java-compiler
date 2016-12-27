@@ -64,4 +64,8 @@
 %token <string> STRLIT
 %token <int> INTLIT
 %token <float> FLOATLIT
+%token EOF
+%%
+
+%%
 
