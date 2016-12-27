@@ -7,6 +7,7 @@
 %token ANOT (* @ *)
 %token EQUAL (* == *)
 %token ASSIGN (* = *)
+%token EOF 
 %token PEQUAL MEQUALEQUAL MULEQUAL DIVEQUAL MODEQUAL ANDEQUAL OREQUAL XOREQUAL RSHIFTEQUAL LSHIFTEQUAL LOGSHIFTEQUAL (* += -= *= /= %= &= |= ^= >>= <<= >>>= *)
 (* keywords *)
 %token ABSTRACT
