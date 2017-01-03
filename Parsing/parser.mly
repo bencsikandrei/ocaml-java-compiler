@@ -1,15 +1,20 @@
-%token LANG RANG LPAR RPAR LBRAC RBRAC LCURL RCURL (* <> () [] {} *) 
-%token SEMI COL DOT COMM SQ DQ QM (* ; : . ,  '' "" ? *)
-%token PLUS MINUS DIV MUL MOD  (* + - / * % *)
-%token AND OR NOT (* && || ! *)
-%token LSHIFT RSHIFT LOGSHIFT(* *)
-%token BAND BOR XOR BNOT (* & | ^ ~ *) 
-%token ANOT (* @ *)
-%token EQUAL (* == *)
-%token ASSIGN (* = *)
+%{
+	open Printf
+	open Lexing
+%}
+
+%token LANG RANG LPAR RPAR LBRAC RBRAC LCURL RCURL /* <> () [] {} */ 
+%token SEMI COL DOT COMM SQ DQ QM /* ; : . ,  '' "" ? */
+%token PLUS MINUS DIV MUL MOD  /* + - / * % */
+%token AND OR NOT /* && || ! */
+%token LSHIFT RSHIFT LOGSHIFT/* */
+%token BAND BOR XOR BNOT /* & | ^ ~ */ 
+%token ANOT /* @ */
+%token EQUAL /* == */
+%token ASSIGN /* = */
 %token EOF 
-%token PEQUAL MEQUALEQUAL MULEQUAL DIVEQUAL MODEQUAL ANDEQUAL OREQUAL XOREQUAL RSHIFTEQUAL LSHIFTEQUAL LOGSHIFTEQUAL (* += -= *= /= %= &= |= ^= >>= <<= >>>= *)
-(* keywords *)
+%token PEQUAL MEQUALEQUAL MULEQUAL DIVEQUAL MODEQUAL ANDEQUAL OREQUAL XOREQUAL RSHIFTEQUAL LSHIFTEQUAL LOGSHIFTEQUAL /* += -= *= /= %= &= |= ^= >>= <<= >>>= */
+/* keywords */
 %token ABSTRACT
 %token ASSERT
 %token BOOLEAN
@@ -60,9 +65,20 @@
 %token VOID
 %token VOLATILE
 %token WHILE
-(* *)
+/* */
 %token <string> IDENTIFIER
 %token <string> STRLIT
 %token <int> INTLIT
 %token <float> FLOATLIT
 
+/* starting point */
+%start input 
+%type <unit> input
+
+%%
+input: /* empty */ { }
+
+%%
+let parse_error s = 
+	print_endline s;
+	flush stdout
