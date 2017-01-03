@@ -65,6 +65,9 @@
 %token <int> INTLIT
 %token <float> FLOATLIT
 %token EOF
+
+%token ELIPSIS
+
 %%
 
 %%
