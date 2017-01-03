@@ -70,6 +70,13 @@
 %token <string> STRLIT
 %token <int> INTLIT
 %token <float> FLOATLIT
+%token EOF
+
+%token ELIPSIS
+
+%%
+
+%%
 
 /* starting point */
 %start input 
