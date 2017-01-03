@@ -6,66 +6,107 @@
 %start <string> javaMethods
 
 %%
+
 javaMethods:
-	|head=javaMethod EOF {head}
-	|head=javaMethod tail=javaMethods {head^"\n"^tail}
+	|javaMethod EOF {""}
+	|javaMethod javaMethods {""}
 
-javaMethod:
-	|m=methodPrivacy {"Method: "^m}
-	|ANOT an=IDENTIFIER m=methodPrivacy {an^" Method: "^m}
+(* Method Layout declarations *)
+	javaMethod:
+		|MethodHeader MethodBody {} (* It is a compile-time error if a method or constructor parameter that is declared final is assigned to within the body of the method or constructor. *)
 
-methodPrivacy:
-	| PUBLIC m=methodGroup {"Public "^m}
-	| PRIVATE m=methodGroup {"Private "^m}
-	| PROTECTED m=methodGroup {"Protected "^m}
+	MethodHeader:  
+		|option(MethodModifiers) option(TypeParameters) ResultType MethodDeclarator option(Throws) {}
 
-methodGroup:
-	| m=methodStaticity {m}
-	| name=methodNameAndParams body=methodBodyReturnVoid {name^" {"^body^"}"} (* constructor *)
+	ResultType:
+		|types {}
+		|VOID {}
 
-methodStaticity:
-	| m=methodBase {m}
-	| STATIC m=methodBase {"static "^m}
+	MethodDeclarator: (*compile error if two methods with the same id and param list *)
+		|IDENTIFIER LPAR RPAR {}
+		|IDENTIFIER LPAR FormalParameters RPAR {}
 
-methodBase:
-	| VOID name=methodNameAndParams body=methodBodyReturnVoid {name^" {"^body^"}"}
-	| typ=types name=methodNameAndParams body=methodBodyReturnNonVoid {name^" {"^body^"} return type:"^typ}
+(* Parameter List declarations *)
 
-methodNameAndParams:
-	| name=IDENTIFIER LPAR RPAR {name}
-	| name=IDENTIFIER LPAR ats=attrs RPAR {name^" -> "^ats}
+	FormalParameters:(* two with same name compile error *)
+		|LastFormalParameter {}
+		|FormalParameter COMM FormalParameters {}
 
-methodBodyReturnNonVoid:
-	| LCURL RETURN e=expr SEMI RCURL {" -> "^e}
-	| LCURL e1=exprs RETURN e2=expr SEMI RCURL {e1^" -> "^e2}
+	FormalParameter:
+		|option(VariableModifiers) types VariableDeclaratorId {}
 
-methodBodyReturnVoid:
-	| LCURL RCURL {""}
-	| LCURL e=exprs RCURL {e}
+	LastFormalParameter:
+		|option(VariableModifiers) types ELIPSIS VariableDeclaratorId {}
+		|FormalParameter {}
 
-attrs:
-	|at1=attr {at1}
-	|at1=attr COMM ats=attrs {at1^","^ats}
+	VariableModifiers:
+		|VariableModifier {}
+		|VariableModifier VariableModifiers {}
 
-attr:
-	|typ=types name=IDENTIFIER {typ^":"^name}
- 
-exprs:
-	|e1=expr SEMI {e1^";"}(* replace with real exprs from other team*)
-	|e1=expr SEMI e2=exprs {e1^";\n"^e2} 
+	VariableModifier:
+		|FINAL {}
+		|Annotation {} (* If an annotation a on a formal parameter corresponds to an annotation type T, and T has a (meta-)annotation m that corresponds to annotation.Target , then m must have an element whose value is annotation.ElementType.PARAMETER , or a compile-time error occurs *)
 
-types:
-	| id= IDENTIFIER {id}
-	| num= FLOATLIT {string_of_float num}
-	| str=STRLIT {str}
-	| i=INTLIT {string_of_int i}
+(* Method Modifiers *)
+	MethodModifiers: (* error if more than onae pub, priv, prot *) (* abstract -> ¬( private , static , final , native , strictfp , or synchronized *) (* native -> ¬ strictfp *)
+		|MethodModifier {}
+		|MethodModifier MethodModifiers{}
 
-expr:
-	| id= IDENTIFIER {id}
-	| num= FLOATLIT {string_of_float num}
-	| e1=expr MINUS e2=expr {"menos("^e1^","^e2^")"}
-	| e1=expr PLUS e2=expr {"mas("^e1^","^e2^")"}
-	| e1=expr DIV e2=expr {"div("^e1^","^e2^")"}
-	| e1=expr MOD e2=expr {"mod("^e1^","^e2^")"}
+	MethodModifier: 
+		|Annotation {}
+		|PUBLIC {}
+		|PROTECTED {}
+		|PRIVATE {}
+		|ABSTRACT {}
+		|STATIC {}
+		|FINAL {}
+		|SYNCHRONIZED {}
+		|NATIVE {}
+		|STRICTFP {}
+
+(* throws *)
+
+	Throws:
+		THROWS ExceptionTypeList {}
+
+	ExceptionTypeList:
+		|ExceptionType {}
+		|ExceptionTypeList COMM ExceptionType {}
+
+	ExceptionType: (* TODO check section 4.3 *)
+(* 
+		|ClassType {}
+		|TypeVariable {}
+*)		
+		|types {}
+
+
+(* Method Body *)
+MethodBody:
+	|Block {}
+	|SEMI {}
+
+
+(* aux *)
+Annotation:
+	|ANOT IDENTIFIER{}
+
+VariableDeclaratorId:
+	|IDENTIFIER {}
+
+TypeParameters:
+	| LANG TypeParameterList RANG {}
+
+TypeParameterList:
+	|TypeParameter	{}
+	|TypeParameter COMM TypeParameterList {}
+	
+
+TypeParameter: (* TODO *)
+	|IDENTIFIER {}
+
+Block:
+	| LCURL RCURL {}
+	| LCURL exprs RCURL {}
 
 %%

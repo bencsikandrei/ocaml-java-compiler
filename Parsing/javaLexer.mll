@@ -22,6 +22,13 @@ rule nexttoken = parse
 	| "@" {ANOT}
 	| "void" {VOID}
 	| "static" {STATIC}
+	| "abstract" {ABSTRACT}
+	| "final" {FINAL}
+	| "synchronized" {SYNCHRONIZED}
+	| "native" {NATIVE}
+	| "strictfp" {STRICTFP}
+	| "<" {LANG}
+	| ">" {RANG}
 	| "(" {LPAR}
 	| ")" {RPAR}
 	| "}" {RCURL}
@@ -30,6 +37,16 @@ rule nexttoken = parse
 	| "public" {PUBLIC}
 	| "protected" {PROTECTED}
 	| "private" {PRIVATE}
+	| "float" {FLOAT}
+	| "boolean" {BOOLEAN}
+	| "byte" {BYTE}
+	| "char" {CHAR}
+	| "int" {INT}
+	| "long" {LONG}
+	| "short" {SHORT}
+	| "double" {DOUBLE}
+	| "..." {ELIPSIS}
+	|"throws" {THROWS}
 	| real as nb { FLOATLIT (float_of_string nb) }
 	| ident as str { IDENTIFIER str }
 	| _	{ raise (SyntaxError("Unexected: "^Lexing.lexeme lexbuf))}

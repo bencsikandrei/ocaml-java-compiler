@@ -1,5 +1,5 @@
 BUILD = ./build
-PARSING = class_methods.mly tokens.mly  
+PARSING =  types.mly expr.mly tokens.mly  class_methods_tmp.mly
 
 COPYPATH = ./classes
 COPYPATH_TEST = ./classes_testing
@@ -7,7 +7,7 @@ COPYPATH_TEST = ./classes_testing
 all: clean main
 
 $(BUILD)/javaParser.cmo: 
-	cd $(BUILD); menhir $(PARSING) --infer --base javaParser
+	cd $(BUILD); menhir $(PARSING)  -v --base javaParser
 	cd $(BUILD); rm javaParser.mli
 	cd $(BUILD); ocamlc -c javaParser.ml
 
