@@ -97,9 +97,9 @@ let double = (digit)+('.' digit*)?
 rule nexttoken = parse 
 	| newline { incr_lineno lexbuf; nexttoken lexbuf }
 	| space+ { nexttoken lexbuf }
-	| comment_one_line { incr_lineno lexbuf; nexttoken lexbuf }
+	| comment_one_line { print_endline "comments start";incr_lineno lexbuf; nexttoken lexbuf }
 	| comment_multiple_lines { nexttoken lexbuf }
-	| eof { EOF }
+	| eof { EOF; exit 0 }
 	| '+' { PLUS }
 	| '-' { MINUS }
 	| '/' { DIV } 
@@ -113,7 +113,7 @@ rule nexttoken = parse
         try List.assoc l kw_table
         with Not_found -> IDENTIFIER id
 		}
-	| _ { raise (Syntax_error "unknown character") }
+	| _ { print_endline "unknown character"; nexttoken lexbuf }
 {
 	let print_token = function 
 		| EOF -> print_string "EOF"
