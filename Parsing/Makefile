@@ -1,5 +1,5 @@
 BUILD = ./build
-PARSING =  types.mly expr.mly tokens.mly  class_methods_tmp.mly
+PARSING =  types.mly expr.mly tokens.mly  class_methods.mly
 
 COPYPATH = ./classes
 COPYPATH_TEST = ./classes_testing
@@ -15,7 +15,10 @@ $(BUILD)/javaLexer.cmo: $(BUILD)/javaLexer.mll
 	cd $(BUILD); ocamllex javaLexer.mll
 	cd $(BUILD); ocamlc -c javaLexer.ml
 
-main: $(BUILD) $(BUILD)/javaParser.cmo $(BUILD)/javaLexer.cmo $(BUILD)/main.ml
+$(BUILD)/definitions.cmo:
+	cd $(BUILD); ocamlc -c definitions.ml
+
+main: $(BUILD) $(BUILD)/definitions.cmo $(BUILD)/javaParser.cmo $(BUILD)/javaLexer.cmo $(BUILD)/main.ml
 	cd $(BUILD); ocamlc -c main.ml
 	cd $(BUILD); ocamlc -pp "#load"  javaParser.cmo javaLexer.cmo main.cmo -o main
 
