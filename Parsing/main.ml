@@ -20,7 +20,6 @@ let main () =
     	print_string " : ";    	
     	Lexer.print_token res;
     	print_string "\n";
-    	res
     	done
 
 let _ = Printexc.print main ()

@@ -271,7 +271,6 @@ and multiline_comment = parse
 		| SQ -> print_string "SQ"
 		| DQ  -> print_string "DQ"
 		| QM -> print_string "QM"
-		| PLUS -> print_string "PLUS"
 		| MINUS-> print_string "MINUS"
 		| DIV -> print_string "DIV"
 		| MUL -> print_string "MUL"

@@ -2,20 +2,39 @@
 	open Printf
 	open Lexing
 %}
-/* operators */
+/* brackets */
 %token LANG RANG LPAR RPAR LBRAC RBRAC LCURL RCURL /* <> () [] {} */ 
+
+/* delimiters */
 %token SEMI COL DOT COMM SQ DQ QM /* ; : . ,  '' "" ? */
+
+/* math binary operators */
 %token PLUS MINUS DIV MUL MOD  /* + - / * % */
-%token INCREMENT DECREMENT /* ++ -- */
-%token AND OR NOT /* && || ! */
-%token LSHIFT RSHIFT LOGSHIFT/* */
+
+/* logical bitwiese operators */
 %token BAND BOR XOR BNOT /* & | ^ ~ */ 
-%token ANOT /* @ */
+
+/* bitwise whifts */
+%token LSHIFT RSHIFT LOGSHIFT/* << >> >>> */
+
+/* unary operators */
+%token INCREMENT DECREMENT /* ++ -- */
+
+/* logical operators */
 %token EQUAL /* == */
+%token AND OR NOT /* && || ! */
+
+
+/* assignment operators */
 %token ASSIGN /* = */
-%token EOF 
 %token PEQUAL MINUSEQUAL MULEQUAL DIVEQUAL MODEQUAL ANDEQUAL OREQUAL XOREQUAL RSHIFTEQUAL LSHIFTEQUAL LOGSHIFTEQUAL /* += -= *= /= %= &= |= ^= >>= <<= >>>= */
-/* keywords */
+
+%token ANOT /* @ */
+
+/* special eof */
+%token EOF 
+
+/* keywords that are reserved */
 %token ABSTRACT
 %token ASSERT
 %token BOOLEAN
@@ -66,7 +85,8 @@
 %token VOID
 %token VOLATILE
 %token WHILE
-/* */
+
+/* identifiers and literals */
 %token <string> IDENTIFIER
 %token <string> STRLIT
 %token <int> INTLIT
@@ -74,9 +94,8 @@
 %token <char> CHARLIT 
 %token <bool> BOOLEANLIT
 %token <string> NULLLIT
-
-
 %token ELIPSIS
+
 
 /* starting point */
 %start goal
