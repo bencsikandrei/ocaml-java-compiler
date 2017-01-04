@@ -6,6 +6,7 @@
 %token LANG RANG LPAR RPAR LBRAC RBRAC LCURL RCURL /* <> () [] {} */ 
 %token SEMI COL DOT COMM SQ DQ QM /* ; : . ,  '' "" ? */
 %token PLUS MINUS DIV MUL MOD  /* + - / * % */
+%token INCREMENT DECREMENT /* ++ -- */
 %token AND OR NOT /* && || ! */
 %token LSHIFT RSHIFT LOGSHIFT/* */
 %token BAND BOR XOR BNOT /* & | ^ ~ */ 
@@ -13,7 +14,7 @@
 %token EQUAL /* == */
 %token ASSIGN /* = */
 %token EOF 
-%token PEQUAL MEQUALEQUAL MULEQUAL DIVEQUAL MODEQUAL ANDEQUAL OREQUAL XOREQUAL RSHIFTEQUAL LSHIFTEQUAL LOGSHIFTEQUAL /* += -= *= /= %= &= |= ^= >>= <<= >>>= */
+%token PEQUAL MINUSEQUAL MULEQUAL DIVEQUAL MODEQUAL ANDEQUAL OREQUAL XOREQUAL RSHIFTEQUAL LSHIFTEQUAL LOGSHIFTEQUAL /* += -= *= /= %= &= |= ^= >>= <<= >>>= */
 /* keywords */
 %token ABSTRACT
 %token ASSERT
@@ -70,16 +71,72 @@
 %token <string> STRLIT
 %token <int> INTLIT
 %token <float> FLOATLIT
-%token EOF
+%token <char> CHARLIT 
+%token <bool> BOOLEANLIT
+%token <string> NULLLIT
+
 
 %token ELIPSIS
 
 /* starting point */
-%start input 
-%type <unit> input
+%start goal
+%type <unit> goal
 
 %%
-input: /* empty */ { }
+goal: /* empty */ { }
+	| CompilationUnit {  }
+	| SEMI { }
+;
+
+CompilationUnit: 
+	| ConstantExpression  { }
+	| SEMI { }
+;
+
+ConstantExpression:
+	Expression { } 
+;
+
+Expression: 
+	AssignmentExpression { } 
+;
+
+AssignmentExpression:
+	Assignment { }
+;
+
+Assignment: 
+	LeftHandSide AssignmentOperator Literal SEMI { print_string "assign" } 
+;
+
+AssignmentOperator: 
+	ASSIGN { }
+	| MULEQUAL { }
+	| DIVEQUAL  { }
+	| MODEQUAL { }
+	| PEQUAL { }
+	| MINUSEQUAL { }
+	| LSHIFTEQUAL { }
+	| RSHIFTEQUAL  { }
+	| LOGSHIFTEQUAL { }
+	| ANDEQUAL { }
+	| XOREQUAL { }
+	| OREQUAL  { }
+;
+/* missing shit */
+LeftHandSide:
+	IDENTIFIER { print_string "Id" }
+;
+
+Literal: STRLIT { } 
+	| FLOATLIT { }
+	| BOOLEANLIT { } 
+	| CHARLIT { }
+	| INTLIT { }
+	| NULLLIT { }
+;
+
+
 
 %%
 let parse_error s = 
