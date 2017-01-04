@@ -97,14 +97,29 @@ let double = (digit)+('.' digit*)?
 rule nexttoken = parse 
 	| newline { incr_lineno lexbuf; nexttoken lexbuf }
 	| space+ { nexttoken lexbuf }
+	
 	| comment_one_line { print_endline "comments start";incr_lineno lexbuf; nexttoken lexbuf }
-	| comment_multiple_lines { nexttoken lexbuf }
-	| eof { EOF; exit 0 }
-	| '+' { PLUS }
+	| comment_multiple_lines { print_endline "multiline comments start"; nexttoken lexbuf }
+
+	(* operators *)
+	| '+' { PLUS } 
 	| '-' { MINUS }
 	| '/' { DIV } 
 	| '*' { MUL }
 	| '%' { MOD }
+	| '&' { BAND }
+	| "&&" { AND }
+	| '|' { BOR }
+	| "||" { OR }
+	| '^' { XOR }
+	| '~' { BNOT }
+	| "==" { EQUAL }
+	| '!' { NOT }
+	| ''
+	| '=' { ASSIGN }
+	(* *)
+
+	| ';' { print_endline "semicolon"; SEMI }
 	| integer as i { INTLIT(int_of_string i) }
 	| double as d { FLOATLIT(float_of_string d) }
 	| identifier as id { 
@@ -114,6 +129,7 @@ rule nexttoken = parse
         with Not_found -> IDENTIFIER id
 		}
 	| _ { print_endline "unknown character"; nexttoken lexbuf }
+	| eof { EOF; exit 0 }
 {
 	let print_token = function 
 		| EOF -> print_string "EOF"

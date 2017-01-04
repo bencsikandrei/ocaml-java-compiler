@@ -2,7 +2,7 @@
 	open Printf
 	open Lexing
 %}
-
+/* operators */
 %token LANG RANG LPAR RPAR LBRAC RBRAC LCURL RCURL /* <> () [] {} */ 
 %token SEMI COL DOT COMM SQ DQ QM /* ; : . ,  '' "" ? */
 %token PLUS MINUS DIV MUL MOD  /* + - / * % */
@@ -73,10 +73,6 @@
 %token EOF
 
 %token ELIPSIS
-
-%%
-
-%%
 
 /* starting point */
 %start input 
