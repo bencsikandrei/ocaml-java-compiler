@@ -1,5 +1,5 @@
 BUILD = ./build
-PARSING =  types.mly expr.mly tokens.mly  class_methods_tmp.mly
+PARSING =  types.mly expr.mly tokens.mly  class_methods.mly class_definition.mly types_params_defin.mly
 
 COPYPATH = ./classes
 COPYPATH_TEST = ./classes_testing

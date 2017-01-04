@@ -12,7 +12,7 @@ javaMethods:
 	|javaMethod javaMethods {""}
 
 (* Method Layout declarations *)
-	javaMethod:
+	%public javaMethod:
 		|MethodHeader MethodBody {} (* It is a compile-time error if a method or constructor parameter that is declared final is assigned to within the body of the method or constructor. *)
 
 	MethodHeader:  
@@ -105,7 +105,7 @@ TypeParameterList:
 TypeParameter: (* TODO *)
 	|IDENTIFIER {}
 
-Block:
+%public Block:
 	| LCURL RCURL {}
 	| LCURL exprs RCURL {}
 
