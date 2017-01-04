@@ -85,7 +85,7 @@ let newline = ['\010' '\013']
 let others = ['+''-''*''/''=''"'':''('')''{''}''['']''!''&''|'';''.'',''<''>']
 
 (* java identifiers can start with an underscore or dollar sign or letter *)
-let identifier = ('_'|'$'|letter)(letter|digit|'_')*
+let identifier = ('_'|'$'|letter)(letter|digit|'_'|'$')*
 
 (* comments *)
 let comment_one_line = "//" ([^'\010' '\013'])* newline
@@ -101,13 +101,18 @@ let comment_multiple_lines = "/*" ([^'*'] | newline | ('*'*[^'/']))* "*/"
 *)
 let comment_multiple_lines_simple = "/*"
 
+(* TODO -> take care of ESC characters *)
+let char_literal = ''' ([^''']) '''
 let string_literal = '"' ([^'"'])* '"'
 
-(* types *)
-let integer = (digit)+
-let long = (digit)+['l''L']
-let float = (digit)+('.' digit*)?['f''F']
-let double = (digit)+('.' digit*)?
+(* int types *)
+let integer = ('0'|['0'-'9']) (digit)+
+let long = (integer)('l'|'L')
+
+(* floating point types *)
+let float = (digit)+ '.' (digit)* ( ('e'|'E') ('+'|'-')? (digit)+ )? ('f'|'F')?
+let double = (digit)+ ('.'(digit*))? ( ('e'|'E') ('+'|'-')? (digit)+ )? ('d'|'D')?
+
 
 (****************************************************************************** 
 	main scanning function
@@ -188,7 +193,7 @@ rule nexttoken = parse
         with Not_found -> IDENTIFIER id
 		}
 	| _ { print_endline "unknown character"; nexttoken lexbuf }
-	| eof { EOF; exit 0 }
+	| eof { raise End_of_file }
 
 (****************************************************************************** 
 	experiemental rule for comments ! 

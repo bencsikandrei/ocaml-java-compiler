@@ -98,66 +98,35 @@
 
 
 /* starting point */
-%start goal
-%type <unit> goal
+%start compilationUnit
+%type <string> compilationUnit
 
 %%
-goal: /* empty */ { }
-	| CompilationUnit {  }
-	| SEMI { }
+compilationUnit: 
+	| PACKAGE qid=qualifiedIdentifier SEMI compilationUnit { qid }
+	| IMPORT qid=qualifiedIdentifier SEMI compilationUnit { qid }
+	/* | typeDeclaration compilationUnit { } */
+	| EOF { "EOF reached" }
+	| error { print_endline "an error occured "; "an error occured " }
 ;
-
-CompilationUnit: 
-	| ConstantExpression  { }
-	| SEMI { }
+qualifiedIdentifier: 
+	| id=IDENTIFIER { print_endline id; id}
+	| id=IDENTIFIER DOT qualifiedIdentifier { print_endline id; id }
+	| error { print_endline "an error occured ";"an error occured " }
 ;
-
-ConstantExpression:
-	Expression { } 
-;
-
-Expression: 
-	AssignmentExpression { } 
-;
-
-AssignmentExpression:
-	Assignment { }
-;
-
-Assignment: 
-	LeftHandSide AssignmentOperator Literal SEMI { print_string "assign" } 
-;
-
-AssignmentOperator: 
-	ASSIGN { }
-	| MULEQUAL { }
-	| DIVEQUAL  { }
-	| MODEQUAL { }
-	| PEQUAL { }
-	| MINUSEQUAL { }
-	| LSHIFTEQUAL { }
-	| RSHIFTEQUAL  { }
-	| LOGSHIFTEQUAL { }
-	| ANDEQUAL { }
-	| XOREQUAL { }
-	| OREQUAL  { }
-;
-/* missing shit */
-LeftHandSide:
-	IDENTIFIER { print_string "Id" }
-;
-
-Literal: STRLIT { } 
-	| FLOATLIT { }
-	| BOOLEANLIT { } 
-	| CHARLIT { }
-	| INTLIT { }
-	| NULLLIT { }
-;
-
-
-
+qualifiedIdentifierStar:
+	| id=IDENTIFIER { print_endline id ; id} 
+	| id=IDENTIFIER DOT qualifiedIdentifier { print_endline id; id } 
+	| error { print_endline "an error occured ";"an error occured " }
+;	
+/* typeDeclaration: 
+	| typeDeclarationModifiers classDeclaration
+	| typeDeclarationModifiers interfaceDeclaration
+	| SEMI
+*/
 %%
 let parse_error s = 
 	print_endline s;
 	flush stdout
+
+

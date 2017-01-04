@@ -10,9 +10,14 @@ let main () =
 		else stdin
 	in
 	let lexbuf = Lexing.from_channel cin in
+	try 	
 		while true do 
-		let res = Lexer.nexttoken lexbuf in
-		print_string "Reading token in line ";
+			Parser.compilationUnit Lexer.nexttoken lexbuf
+		done
+	with End_of_file -> exit 0
+	
+
+(*		print_string "Reading token in line ";
     	print_int lexbuf.lex_curr_p.pos_lnum;
     	print_string " : ";
     	print_string "character ";
@@ -20,6 +25,6 @@ let main () =
     	print_string " : ";    	
     	Lexer.print_token res;
     	print_string "\n";
-    	done
+*)
 
 let _ = Printexc.print main ()
