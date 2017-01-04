@@ -77,17 +77,29 @@
 		] 
 }
 
+(* easy to use regexps *)
 let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
 let space = [' ' '\t']
 let newline = ['\010' '\013']
 let others = ['+''-''*''/''=''"'':''('')''{''}''['']''!''&''|'';''.'',''<''>']
 
+(* java identifiers can start with an underscore or dollar sign or letter *)
 let identifier = ('_'|'$'|letter)(letter|digit|'_')*
+
 (* comments *)
 let comment_one_line = "//" ([^'\010' '\013'])* newline
-(* /\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/ *)
+
+(* 
+	a regexp that can eat a whole comment 	
+	/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/ 
+*)
 let comment_multiple_lines = "/*" ([^'*'] | newline | ('*'*[^'/']))* "*/" 
+(*
+	a simpler version where we use a separate rule for being able to count
+	lines in comments 
+*)
+let comment_multiple_lines_simple = "/*"
 
 let string_literal = '"' ([^'"'])* '"'
 
@@ -96,27 +108,34 @@ let integer = (digit)+
 let long = (digit)+['l''L']
 let float = (digit)+('.' digit*)?['f''F']
 let double = (digit)+('.' digit*)?
-(* the function to scan *)
+
+(****************************************************************************** 
+	main scanning function
+	has all the keywords of JAVA
+******************************************************************************)
 rule nexttoken = parse 
 	| newline { incr_lineno lexbuf; nexttoken lexbuf }
 	| space+ { nexttoken lexbuf }
 	
 	| comment_one_line { print_endline "comments start";incr_lineno lexbuf; nexttoken lexbuf }
-	| comment_multiple_lines { print_endline "multiline comments start"; nexttoken lexbuf }
+	| comment_multiple_lines_simple { print_endline "multiline comments start"; 
+										multiline_comment lexbuf;
+										nexttoken lexbuf }
 
 	| string_literal as slit { STRLIT slit }
-	(* operators *)
+	
+	(* binary operators *)
 	| '+' { PLUS } 
 	| '-' { MINUS }
 	| '/' { DIV } 
 	| '*' { MUL }
 	| '%' { MOD }
 	
+	(* unaries *)
 	| '!' { NOT }
 	| '|' { BOR }
 	| '&' { BAND }
 	| '~' { BNOT }
-	
 	| "++" { INCREMENT }
 	| "--" { DECREMENT }
 	
@@ -125,8 +144,8 @@ rule nexttoken = parse
 	| '^' { XOR }
 	| "==" { EQUAL }
 
+	(* all assignemnts *)
 	| '=' { ASSIGN }
-	
 	| "+="  { PEQUAL }
 	| "-=" { MINUSEQUAL }
 	| "*=" { MULEQUAL }
@@ -138,8 +157,11 @@ rule nexttoken = parse
 	| ">>=" { RSHIFTEQUAL }
 	| "<<=" { LSHIFTEQUAL }
 	| ">>>=" { LOGSHIFTEQUAL }
-		
+	
+	(* ternary *)
 	| '?' { QM }
+
+	(* brackets *)
 	| "<" { LANG }
 	| ">" { RANG }
 	| "]" { RBRAC }
@@ -149,13 +171,16 @@ rule nexttoken = parse
 	| "}" { RCURL }
 	| "{" { LCURL }
 	
+	(* delimiters *)
 	| ';' { SEMI }
 	| '.' { DOT }
 	| ',' { COMM }
 
+	(* some types *)
 	| integer as i { INTLIT(int_of_string i) }
 	| double as d { FLOATLIT(float_of_string d) }
 
+	(* identifiers without keywords *)
 	| identifier as id { 
 		(* try keywords if not found then it's an identifier *)
         let l = String.lowercase id in
@@ -165,6 +190,15 @@ rule nexttoken = parse
 	| _ { print_endline "unknown character"; nexttoken lexbuf }
 	| eof { EOF; exit 0 }
 
+(****************************************************************************** 
+	experiemental rule for comments ! 
+	TODO: DOES NOT TREAT EOF 
+	** inspired from Eric Cousin course and a YACC tutorial by Suh Oh **
+******************************************************************************)
+and multiline_comment = parse 
+	| "*/" { () (* unit *) }
+	| newline { incr_lineno lexbuf; multiline_comment lexbuf (* count lines in comments as well *) }
+	| _ { multiline_comment lexbuf (* a comment goes on *) }
 
 {
 	let print_token = function 

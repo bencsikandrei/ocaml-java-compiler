@@ -12,10 +12,12 @@ let main () =
 	let lexbuf = Lexing.from_channel cin in
 		while true do 
 		let res = Lexer.nexttoken lexbuf in
-		Parser.goal res lexbuf;
 		print_string "Reading token in line ";
     	print_int lexbuf.lex_curr_p.pos_lnum;
     	print_string " : ";
+    	print_string "character ";
+    	print_int (lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol);
+    	print_string " : ";    	
     	Lexer.print_token res;
     	print_string "\n";
     	res
