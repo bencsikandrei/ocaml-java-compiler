@@ -22,7 +22,8 @@
 %token INCREMENT DECREMENT /* ++ -- */
 
 /* logical operators */
-%token EQUAL /* == */
+%token EQUAL NEQUAL /* == != */
+%token GTHAN LTHAN GETHAN LETHAN /* > < >= <= */ 
 %token AND OR NOT /* && || ! */
 
 
@@ -97,6 +98,16 @@
 %token <string> NULLLIT
 %token ELIPSIS
 
+/* priorities */
+%right ASSIGN
+%left OR
+%left AND
+%left EQUAL NEQUAL
+%left GTHAN GETHAN LTHAN LETHAN
+%left PLUS MINUS
+%left MUL DIV MOD
+%right NOT
+%left DOT
 
 /* starting point */
 %start compilationUnit
@@ -106,19 +117,18 @@
 compilationUnit:
 	s=statement { s }
 	| error { " an error has occured\n" }
+;
 
 /* operators */
 logicalUnaryOperator: 
 	BNOT { "~" }
 	| NOT { "!" }
-	| error { "an error has occured" } 
-	;
+;
 
 arithmeticUnaryOperator: 
 	PLUS { "+" }
 	| MINUS { "-" }
-	| error { "an error has occured" } 
-	;
+;
 
 assignmentOp: 
 	ASSIGN { "=" }
@@ -133,7 +143,6 @@ assignmentOp:
 	| ANDEQUAL { "&=" }
 	| XOREQUAL { "^=" }
 	| OREQUAL { "|=" }
-	| error { "an error has occured" } 
 ;
 /* end operators */
 
@@ -141,7 +150,6 @@ assignmentOp:
 modifiers:
 	m=modifier { m }
 	| ms=modifiers m=modifier { ms^m }
-	| error { "an error has occured" } 
 ;
 
 modifier:
@@ -153,66 +161,64 @@ modifier:
 	| FINAL { "FINAL" }
 	| STRICTFP { "STRICTFP" }
 	| VOLATILE { "VOLATILE" }
-	| error { " an error has occured\n" }
 ;
 /* end modifiers */
 
 block:
 	LCURL lvds=localVariableDeclAndStmts RCURL { "{"^lvds^"}" }
 	| LCURL RCURL { "{ }" }
-	| error { " an error has occured\n" } 
 ;
 
 localVariableDeclAndStmts:
 	lvd=localVariableDeclOrStmt { lvd }
 	| lvds=localVariableDeclAndStmts lvd=localVariableDeclOrStmt { lvds^lvd }
-	| error { " an error has occured\n" } 
 ;
 
 localVariableDeclOrStmt:
-	lvd=localVariableDeclStmt { lvd }
+	lvd=localVariableDeclStmt { lvd } 
 	| stmt=statement { stmt }
-	| error { " an error has occured\n" } 
 ;
 
 localVariableDeclStmt:
-	/* ts=typeSpecifier vd=variableDeclaration SEMI { ts^vd }
-	| FINAL ts=typeSpecifier vd=variableDeclaration SEMI { ts^vd } */
-	| error { " an error has occured\n" } 
+	ts=types vd=variableDeclarations SEMI { ts^vd^";" }
+	| FINAL ts=types vd=variableDeclarations SEMI { "final "^ts^" "^vd^";" }
+;
+
+variableDeclarations: 
+ 	vd=variableDeclaration { vd }
+	| vds=variableDeclarations COMM vd=variableDeclaration { vds^" , "^vd }
 ;
 
 /* statements */
 statement:
 	es=emptyStmt { es }
 	/*| ls=labelStmt { ls }
+	| ss=selectStmt { ss }
 	| gs=guardingStmt { gs } */
 	| exs=expressionStmt SEMI { exs }
-	| ss=selectStmt { ss }
-	| js=jumpStmt { js }
 	| is=iterStmt { is }
+	| js=jumpStmt { js }
 	| b=block { b }
-	| error { " an error has occured\n" } 
 ;
 
 emptyStmt:
 	SEMI { ";" }
-	| error { " an error has occured\n" } 
 ;
 
 labelStmt:
 	id=IDENTIFIER COL { id^" : " }
 	| CASE ce=ctExpression COL { "case "^ce^" : " }
 	| DEFAULT COL { "default : " }
-	| error { "an error has occured" } 
 ;
 
 expressionStmt:
 	e=expression { e }
-	| error { "an error has occured" } 
 ;
 
 selectStmt:
-	IF LPAR e=expression RPAR s=statement { "if("^e^")"^s}
+	IF LPAR e=expression RPAR s=statement { "if("^e^")"^s }
+	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { "if("^e^")"^s1^"\nelse "^s2 }
+	/* | SWITCH LPAR e=expression RPAR b=block { e^b } */
 ;
 
 iterStmt: 
@@ -220,32 +226,28 @@ iterStmt:
 	| DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^");"}
 	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s }
 	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for("^fi^fe^")"^s }
-	| error { "an error has occured" } 
+	/* TODO add a foreach */
 	;
 
 forInit: 
 	es=expressionStmts SEMI { es^";" }
 	| lvds=localVariableDeclStmt { lvds }
 	| SEMI { ";" }
-	| error { "an error has occured" } 
-	;
+;
 
 forExpr: 
 	e=expression SEMI { e^";" }
 	| SEMI { ";" }
-	| error { "an error has occured" } 
-	;
+;
 
 forIncr: 
 	es=expressionStmts { es }
-	| error { "an error has occured" } 
-	;
+;
 
 expressionStmts: 
 	es=expressionStmt { es }
 	| ess=expressionStmts COMM es=expressionStmt { ess^" , "^es } 
-	| error { "an error has occured" } 
-	;
+;
 
 jumpStmt: 
 	BREAK id=IDENTIFIER SEMI { "break "^id^";" }
@@ -255,42 +257,72 @@ jumpStmt:
 	| RETURN e=expression SEMI { "return "^e^";"  }
 	| RETURN SEMI { "return;"}
 	| THROW e=expression SEMI { "throw "^e^";" }
-	| error { "an error has occured" } 
-	;
+;
 
 /* expressions */
 expression:
-	/* ae=assignmentExpression { ae } */
-	| error { "expression:an error has occured" } 
+	ae=assignmentExpression { ae }
 ;
 ctExpression:
-/*	ce=conditionalExpression { ce } */
-	| error { "ct expression an error has occured" } 
+	ce=conditionalExpression { ce }
 ;
 
-/* end expressions */
+assignmentExpression:
+	ce=conditionalExpression { ce } 
+	| ue=unaryExpression ao=assignmentOp ae=assignmentExpression { ue^ao^ae }
+;
+
+conditionalExpression:
+	coe=conditionalOrExpression { coe }
+	| coe=conditionalOrExpression QM e=expression COL ce=conditionalExpression {coe^" ? "^e^" : "^ce }
+;
+
+conditionalOrExpression:
+	cae=conditionalAndExpression { cae } 
+	| coe=conditionalOrExpression OR cae=conditionalAndExpression { coe^" || "^cae }
+;
+
+conditionalAndExpression:
+	ioe=inclusiveOrExpression { ioe }
+	| cae=conditionalAndExpression AND ioe=inclusiveOrExpression { cae^" && "^ioe }
+;
+
+inclusiveOrExpression: 
+	eoe=exclusiveOrExpression { eoe }
+	| ioe=inclusiveOrExpression BOR eoe=exclusiveOrExpression { ioe^" | "^eoe }
+;
+
+exclusiveOrExpression: 
+	ae=andExpression { ae }
+	| eoe=exclusiveOrExpression XOR ae=andExpression { eoe^" ^ "^ae }
+;
+
+andExpression: 
+	ae=andExpression BAND { ae^" & "} 
+;
+
+unaryExpression:
+	INCREMENT ue=unaryExpression { "++"^ue }
+	| DECREMENT ue=unaryExpression { "--"^ue }
+/* END expressions */
 
 /* catch */
 catches
 	: c=catch { c } 
 	| cs=catches c=catch { cs^c }
-	| error { "an error has occured" } 
 ;
 
 catch: 
 	ch=catchHeader b=block { ch^b }
-	| error { "an error has occured" } 
 ;
 
 catchHeader: 
 	CATCH RPAR ts=types id=IDENTIFIER RPAR { }
 	| CATCH RPAR ts=types LPAR { }
-	| error { "an error has occured" } 
 ;
 
-finally
-	: FINALLY b=block { "finally "^b }
-	| error { "an error has occured" } 
+finally: 
+	FINALLY b=block { "finally "^b }
 ;
 /* end catch */
 
@@ -298,8 +330,7 @@ finally
 types: 
 	pt=primitive { pt }
 	/* need classes here */
-	| error { "an error has occured" } 
-	;
+;
 
 primitive: 
 	BOOLEAN { "boolean" }
@@ -311,13 +342,11 @@ primitive:
 	| FLOAT { "float" }
 	| DOUBLE { "double" }
 	| VOID { "void" }
-	| error { "an error has occured" } 
 	;
 
 semiColons: 
 	SEMI { ";" }
    	| sc=semiColons SEMI { sc^";" }
-   	| error { "an error has occured" } 
 ;
 
 %%

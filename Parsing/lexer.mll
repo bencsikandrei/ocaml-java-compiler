@@ -153,7 +153,11 @@ rule nexttoken = parse
 	| "||" { OR }
 	| '^' { XOR }
 	| "==" { EQUAL }
-
+	| "<" { LTHAN }
+	| ">" { GTHAN }
+	| ">=" { GETHAN }
+	| "<=" { LETHAN }
+	
 	(* all assignemnts *)
 	| '=' { ASSIGN }
 	| "+="  { PEQUAL }
