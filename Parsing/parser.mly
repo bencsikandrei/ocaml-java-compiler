@@ -221,6 +221,31 @@ selectStmt:
 iterStmt: 
 	WHILE LPAR e=expression RPAR s=statement { "while("^e^")"^s }
 	| DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^");"}
+	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s }
+	| error { "an error has occured" } 
+	;
+
+forInit: 
+	es=expressionStmts SEMI { es^";" }
+	| lvds=localVariableDeclStmt { lvds }
+	| SEMI { ";" }
+	| error { "an error has occured" } 
+	;
+
+forExpr: 
+	e=expression SEMI { e^";" }
+	| SEMI { ";" }
+	| error { "an error has occured" } 
+	;
+
+forIncr: 
+	es=expressionStmts { es }
+	| error { "an error has occured" } 
+	;
+
+expressionStmts: 
+	es=expressionStmt { es }
+	| ess=expressionStmts COMM es=expressionStmt { ess^" , "^es } 
 	| error { "an error has occured" } 
 	;
 
