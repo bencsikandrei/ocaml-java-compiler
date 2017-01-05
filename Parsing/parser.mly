@@ -1,6 +1,7 @@
 %{
 	open Printf
 	open Lexing
+
 %}
 /* brackets */
 %token LANG RANG LPAR RPAR LBRAC RBRAC LCURL RCURL /* <> () [] {} */ 
@@ -102,42 +103,55 @@
 %type <string> compilationUnit
 
 %%
-compilationUnit: 
-	| PACKAGE qid=qualifiedIdentifier SEMI compilationUnit { qid }
-	| IMPORT qid=qualifiedIdentifier SEMI compilationUnit { qid }
-	| typeDeclaration compilationUnit { }
-	| EOF { "EOF reached" }
-	| error { print_endline "an error occured "; "an error occured " }
+compilationUnit:
+	m=modifiers { m }
+	| b=block { b }
+	| error { " an error has occured\n" }
+
+modifiers:
+	PUBLIC { "PUBLIC" }
+	| PROTECTED { "PROTECTED" }
+	| PRIVATE { "PRIVATE" }
+	| STATIC { "STATIC" }
+	| ABSTRACT { "ABSTRACT" }
+	| FINAL { "FINAL" }
+	| STRICTFP { "STRICTFP" }
+	| VOLATILE { "VOLATILE" }
+	| error { " an error has occured\n" }
 ;
 
-qualifiedIdentifier: 
-	| id=IDENTIFIER { print_endline id; id}
-	| qualifiedIdentifier DOT id=IDENTIFIER  { print_endline id; id }
-	| error { print_endline "an error occured ";"an error occured " }
+block:
+	LCURL lvds=localVariableDeclAndStmts RCURL { "{"^lvds^"}" }
+	| LCURL RCURL { "{ }" }
+	| error { " an error has occured\n" } 
 ;
 
-qualifiedIdentifierStar:
-	| qid=qualifiedIdentifier { print_endline qid ; qid} 
-	| qualifiedIdentifierStar DOT MUL { print_endline " .*"; ".*" } 
-	| error { print_endline "an error occured ";"an error occured " }
-;	
-
-typeDeclaration: 
-	| typeDeclarationModifiers classDeclaration { print_endline "classDeclaration ";"classDeclaration" }
-	| typeDeclarationModifiers interfaceDeclaration { print_endline "classDeclaration ";"classDeclaration" }
-	| SEMI { print_endline "empty declaration"; "empty declaration "}
-	| error { print_endline "an error occured ";"an error occured " }
+localVariableDeclAndStmts:
+	lvd=localVariableDeclOrStmt { lvd }
+	| lvds=localVariableDeclAndStmts lvd=localVariableDeclOrStmt { lvds^lvd }
+	| error { " an error has occured\n" } 
 ;
 
-typeDeclarationModifiers:
-	| PUBLIC { print_endline "PUBLIC"; "PUBLIC"}
-	| PROTECTED { print_endline "PROTECTED"; "PROTECTED"}
-	| PRIVATE { print_endline "PRIVATE"; "PRIVATE"}
-	| STATIC { print_endline "STATIC"; "STATIC"}
-	| ABSTRACT { print_endline "ABSTRACT"; "ABSTRACT"}
-	| FINAL { print_endline "FINAL"; "FINAL"}
-	| STRICTFP { print_endline "STRICTFP"; "STRICTFP"}
-	| error { print_endline "an error occured ";"an error occured " }
+localVariableDeclOrStmt:
+	lvd=localVariableDeclStmt { lvd }
+	| stmt=statement { stmt }
+	| error { " an error has occured\n" } 
+;
+
+localVariableDeclStmt:
+	/* ts=typeSpecifier vd=variableDeclaration SEMI { ts^vd }
+	| FINAL ts=typeSpecifier vd=variableDeclaration SEMI { ts^vd } */
+	| error { " an error has occured\n" } 
+;
+
+statement:
+	es=emptyStmt { es }
+	| error { " an error has occured\n" } 
+;
+
+emptyStmt:
+	SEMI { ";" }
+	| error { " an error has occured\n" } 
 ;
 
 
@@ -145,5 +159,3 @@ typeDeclarationModifiers:
 let parse_error s = 
 	print_endline s;
 	flush stdout
-
-

@@ -113,6 +113,11 @@ let long = (integer)('l'|'L')
 let float = (digit)+ '.' (digit)* ( ('e'|'E') ('+'|'-')? (digit)+ )? ('f'|'F')?
 let double = (digit)+ ('.'(digit*))? ( ('e'|'E') ('+'|'-')? (digit)+ )? ('d'|'D')?
 
+(* null literal *)
+let null = "null"
+
+(* boolean literals *)
+let boolean = ("true"|"false")
 
 (****************************************************************************** 
 	main scanning function
@@ -181,10 +186,15 @@ rule nexttoken = parse
 	| '.' { DOT }
 	| ',' { COMM }
 
+
 	(* some types *)
 	| integer as i { INTLIT(int_of_string i) }
 	| double as d { FLOATLIT(float_of_string d) }
 
+	| boolean as b { BOOLEANLIT(bool_of_string b) }
+	| null as n { NULLLIT n } 
+
+	
 	(* identifiers without keywords *)
 	| identifier as id { 
 		(* try keywords if not found then it's an identifier *)
@@ -206,6 +216,12 @@ and multiline_comment = parse
 	| _ { multiline_comment lexbuf (* a comment goes on *) }
 
 {
+
+	let print_string str =
+	print_endline str;
+	flush stdout
+
+
 	let print_token = function 
 		| IDENTIFIER(id) -> print_string ( " id : " ^ id )
 		| STRLIT(slit) -> print_string ( " stlit : " ^ slit )
@@ -308,4 +324,5 @@ and multiline_comment = parse
 		| LOGSHIFTEQUAL -> print_string "LOGSHIFTEQUAL"
 
 		| _ -> print_string "Something else"
+
 }

@@ -12,7 +12,8 @@ let main () =
 	let lexbuf = Lexing.from_channel cin in
 	try 	
 		while true do 
-			Parser.compilationUnit Lexer.nexttoken lexbuf
+			let res = Parser.compilationUnit Lexer.nexttoken lexbuf in
+			print_endline res 
 		done
 	with End_of_file -> exit 0
 	
