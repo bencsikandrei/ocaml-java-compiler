@@ -305,6 +305,10 @@ and multiline_comment = parse
 		| DECREMENT-> print_string "DECREMENT"
 		| AND -> print_string "AND"
 		| OR-> print_string "OR"
+		| LTHAN -> print_string "LTHAN"
+		| GTHAN -> print_string "GTHAN"
+		| GETHAN -> print_string "GETHAN"
+		| LETHAN -> print_string "LETHAN"
 		| NOT -> print_string "NOT"
 		| LSHIFT -> print_string "LSHIFT"
 		| RSHIFT-> print_string "RSHIFT"
@@ -327,6 +331,7 @@ and multiline_comment = parse
 		| RSHIFTEQUAL -> print_string "RSHIFTEQUAL"
 		| LSHIFTEQUAL -> print_string "LSHIFTEQUAL"
 		| LOGSHIFTEQUAL -> print_string "LOGSHIFTEQUAL"
+
 
 		| _ -> print_string "Something else"
 
