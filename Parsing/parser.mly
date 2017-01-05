@@ -108,7 +108,44 @@ compilationUnit:
 	| s=statement { s }
 	| error { " an error has occured\n" }
 
+
+/* operators */
+logicalUnaryOperator: 
+	BNOT { "~" }
+	| NOT { "!" }
+	| error { "an error has occured" } 
+	;
+
+arithmeticUnaryOperator
+	: PLUS { "+" }
+	| MINUS { "-" }
+	| error { "an error has occured" } 
+	;
+
+assignmentOp
+	: ASSIGN { "=" }
+	| MULEQUAL  { "*=" }
+	| DIVEQUAL { " /= " }
+	| MODEQUAL { "%=" }
+	| PEQUAL { "+=" }
+	| MINUSEQUAL { "-=" }
+	| LSHIFTEQUAL { "<<=" }
+	| RSHIFTEQUAL { ">>=" }
+	| LOGSHIFTEQUAL { ">>>=" }
+	| ANDEQUAL { "&=" }
+	| XOREQUAL { "^=" }
+	| OREQUAL { "|=" }
+;
+/* end operators */
+
+
 modifiers:
+	m=modifier { m }
+	| ms=modifiers m=modifier { ms^m }
+	| error { "an error has occured" } 
+;
+
+modifier:
 	PUBLIC { "PUBLIC" }
 	| PROTECTED { "PROTECTED" }
 	| PRIVATE { "PRIVATE" }
@@ -144,6 +181,7 @@ localVariableDeclStmt:
 	| error { " an error has occured\n" } 
 ;
 
+/* statements */
 statement:
 	es=emptyStmt { es }
 	| ls=labelStmt { ls }
@@ -180,63 +218,9 @@ selectStmt:
 	| error { "an error has occured" } 
 ;
 
-expression:
-	ae=assignmentExpression { ae } 
-	| error { "an error has occured" } 
-;
-ctExpression:
-	ce=conditionalExpression { ce }
-	| error { "an error has occured" } 
-;
+/* expressions */
 
-assignmentExpression: 
-	ce=conditionalExpression { ce }
-	| ue=unaryExpression ao=assignmentOperator ae=assignmentExpression { ue^ao^ae }
-	| error { "an error has occured" } 
-	;
-
-conditionalExpression: 
-	coe=conditionalOrExpression { coe }
-	| coe=conditionalOrExpression QM e=expression COL ce=conditionalExpression { coe^e^ce }
-	| error { "an error has occured" } 
-;
-
-exclusiveOrExpression: 
-	ae=andExpression { ae }
-	| eoe=exclusiveOrExpression XOR ae=andExpression { eoe^" ^ "^ae }
-	| error { "an error has occured" } 
-	;
-
-inclusiveOrExpression: 
-	eoe=exclusiveOrExpression { eoe }
-	| ioe=inclusiveOrExpression BOR eoe=exclusiveOrExpression { ioe^" | "^eoe }
-	| error { "an error has occured" } 
-	;
-
-conditionalAndExpression: 
-	ioe=inclusiveOrExpression { ioe }
-	| cae=conditionalAndExpression AND ioe=inclusiveOrExpression { cae^" && " ^ ioe }
-	| error { "an error has occured" } 
-	;
-
-conditionalOrExpression: 
-	cae=conditionalAndExpression { cae }
-	| coe=conditionalOrExpression OR cae=conditionalAndExpression { coe^" || "^cae }
-	| error { "an error has occured" } 
-	;
-
-unaryExpression: 
-	INCREMENT unaryExpression {  }
-	| DECREMENT unaryExpression {  }
-	| arithmeticUnaryOperator castExpression {  }
-	| logicalUnaryExpression {  }
-	;
-
-logicalUnaryExpression:
-	 postfixExpression { }
-	| logicalUnaryOperator unaryExpression { }
-	| error { "an error has occured" } 	
-;
+/* end expressions */
 
 /* try catch */
 catches
@@ -261,34 +245,6 @@ finally
 	| error { "an error has occured" } 
 ;
 /* end try catch */
-
-logicalUnaryOperator: 
-	BNOT { "~" }
-	| NOT { "!" }
-	| error { "an error has occured" } 
-	;
-
-arithmeticUnaryOperator
-	: PLUS { "+" }
-	| MINUS { "-" }
-	| error { "an error has occured" } 
-	;
-
-assignmentOp
-	: ASSIGN { "=" }
-	| MULEQUAL  { "*=" }
-	| DIVEQUAL { " /= " }
-	| MODEQUAL { "%=" }
-	| PEQUAL { "+=" }
-	| MINUSEQUAL { "-=" }
-	| LSHIFTEQUAL { "<<=" }
-	| RSHIFTEQUAL { ">>=" }
-	| LOGSHIFTEQUAL { ">>>=" }
-	| ANDEQUAL { "&=" }
-	| XOREQUAL { "^=" }
-	| OREQUAL { "|=" }
-	;
-
 %%
 let parse_error s = 
 	print_endline s;
