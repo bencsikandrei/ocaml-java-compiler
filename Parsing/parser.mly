@@ -104,10 +104,8 @@
 
 %%
 compilationUnit:
-	m=modifiers { m }
-	| s=statement { s }
+	s=statement { s }
 	| error { " an error has occured\n" }
-
 
 /* operators */
 logicalUnaryOperator: 
@@ -116,14 +114,14 @@ logicalUnaryOperator:
 	| error { "an error has occured" } 
 	;
 
-arithmeticUnaryOperator
-	: PLUS { "+" }
+arithmeticUnaryOperator: 
+	PLUS { "+" }
 	| MINUS { "-" }
 	| error { "an error has occured" } 
 	;
 
-assignmentOp
-	: ASSIGN { "=" }
+assignmentOp: 
+	ASSIGN { "=" }
 	| MULEQUAL  { "*=" }
 	| DIVEQUAL { " /= " }
 	| MODEQUAL { "%=" }
@@ -135,10 +133,11 @@ assignmentOp
 	| ANDEQUAL { "&=" }
 	| XOREQUAL { "^=" }
 	| OREQUAL { "|=" }
+	| error { "an error has occured" } 
 ;
 /* end operators */
 
-
+/* modifiers */
 modifiers:
 	m=modifier { m }
 	| ms=modifiers m=modifier { ms^m }
@@ -156,6 +155,7 @@ modifier:
 	| VOLATILE { "VOLATILE" }
 	| error { " an error has occured\n" }
 ;
+/* end modifiers */
 
 block:
 	LCURL lvds=localVariableDeclAndStmts RCURL { "{"^lvds^"}" }
@@ -184,12 +184,12 @@ localVariableDeclStmt:
 /* statements */
 statement:
 	es=emptyStmt { es }
-	| ls=labelStmt { ls }
+	/*| ls=labelStmt { ls }
 	| exs=expressionStmt SEMI { exs }
 	| ss=selectStmt { ss }
-	/*| is=iterStmt { is }
-	| js=jumpStmt { js }
 	| gs=guardingStmt { gs } */
+	| js=jumpStmt { js }
+	| is=iterStmt { is }
 	| b=block { b }
 	| error { " an error has occured\n" } 
 ;
@@ -218,11 +218,35 @@ selectStmt:
 	| error { "an error has occured" } 
 ;
 
+iterStmt: 
+	WHILE LPAR e=expression RPAR s=statement { "while("^e^")"^s }
+		| error { "an error has occured" } 
+	;
+
+jumpStmt: 
+	BREAK id=IDENTIFIER SEMI { "break "^id^";" }
+	| BREAK SEMI { "break;" }
+    | CONTINUE id=IDENTIFIER SEMI { "continue "^id^";"}
+	| CONTINUE SEMI { "continue;"}
+	| RETURN e=expression SEMI { "return "^e^";"  }
+	| RETURN SEMI { "return;"}
+	| THROW e=expression SEMI { "throw "^e^";" }
+	| error { "an error has occured" } 
+	;
 /* expressions */
+
+expression:
+	/* ae=assignmentExpression { ae } */
+	| error { "expression:an error has occured" } 
+;
+ctExpression:
+/*	ce=conditionalExpression { ce } */
+	| error { "ct expression an error has occured" } 
+;
 
 /* end expressions */
 
-/* try catch */
+/* catch */
 catches
 	: c=catch { c } 
 	| cs=catches c=catch { cs^c }
@@ -235,8 +259,8 @@ catch:
 ;
 
 catchHeader: 
-	CATCH RPAR ts=typeSpecifier id=IDENTIFIER RPAR { }
-	| CATCH RPAR ts=typeSpecifier LPAR { }
+	CATCH RPAR ts=types id=IDENTIFIER RPAR { }
+	| CATCH RPAR ts=types LPAR { }
 	| error { "an error has occured" } 
 ;
 
@@ -244,7 +268,34 @@ finally
 	: FINALLY b=block { "finally "^b }
 	| error { "an error has occured" } 
 ;
-/* end try catch */
+/* end catch */
+
+/* types */
+types: 
+	pt=primitive { pt }
+	/* need classes here */
+	| error { "an error has occured" } 
+	;
+
+primitive: 
+	BOOLEAN { "boolean" }
+	| CHAR  { "char" }
+	| BYTE { "byte" }
+	| SHORT { "short" }
+	| INT { "int" }
+	| LONG { "long" }
+	| FLOAT { "float" }
+	| DOUBLE { "double" }
+	| VOID { "void" }
+	| error { "an error has occured" } 
+	;
+
+semiColons: 
+	SEMI { ";" }
+   	| sc=semiColons SEMI { sc^";" }
+   	| error { "an error has occured" } 
+;
+
 %%
 let parse_error s = 
 	print_endline s;
