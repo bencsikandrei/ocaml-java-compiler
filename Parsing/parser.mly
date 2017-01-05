@@ -201,6 +201,7 @@ declaratorName:
 varInitializer:
 	e=expression { e }
 ;
+
 /* statements */
 statement:
 	es=emptyStmt { es }
@@ -213,10 +214,6 @@ statement:
 	| b=block { b }
 ;
 
-emptyStmt:
-	SEMI { ";" }
-;
-
 labelStmt:
 	id=IDENTIFIER COL { id^" : " }
 	| CASE ce=ctExpression COL { "case "^ce^" : " }
@@ -227,6 +224,12 @@ expressionStmt:
 	e=expression { e }
 	| EOF { "eof" }
 ;
+
+emptyStmt:
+	SEMI { ";" }
+;
+
+
 
 selectStmt:
 	IF LPAR e=expression RPAR s=statement { "if("^e^")"^s }

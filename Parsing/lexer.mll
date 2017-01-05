@@ -149,6 +149,7 @@ rule nexttoken = parse
 	| "++" { INCREMENT }
 	| "--" { DECREMENT }
 	
+	(* binaries *)
 	| "&&" { AND }
 	| "||" { OR }
 	| '^' { XOR }
