@@ -189,6 +189,18 @@ variableDeclarations:
 	| vds=variableDeclarations COMM vd=variableDeclaration { vds^" , "^vd }
 ;
 
+variableDeclaration:
+	dn=declaratorName { dn }
+	| dn=declaratorName ASSIGN vi=varInitializer { dn^" = "^vi }
+;
+
+declaratorName: 
+	id=IDENTIFIER { id }
+;
+
+varInitializer:
+	e=expression { e }
+;
 /* statements */
 statement:
 	es=emptyStmt { es }
@@ -196,8 +208,8 @@ statement:
 	| ss=selectStmt { ss }
 	| gs=guardingStmt { gs } */
 	| exs=expressionStmt SEMI { exs }
-	| is=iterStmt { is }
 	| js=jumpStmt { js }
+	| is=iterStmt { is }
 	| b=block { b }
 ;
 
@@ -213,6 +225,7 @@ labelStmt:
 
 expressionStmt:
 	e=expression { e }
+	| EOF { "eof" }
 ;
 
 selectStmt:
@@ -297,8 +310,37 @@ exclusiveOrExpression:
 	| eoe=exclusiveOrExpression XOR ae=andExpression { eoe^" ^ "^ae }
 ;
 
+castExpression:
+	ue=unaryExpression { ue }
+;
+
+mulExpression:
+	ce=castExpression { ce }
+	| me=mulExpression MUL ce=castExpression { me^" * "^ce }
+
+;
+
+addExpression:
+	me=mulExpression { me }
+	| ae=addExpression PLUS me=mulExpression { ae^" + "^me }
+	| ae=addExpression MINUS me=mulExpression { ae^" - "^me }
+;
+
+shiftExpression:
+	ae=addExpression { ae }
+;
+
+relationalExpression:
+	se=shiftExpression { se }
+;
+
+equalityExpression:
+	re=relationalExpression { re }
+;
+
 andExpression: 
-	ae=andExpression BAND { ae^" & "} 
+	ee=equalityExpression { ee }
+	| ae=andExpression BAND { ae^" & "} 
 ;
 
 unaryExpression:

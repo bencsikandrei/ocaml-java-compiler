@@ -157,7 +157,7 @@ rule nexttoken = parse
 	| ">" { GTHAN }
 	| ">=" { GETHAN }
 	| "<=" { LETHAN }
-	
+
 	(* all assignemnts *)
 	| '=' { ASSIGN }
 	| "+="  { PEQUAL }
