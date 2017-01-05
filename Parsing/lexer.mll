@@ -81,7 +81,7 @@
 let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
 let space = [' ' '\t']
-let newline = ['\010' '\013']
+let newline = ('\n' | '\r' | "\r\n")
 let others = ['+''-''*''/''=''"'':''('')''{''}''['']''!''&''|'';''.'',''<''>']
 
 (* java identifiers can start with an underscore or dollar sign or letter *)
@@ -106,7 +106,7 @@ let char_literal = ''' ([^''']) '''
 let string_literal = '"' ([^'"'])* '"'
 
 (* int types *)
-let integer = ('0'|['0'-'9']) (digit)+
+let integer = ('0' | digit) (digit)*
 let long = (integer)('l'|'L')
 
 (* floating point types *)
@@ -190,6 +190,7 @@ rule nexttoken = parse
 	| ';' { SEMI }
 	| '.' { DOT }
 	| ',' { COMM }
+	| ':' { COL }
 
 
 	(* some types *)
@@ -229,6 +230,9 @@ and multiline_comment = parse
 
 	let print_token = function 
 		| IDENTIFIER(id) -> print_string ( " id : " ^ id )
+		| INTLIT(intlit) -> print_string ( " intlit : " ^ string_of_int intlit )
+		| FLOATLIT(floatlit) -> print_string ( " floatlit : " ^ string_of_float floatlit )
+		| BOOLEANLIT(boollit) -> print_string ( " boollit : " ^ string_of_bool boollit )
 		| STRLIT(slit) -> print_string ( " stlit : " ^ slit )
 		| EOF -> print_string "EOF"
 		| PLUS -> print_string "PLUS"
