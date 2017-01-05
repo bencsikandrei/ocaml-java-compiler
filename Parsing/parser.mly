@@ -185,9 +185,9 @@ localVariableDeclStmt:
 statement:
 	es=emptyStmt { es }
 	/*| ls=labelStmt { ls }
+	| gs=guardingStmt { gs } */
 	| exs=expressionStmt SEMI { exs }
 	| ss=selectStmt { ss }
-	| gs=guardingStmt { gs } */
 	| js=jumpStmt { js }
 	| is=iterStmt { is }
 	| b=block { b }
@@ -212,16 +212,14 @@ expressionStmt:
 ;
 
 selectStmt:
-	IF LPAR e=expression RPAR s=statement { e^s}
-	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { e^s1^s2 }
-	| SWITCH LPAR e=expression RPAR b=block { e^b }
-	| error { "an error has occured" } 
+	IF LPAR e=expression RPAR s=statement { "if("^e^")"^s}
 ;
 
 iterStmt: 
 	WHILE LPAR e=expression RPAR s=statement { "while("^e^")"^s }
 	| DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^");"}
 	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s }
+	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for("^fi^fe^")"^s }
 	| error { "an error has occured" } 
 	;
 
@@ -259,8 +257,8 @@ jumpStmt:
 	| THROW e=expression SEMI { "throw "^e^";" }
 	| error { "an error has occured" } 
 	;
-/* expressions */
 
+/* expressions */
 expression:
 	/* ae=assignmentExpression { ae } */
 	| error { "expression:an error has occured" } 
