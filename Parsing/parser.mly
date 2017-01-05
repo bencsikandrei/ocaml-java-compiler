@@ -220,7 +220,8 @@ selectStmt:
 
 iterStmt: 
 	WHILE LPAR e=expression RPAR s=statement { "while("^e^")"^s }
-		| error { "an error has occured" } 
+	| DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^");"}
+	| error { "an error has occured" } 
 	;
 
 jumpStmt: 
