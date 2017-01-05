@@ -105,7 +105,7 @@
 %%
 compilationUnit:
 	m=modifiers { m }
-	| b=block { b }
+	| s=statement { s }
 	| error { " an error has occured\n" }
 
 modifiers:
@@ -146,6 +146,13 @@ localVariableDeclStmt:
 
 statement:
 	es=emptyStmt { es }
+	| ls=labelStmt { ls }
+	| exs=expressionStmt SEMI { exs }
+	| ss=selectStmt { ss }
+	/*| is=iterStmt { is }
+	| js=jumpStmt { js }
+	| gs=guardingStmt { gs } */
+	| b=block { b }
 	| error { " an error has occured\n" } 
 ;
 
@@ -154,6 +161,133 @@ emptyStmt:
 	| error { " an error has occured\n" } 
 ;
 
+labelStmt:
+	id=IDENTIFIER COL { id^" : " }
+	| CASE ce=ctExpression COL { "case "^ce^" : " }
+	| DEFAULT COL { "default : " }
+	| error { "an error has occured" } 
+;
+
+expressionStmt:
+	e=expression { e }
+	| error { "an error has occured" } 
+;
+
+selectStmt:
+	IF LPAR e=expression RPAR s=statement { e^s}
+	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { e^s1^s2 }
+	| SWITCH LPAR e=expression RPAR b=block { e^b }
+	| error { "an error has occured" } 
+;
+
+expression:
+	ae=assignmentExpression { ae } 
+	| error { "an error has occured" } 
+;
+ctExpression:
+	ce=conditionalExpression { ce }
+	| error { "an error has occured" } 
+;
+
+assignmentExpression: 
+	ce=conditionalExpression { ce }
+	| ue=unaryExpression ao=assignmentOperator ae=assignmentExpression { ue^ao^ae }
+	| error { "an error has occured" } 
+	;
+
+conditionalExpression: 
+	coe=conditionalOrExpression { coe }
+	| coe=conditionalOrExpression QM e=expression COL ce=conditionalExpression { coe^e^ce }
+	| error { "an error has occured" } 
+;
+
+exclusiveOrExpression: 
+	ae=andExpression { ae }
+	| eoe=exclusiveOrExpression XOR ae=andExpression { eoe^" ^ "^ae }
+	| error { "an error has occured" } 
+	;
+
+inclusiveOrExpression: 
+	eoe=exclusiveOrExpression { eoe }
+	| ioe=inclusiveOrExpression BOR eoe=exclusiveOrExpression { ioe^" | "^eoe }
+	| error { "an error has occured" } 
+	;
+
+conditionalAndExpression: 
+	ioe=inclusiveOrExpression { ioe }
+	| cae=conditionalAndExpression AND ioe=inclusiveOrExpression { cae^" && " ^ ioe }
+	| error { "an error has occured" } 
+	;
+
+conditionalOrExpression: 
+	cae=conditionalAndExpression { cae }
+	| coe=conditionalOrExpression OR cae=conditionalAndExpression { coe^" || "^cae }
+	| error { "an error has occured" } 
+	;
+
+unaryExpression: 
+	INCREMENT unaryExpression {  }
+	| DECREMENT unaryExpression {  }
+	| arithmeticUnaryOperator castExpression {  }
+	| logicalUnaryExpression {  }
+	;
+
+logicalUnaryExpression:
+	 postfixExpression { }
+	| logicalUnaryOperator unaryExpression { }
+	| error { "an error has occured" } 	
+;
+
+/* try catch */
+catches
+	: c=catch { c } 
+	| cs=catches c=catch { cs^c }
+	| error { "an error has occured" } 
+;
+
+catch: 
+	ch=catchHeader b=block { ch^b }
+	| error { "an error has occured" } 
+;
+
+catchHeader: 
+	CATCH RPAR ts=typeSpecifier id=IDENTIFIER RPAR { }
+	| CATCH RPAR ts=typeSpecifier LPAR { }
+	| error { "an error has occured" } 
+;
+
+finally
+	: FINALLY b=block { "finally "^b }
+	| error { "an error has occured" } 
+;
+/* end try catch */
+
+logicalUnaryOperator: 
+	BNOT { "~" }
+	| NOT { "!" }
+	| error { "an error has occured" } 
+	;
+
+arithmeticUnaryOperator
+	: PLUS { "+" }
+	| MINUS { "-" }
+	| error { "an error has occured" } 
+	;
+
+assignmentOp
+	: ASSIGN { "=" }
+	| MULEQUAL  { "*=" }
+	| DIVEQUAL { " /= " }
+	| MODEQUAL { "%=" }
+	| PEQUAL { "+=" }
+	| MINUSEQUAL { "-=" }
+	| LSHIFTEQUAL { "<<=" }
+	| RSHIFTEQUAL { ">>=" }
+	| LOGSHIFTEQUAL { ">>>=" }
+	| ANDEQUAL { "&=" }
+	| XOREQUAL { "^=" }
+	| OREQUAL { "|=" }
+	;
 
 %%
 let parse_error s = 
