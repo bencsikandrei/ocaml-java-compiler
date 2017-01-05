@@ -105,25 +105,42 @@
 compilationUnit: 
 	| PACKAGE qid=qualifiedIdentifier SEMI compilationUnit { qid }
 	| IMPORT qid=qualifiedIdentifier SEMI compilationUnit { qid }
-	/* | typeDeclaration compilationUnit { } */
+	| typeDeclaration compilationUnit { }
 	| EOF { "EOF reached" }
 	| error { print_endline "an error occured "; "an error occured " }
 ;
+
 qualifiedIdentifier: 
 	| id=IDENTIFIER { print_endline id; id}
-	| id=IDENTIFIER DOT qualifiedIdentifier { print_endline id; id }
+	| qualifiedIdentifier DOT id=IDENTIFIER  { print_endline id; id }
 	| error { print_endline "an error occured ";"an error occured " }
 ;
+
 qualifiedIdentifierStar:
-	| id=IDENTIFIER { print_endline id ; id} 
-	| id=IDENTIFIER DOT qualifiedIdentifier { print_endline id; id } 
+	| qid=qualifiedIdentifier { print_endline qid ; qid} 
+	| qualifiedIdentifierStar DOT MUL { print_endline " .*"; ".*" } 
 	| error { print_endline "an error occured ";"an error occured " }
 ;	
-/* typeDeclaration: 
-	| typeDeclarationModifiers classDeclaration
-	| typeDeclarationModifiers interfaceDeclaration
-	| SEMI
-*/
+
+typeDeclaration: 
+	| typeDeclarationModifiers classDeclaration { print_endline "classDeclaration ";"classDeclaration" }
+	| typeDeclarationModifiers interfaceDeclaration { print_endline "classDeclaration ";"classDeclaration" }
+	| SEMI { print_endline "empty declaration"; "empty declaration "}
+	| error { print_endline "an error occured ";"an error occured " }
+;
+
+typeDeclarationModifiers:
+	| PUBLIC { print_endline "PUBLIC"; "PUBLIC"}
+	| PROTECTED { print_endline "PROTECTED"; "PROTECTED"}
+	| PRIVATE { print_endline "PRIVATE"; "PRIVATE"}
+	| STATIC { print_endline "STATIC"; "STATIC"}
+	| ABSTRACT { print_endline "ABSTRACT"; "ABSTRACT"}
+	| FINAL { print_endline "FINAL"; "FINAL"}
+	| STRICTFP { print_endline "STRICTFP"; "STRICTFP"}
+	| error { print_endline "an error occured ";"an error occured " }
+;
+
+
 %%
 let parse_error s = 
 	print_endline s;
