@@ -223,12 +223,6 @@ and multiline_comment = parse
 	| _ { multiline_comment lexbuf (* a comment goes on *) }
 
 {
-
-	let print_string str =
-	print_endline str;
-	flush stdout
-
-
 	let print_token = function 
 		| IDENTIFIER(id) -> print_string ( " id : " ^ id )
 		| INTLIT(intlit) -> print_string ( " intlit : " ^ string_of_int intlit )
