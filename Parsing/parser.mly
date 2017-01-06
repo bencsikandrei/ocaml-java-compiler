@@ -99,7 +99,7 @@
 %token <string> NULLLIT
 %token ELIPSIS
 
-/* priorities */
+/* priorities 
 %right ASSIGN
 %left OR
 %left AND
@@ -109,14 +109,14 @@
 %left MUL DIV MOD
 %right NOT
 %left DOT
-
+*/
 /* starting point */
 %start compilationUnit
 %type <string> compilationUnit
 
 %%
 compilationUnit:
-	s=statement { s }
+	s=block { s }
 	| error { " an error has occured\n" }
 ;
 
@@ -166,191 +166,23 @@ modifier:
 /* end modifiers */
 
 block:
-	LCURL lvds=localVariableDeclAndStmts RCURL { "{"^lvds^"}" }
+	LCURL lvds=statement RCURL { "{"^lvds^"}" }
 	| LCURL RCURL { "{ }" }
 ;
 
-localVariableDeclAndStmts:
-	lvd=localVariableDeclOrStmt { lvd }
-	| lvds=localVariableDeclAndStmts lvd=localVariableDeclOrStmt { lvds^lvd }
-;
-
-localVariableDeclOrStmt:
-	lvd=localVariableDeclStmt { lvd } 
-	| stmt=statement { stmt }
-;
-
-localVariableDeclStmt:
-	ts=types vd=variableDeclarations SEMI { ts^vd^";" }
-	| FINAL ts=types vd=variableDeclarations SEMI { "final "^ts^" "^vd^";" }
-;
-
-variableDeclarations: 
- 	vd=variableDeclaration { vd }
-	| vds=variableDeclarations COMM vd=variableDeclaration { vds^" , "^vd }
-;
-
-variableDeclaration:
-	dn=declaratorName { dn }
-	| dn=declaratorName ASSIGN vi=varInitializer { dn^" = "^vi }
-;
-
-declaratorName: 
-	id=IDENTIFIER { id }
-;
-
-varInitializer:
-	e=expression { e }
-;
-
-/* statements */
 statement:
 	es=emptyStmt { es }
-	/*| ls=labelStmt { ls }
-	| ss=selectStmt { ss }
-	| gs=guardingStmt { gs } */
-	| exs=expressionStmt SEMI { exs }
-	| js=jumpStmt { js }
-	| is=iterStmt { is }
-	| b=block { b }
-;
+	| ls=labelStmt { ls }
 
 labelStmt:
 	id=IDENTIFIER COL { id^" : " }
-	| CASE ce=ctExpression COL { "case "^ce^" : " }
+	| CASE COL { "case : " }
 	| DEFAULT COL { "default : " }
-;
-
-expressionStmt:
-	e=expression { e }
-	| EOF { "eof" }
 ;
 
 emptyStmt:
 	SEMI { ";" }
 ;
-
-
-
-selectStmt:
-	IF LPAR e=expression RPAR s=statement { "if("^e^")"^s }
-	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { "if("^e^")"^s1^"\nelse "^s2 }
-	/* | SWITCH LPAR e=expression RPAR b=block { e^b } */
-;
-
-iterStmt: 
-	WHILE LPAR e=expression RPAR s=statement { "while("^e^")"^s }
-	| DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^");"}
-	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s }
-	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for("^fi^fe^")"^s }
-	/* TODO add a foreach */
-	;
-
-forInit: 
-	es=expressionStmts SEMI { es^";" }
-	| lvds=localVariableDeclStmt { lvds }
-	| SEMI { ";" }
-;
-
-forExpr: 
-	e=expression SEMI { e^";" }
-	| SEMI { ";" }
-;
-
-forIncr: 
-	es=expressionStmts { es }
-;
-
-expressionStmts: 
-	es=expressionStmt { es }
-	| ess=expressionStmts COMM es=expressionStmt { ess^" , "^es } 
-;
-
-jumpStmt: 
-	BREAK id=IDENTIFIER SEMI { "break "^id^";" }
-	| BREAK SEMI { "break;" }
-    | CONTINUE id=IDENTIFIER SEMI { "continue "^id^";"}
-	| CONTINUE SEMI { "continue;"}
-	| RETURN e=expression SEMI { "return "^e^";"  }
-	| RETURN SEMI { "return;"}
-	| THROW e=expression SEMI { "throw "^e^";" }
-;
-
-/* expressions */
-expression:
-	ae=assignmentExpression { ae }
-;
-ctExpression:
-	ce=conditionalExpression { ce }
-;
-
-assignmentExpression:
-	ce=conditionalExpression { ce } 
-	| ue=unaryExpression ao=assignmentOp ae=assignmentExpression { ue^ao^ae }
-;
-
-conditionalExpression:
-	coe=conditionalOrExpression { coe }
-	| coe=conditionalOrExpression QM e=expression COL ce=conditionalExpression {coe^" ? "^e^" : "^ce }
-;
-
-conditionalOrExpression:
-	cae=conditionalAndExpression { cae } 
-	| coe=conditionalOrExpression OR cae=conditionalAndExpression { coe^" || "^cae }
-;
-
-conditionalAndExpression:
-	ioe=inclusiveOrExpression { ioe }
-	| cae=conditionalAndExpression AND ioe=inclusiveOrExpression { cae^" && "^ioe }
-;
-
-inclusiveOrExpression: 
-	eoe=exclusiveOrExpression { eoe }
-	| ioe=inclusiveOrExpression BOR eoe=exclusiveOrExpression { ioe^" | "^eoe }
-;
-
-exclusiveOrExpression: 
-	ae=andExpression { ae }
-	| eoe=exclusiveOrExpression XOR ae=andExpression { eoe^" ^ "^ae }
-;
-
-castExpression:
-	ue=unaryExpression { ue }
-;
-
-mulExpression:
-	ce=castExpression { ce }
-	| me=mulExpression MUL ce=castExpression { me^" * "^ce }
-
-;
-
-addExpression:
-	me=mulExpression { me }
-	| ae=addExpression PLUS me=mulExpression { ae^" + "^me }
-	| ae=addExpression MINUS me=mulExpression { ae^" - "^me }
-;
-
-shiftExpression:
-	ae=addExpression { ae }
-;
-
-relationalExpression:
-	se=shiftExpression { se }
-;
-
-equalityExpression:
-	re=relationalExpression { re }
-;
-
-andExpression: 
-	ee=equalityExpression { ee }
-	| ae=andExpression BAND { ae^" & "} 
-;
-
-unaryExpression:
-	INCREMENT ue=unaryExpression { "++"^ue }
-	| DECREMENT ue=unaryExpression { "--"^ue }
-/* END expressions */
 
 /* catch */
 catches
