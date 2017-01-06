@@ -19,6 +19,11 @@ let test_lexer lexbuf =
 	print_string "\n"
 
 let main () =
+	let lp = 
+		if Array.length Sys.argv > 2
+			then Sys.argv.(2)
+		else "p" 
+	in 
 	let cin =
 		if Array.length Sys.argv > 1
 			then open_in Sys.argv.(1)
@@ -27,7 +32,10 @@ let main () =
 	let lexbuf = Lexing.from_channel cin in
 	try 	
 		while true do 
-			test_parser lexbuf
+			if lp = "l" then
+				test_lexer lexbuf
+			else 
+				test_parser lexbuf
     	done
 	with End_of_file -> exit 0
 

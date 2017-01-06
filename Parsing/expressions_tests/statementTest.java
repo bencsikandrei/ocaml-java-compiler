@@ -69,10 +69,8 @@
 	}
 }
 {
-	try {
-	; }
-	catch (int exc) {
-		;
+	synchronized () {
+		
 	}
 }
 
