@@ -102,7 +102,7 @@ let comment_multiple_lines = "/*" ([^'*'] | newline | ('*'*[^'/']))* "*/"
 let comment_multiple_lines_simple = "/*"
 
 (* TODO -> take care of ESC characters *)
-let char_literal = ''' ([^''']) '''
+let char_literal = '\'' ([^'\'']) '\''
 let string_literal = '"' ([^'"'])* '"'
 
 (* int types *)
@@ -110,7 +110,7 @@ let integer = ('0' | digit) (digit)*
 let long = (integer)('l'|'L')
 
 (* floating point types *)
-let float = (digit)+ '.' (digit)* ( ('e'|'E') ('+'|'-')? (digit)+ )? ('f'|'F')?
+let float = (digit)+ '.' (digit)* ( ('e'|'E') ('+'|'-')? (digit)+ )? ('f'|'F')
 let double = (digit)+ ('.'(digit*))? ( ('e'|'E') ('+'|'-')? (digit)+ )? ('d'|'D')?
 
 (* null literal *)
@@ -196,7 +196,8 @@ rule nexttoken = parse
 	(* some types *)
 	| integer as i { INTLIT(int_of_string i) }
 	| double as d { FLOATLIT(float_of_string d) }
-
+	| float as f { FLOATLIT(float_of_string (String.sub f 0 ((String.length f)-1))) } (* maybe do a function for d and f *)
+	(*| char_literal as clit { CHARLIT clit } TODO now gets a string *)
 	| boolean as b { BOOLEANLIT(bool_of_string b) }
 	| null as n { NULLLIT n } 
 
