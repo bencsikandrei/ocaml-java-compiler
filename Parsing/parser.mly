@@ -119,10 +119,10 @@ compilationUnit:
 	s=block { s }
 	| error { " an error has occured\n" }
 ;
-/* blocl */
+/* block */
 block:
-	LCURL lvds=localVariableDeclAndStmts RCURL { "{"^lvds^"}" }
-	| LCURL RCURL { "{ }" }
+	LCURL lvds=localVariableDeclAndStmts RCURL { "{\n"^lvds^"\n}\n" }
+	| LCURL RCURL { "{\n \n}\n" }
 ;
 
 localVariableDeclAndStmts:
@@ -136,8 +136,8 @@ localVariableDeclOrStmt:
 ;
 
 localVariableDeclStmt:
-	ts=types vd=variableDeclarations SEMI { ts^vd^";" }
-	| FINAL ts=types vd=variableDeclarations SEMI { "final "^ts^" "^vd^";" }
+	ts=types vd=variableDeclarators SEMI { ts^vd^";" }
+	| FINAL ts=types vd=variableDeclarators SEMI { "final "^ts^" "^vd^";" }
 ;
 
 /* statements */
@@ -156,7 +156,11 @@ labelStmt:
 	| CASE ce=constantExpression COL { "case "^ce^": " }
 	| DEFAULT COL { "default : " }
 ;
-
+/*
+expressionStmt:
+	e=expression { e }
+;
+*/
 selectStmt:
 	IF LPAR e=expression RPAR s=statement { "if("^e^") "^s }
 	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { "if("^e^") "^s1^"\nelse "^s2 }
@@ -183,20 +187,26 @@ iterStmt:
 ;
 
 forInit: 
-	SEMI { ";" }
+	lvds=localVariableDeclStmt { lvds }
+	| SEMI { ";" }
 ;
 
 forExpr: 
 	/* e=expression SEMI { e^";" } */
 	SEMI { ";" }
 ;
-
+/*
+forIncr: 
+	es=expressionStmts { es }
+;
+*/
 guardingStmt: 
 	SYNCHRONIZED LPAR e=expression RPAR s=statement { "synchronized ("^e^") "^s }
 	| TRY b=block f=finally { "try "^b^f }
 	| TRY b=block c=catches { "try "^b^c }
 	| TRY b=block c=catches f=finally { "try "^b^c^f }
 ;
+/* end statements */
 
 /* catch */
 catches: 
@@ -218,6 +228,27 @@ finally:
 ;
 /* end catch */
 
+/* variable declarators */
+variableDeclarators: 
+ 	vd=variableDeclarator { vd }
+	| vds=variableDeclarators COMM vd=variableDeclarator { vds^" , "^vd }
+;
+
+variableDeclarator:
+	dn=declaratorName { dn }
+	| dn=declaratorName ASSIGN vi=varInitializer { dn^" = "^vi }
+;
+
+declaratorName: 
+	id=IDENTIFIER { id }
+;
+
+varInitializer:
+	e=expression { e }
+	| RCURL LCURL { "{ }" }
+	/* | RCURL ai=arrayInitializers LCURL { "{"^ai^ "}" } */
+;
+/* end variable declarators */
 emptyStmt:
 	SEMI { ";" }
 ;
@@ -229,10 +260,6 @@ expression:
 constantExpression:
 	{ " |some constant expression| " }
 ;
-
-variableDeclarations: 
-	{ " |some variable declarations| " }
-
 /* types */
 types: 
 	pt=primitive { pt }
@@ -240,15 +267,15 @@ types:
 ;
 
 primitive: 
-	BOOLEAN { "boolean" }
-	| CHAR  { "char" }
-	| BYTE { "byte" }
-	| SHORT { "short" }
-	| INT { "int" }
-	| LONG { "long" }
-	| FLOAT { "float" }
-	| DOUBLE { "double" }
-	| VOID { "void" }
+	BOOLEAN { "boolean " }
+	| CHAR  { "char " }
+	| BYTE { "byte " }
+	| SHORT { "short " }
+	| INT { "int " }
+	| LONG { "long " }
+	| FLOAT { "float " }
+	| DOUBLE { "double " }
+	| VOID { "void " }
 	;
 %%
 let parse_error s = 

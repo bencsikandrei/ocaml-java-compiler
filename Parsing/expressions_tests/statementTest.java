@@ -50,22 +50,23 @@
 	} while();
 }
 {
-	return;
+	return ;
 }
 
 {
 	throw;
 }
+
+{int a;}{double d;}{float f;}{char c;}
 {
 	while() {
 	}
-	int;
-	float;
-	double;
-	for(;;) {
+	final int a;
+	float b;
+	double c =;
+	for(int a = ;;) {
 		
 	}
 }
 
-{int;}{double;}{float;}{char;}
 
