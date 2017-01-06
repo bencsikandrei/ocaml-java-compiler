@@ -119,15 +119,17 @@ compilationUnit:
 	s=block { s }
 	| error { " an error has occured\n" }
 ;
-
+/* blocl */
 block:
 	LCURL lvds=statement RCURL { "{"^lvds^"}" }
 	| LCURL RCURL { "{ }" }
 ;
 
+/* statements */
 statement:
 	es=emptyStmt { es }
 	| ls=labelStmt { ls }
+	/* | exs=expressionStmt SEMI { exs } */
  	| ss=selectStmt { ss }
 	| is=iterStmt { is }
 	| js=jumpStmt { js }
@@ -136,7 +138,7 @@ statement:
 
 labelStmt:
 	id=IDENTIFIER COL { id^" : " }
-	| CASE COL { "case : " }
+	| CASE ce=constantExpression COL { "case "^ce^": " }
 	| DEFAULT COL { "default : " }
 ;
 
@@ -147,21 +149,31 @@ selectStmt:
 ;
 
 jumpStmt: 
-	BREAK id=IDENTIFIER SEMI { "break "^id^";" }
+	BREAK id=IDENTIFIER SEMI { "break "^id^"; " }
 	| BREAK SEMI { "break;" }
-    | CONTINUE id=IDENTIFIER SEMI { "continue "^id^";"}
+    | CONTINUE id=IDENTIFIER SEMI { "continue "^id^"; "}
 	| CONTINUE SEMI { "continue;"}
-	/* | RETURN e=expression SEMI { "return "^e^";"  }
-	| RETURN SEMI { "return;"}
-	| THROW e=expression SEMI { "throw "^e^";" }*/
+	| RETURN e=expression SEMI { "return "^e^"; "  }
+	/* | RETURN SEMI { "return;"} */
+	| THROW e=expression SEMI { "throw "^e^"; " }
 ;
 
 iterStmt: 
 	WHILE LPAR e=expression RPAR s=statement { "while("^e^")"^s }
-	/* | DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^");"}
-	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s }
-	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for("^fi^fe^")"^s } */
+	| DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^"); "} 
+	/*
+	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s } */
+	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for("^fi^fe^")"^s } 
 	/* TODO add a foreach */
+;
+
+forInit: 
+	SEMI { ";" }
+;
+
+forExpr: 
+	/* e=expression SEMI { e^";" } */
+	SEMI { ";" }
 ;
 
 guardingStmt: 
@@ -196,7 +208,11 @@ emptyStmt:
 ;
 
 expression: 
-	{ " some expression " }
+	{ " |some expression| " }
+;
+
+constantExpression:
+	{ " |some constant expression| " }
 ;
 
 /* types */

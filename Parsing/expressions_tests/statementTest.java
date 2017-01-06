@@ -46,5 +46,24 @@
 		synchronized () { ; } 
 	}
 }
+{	
+	do {
+	} while();
+}
+{
+	return;
+}
 
+{
+	throw;
+}
+{
+	for(;;) {
+		for(;;) {
+			for(;;) {
+		
+			}
+		}	
+	}
+}
 
