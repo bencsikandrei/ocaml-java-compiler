@@ -27,7 +27,7 @@ let main () =
 	let lexbuf = Lexing.from_channel cin in
 	try 	
 		while true do 
-			Printexc.print test_lexer lexbuf
+			test_parser lexbuf
     	done
 	with End_of_file -> exit 0
 
