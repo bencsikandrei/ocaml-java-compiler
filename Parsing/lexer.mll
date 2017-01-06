@@ -81,6 +81,7 @@
 let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
 let space = [' ' '\t']
+let escape = ('\\'letter)
 let newline = ('\n' | '\r' | "\r\n")
 let others = ['+''-''*''/''=''"'':''('')''{''}''['']''!''&''|'';''.'',''<''>']
 
@@ -102,7 +103,7 @@ let comment_multiple_lines = "/*" ([^'*'] | newline | ('*'*[^'/']))* "*/"
 let comment_multiple_lines_simple = "/*"
 
 (* TODO -> take care of ESC characters *)
-let char_literal = '\'' ([^'\'']) '\''
+let char_literal = "'"(letter|escape)"'"
 let string_literal = '"' ([^'"'])* '"'
 
 (* int types *)
@@ -133,7 +134,12 @@ rule nexttoken = parse
 										nexttoken lexbuf }
 
 	| string_literal as slit { STRLIT slit }
-	
+	| char_literal as clit { 
+		CHARLIT (
+			String.get ( String.sub clit 1 ((String.length clit) - 2 ) ) 0
+			) 
+		} (* TODO now gets a string *) 
+
 	(* binary operators *)
 	| '+' { PLUS } 
 	| '-' { MINUS }
@@ -197,7 +203,6 @@ rule nexttoken = parse
 	| integer as i { INTLIT(int_of_string i) }
 	| double as d { DOUBLELIT(float_of_string d) }
 	| float as f { FLOATLIT(float_of_string (String.sub f 0 ((String.length f)-1))) } (* maybe do a function for d and f *)
-	(*| char_literal as clit { CHARLIT clit } TODO now gets a string *)
 	| boolean as b { BOOLEANLIT(bool_of_string b) }
 	| null as n { NULLLIT n } 
 
@@ -223,12 +228,19 @@ and multiline_comment = parse
 	| _ { multiline_comment lexbuf (* a comment goes on *) }
 
 {
+	let debug_char_lit clit = 
+		print_endline ("char literal " ^ clit);
+		let my_char = String.get ( String.sub clit 1 ((String.length clit) - 2 ) ) 0  in 
+		print_endline (" charlit " ^ String.make 1 my_char);
+		my_char
+
 	let print_token = function 
 		| IDENTIFIER(id) -> print_string ( " id : " ^ id )
 		| INTLIT(intlit) -> print_string ( " intlit : " ^ string_of_int intlit )
 		| DOUBLELIT(doublelit) -> print_string ( " doublelit : " ^ string_of_float doublelit )
 		| FLOATLIT(floatlit) -> print_string ( " floatlit : " ^ string_of_float floatlit )
 		| BOOLEANLIT(boollit) -> print_string ( " boollit : " ^ string_of_bool boollit )
+		| CHARLIT(charlit) -> print_string (" charlit " ^ String.make 1 charlit)
 		| STRLIT(slit) -> print_string ( " stlit : " ^ slit )
 		| EOF -> print_string "EOF"
 		| PLUS -> print_string "PLUS"

@@ -2,7 +2,11 @@
       double d2 = 1.234e2;
       float f1  = 123.4f;
       int a, b, c;
+      char chtab = '\t'
+      char chnorm = 'A'
+      
       a = 10;
+      
       b = (a == 1) ? 20: 30;
       System.out.println( "Value of b is : " +  b );
 
