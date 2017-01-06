@@ -1,6 +1,5 @@
  {;}
- { a:    	
- }
+ { a: }
  { case : }
  { default : }
 { break a; }
@@ -58,12 +57,15 @@
 	throw;
 }
 {
+	while() {
+	}
+	int;
+	float;
+	double;
 	for(;;) {
-		for(;;) {
-			for(;;) {
 		
-			}
-		}	
 	}
 }
+
+{int;}{double;}{float;}{char;}
 

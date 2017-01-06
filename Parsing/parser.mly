@@ -121,8 +121,23 @@ compilationUnit:
 ;
 /* blocl */
 block:
-	LCURL lvds=statement RCURL { "{"^lvds^"}" }
+	LCURL lvds=localVariableDeclAndStmts RCURL { "{"^lvds^"}" }
 	| LCURL RCURL { "{ }" }
+;
+
+localVariableDeclAndStmts:
+	lvd=localVariableDeclOrStmt { lvd }
+	| lvds=localVariableDeclAndStmts lvd=localVariableDeclOrStmt { lvds^lvd }
+;
+
+localVariableDeclOrStmt:
+	lvd=localVariableDeclStmt { lvd } 
+	| stmt=statement { stmt }
+;
+
+localVariableDeclStmt:
+	ts=types vd=variableDeclarations SEMI { ts^vd^";" }
+	| FINAL ts=types vd=variableDeclarations SEMI { "final "^ts^" "^vd^";" }
 ;
 
 /* statements */
@@ -214,6 +229,9 @@ expression:
 constantExpression:
 	{ " |some constant expression| " }
 ;
+
+variableDeclarations: 
+	{ " |some variable declarations| " }
 
 /* types */
 types: 
