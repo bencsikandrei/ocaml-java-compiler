@@ -119,52 +119,6 @@ compilationUnit:
 	s=block { s }
 	| error { " an error has occured\n" }
 ;
-
-/* operators */
-logicalUnaryOperator: 
-	BNOT { "~" }
-	| NOT { "!" }
-;
-
-arithmeticUnaryOperator: 
-	PLUS { "+" }
-	| MINUS { "-" }
-;
-
-assignmentOp: 
-	ASSIGN { "=" }
-	| MULEQUAL  { "*=" }
-	| DIVEQUAL { " /= " }
-	| MODEQUAL { "%=" }
-	| PEQUAL { "+=" }
-	| MINUSEQUAL { "-=" }
-	| LSHIFTEQUAL { "<<=" }
-	| RSHIFTEQUAL { ">>=" }
-	| LOGSHIFTEQUAL { ">>>=" }
-	| ANDEQUAL { "&=" }
-	| XOREQUAL { "^=" }
-	| OREQUAL { "|=" }
-;
-/* end operators */
-
-/* modifiers */
-modifiers:
-	m=modifier { m }
-	| ms=modifiers m=modifier { ms^m }
-;
-
-modifier:
-	PUBLIC { "PUBLIC" }
-	| PROTECTED { "PROTECTED" }
-	| PRIVATE { "PRIVATE" }
-	| STATIC { "STATIC" }
-	| ABSTRACT { "ABSTRACT" }
-	| FINAL { "FINAL" }
-	| STRICTFP { "STRICTFP" }
-	| VOLATILE { "VOLATILE" }
-;
-/* end modifiers */
-
 block:
 	LCURL lvds=statement RCURL { "{"^lvds^"}" }
 	| LCURL RCURL { "{ }" }
@@ -183,50 +137,6 @@ labelStmt:
 emptyStmt:
 	SEMI { ";" }
 ;
-
-/* catch */
-catches
-	: c=catch { c } 
-	| cs=catches c=catch { cs^c }
-;
-
-catch: 
-	ch=catchHeader b=block { ch^b }
-;
-
-catchHeader: 
-	CATCH RPAR ts=types id=IDENTIFIER RPAR { }
-	| CATCH RPAR ts=types LPAR { }
-;
-
-finally: 
-	FINALLY b=block { "finally "^b }
-;
-/* end catch */
-
-/* types */
-types: 
-	pt=primitive { pt }
-	/* need classes here */
-;
-
-primitive: 
-	BOOLEAN { "boolean" }
-	| CHAR  { "char" }
-	| BYTE { "byte" }
-	| SHORT { "short" }
-	| INT { "int" }
-	| LONG { "long" }
-	| FLOAT { "float" }
-	| DOUBLE { "double" }
-	| VOID { "void" }
-	;
-
-semiColons: 
-	SEMI { ";" }
-   	| sc=semiColons SEMI { sc^";" }
-;
-
 %%
 let parse_error s = 
 	print_endline s;
