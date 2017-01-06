@@ -27,6 +27,11 @@ type types =
 	| T_Long
 	| T_Short
 	| T_Double
+	| T_Generic of string*types
+
+type typeParamList =
+	| TPL_Ident of string
+	| TPL_Extend of string * string	
 
 
 type resultType=

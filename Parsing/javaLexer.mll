@@ -46,7 +46,10 @@ rule nexttoken = parse
 	| "short" {SHORT}
 	| "double" {DOUBLE}
 	| "..." {ELIPSIS}
-	|"throws" {THROWS}
+	| "throws" {THROWS}
+	| "class" {CLASS}
+	| "extends" {EXTENDS}
+	| "implements" {IMPLEMENTS}
 	| real as nb { FLOATLIT (float_of_string nb) }
 	| ident as str { IDENTIFIER str }
-	| _	{ raise (SyntaxError("Unexected: "^Lexing.lexeme lexbuf))}
+	| _	{ raise (SyntaxError("Unexpected: "^Lexing.lexeme lexbuf))}

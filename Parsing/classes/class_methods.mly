@@ -13,7 +13,7 @@ javaMethods:
 
 (* Method Layout declarations *)
 %public javaMethod:  
-		|mm=option(MethodModifiers) tp=option(TypeParameters) rt=ResultType md=MethodDeclarator th=option(Throws) mb=MethodBody {
+		|mm=option(MethodModifiers) tp=option(type_params_defin) rt=ResultType md=MethodDeclarator th=option(Throws) mb=MethodBody {
 			let mm=match mm with | None -> [] | Some mm ->mm in
 			let tp=match tp with | None -> [] | Some tp -> tp in
 			let th=match th with | None	-> [] | Some th -> th in 
@@ -97,18 +97,8 @@ Annotation:
 VariableDeclaratorId:
 	|i=IDENTIFIER {DI_Identifier i}
 
-TypeParameters:
-	| LANG TypeParameterList RANG {[]}
-
-TypeParameterList:
-	|TypeParameter	{}
-	|TypeParameter COMM TypeParameterList {}
-
-TypeParameter: (* TODO *)
-	|IDENTIFIER {}
-
-Block:
-	| LCURL RCURL { }
+%public Block:
+	| LCURL RCURL {}
 	| LCURL exprs RCURL {}
 
 %%
