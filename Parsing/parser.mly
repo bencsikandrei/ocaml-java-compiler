@@ -119,6 +119,7 @@ compilationUnit:
 	s=block { s }
 	| error { " an error has occured\n" }
 ;
+
 block:
 	LCURL lvds=statement RCURL { "{"^lvds^"}" }
 	| LCURL RCURL { "{ }" }
@@ -127,6 +128,11 @@ block:
 statement:
 	es=emptyStmt { es }
 	| ls=labelStmt { ls }
+ 	| ss=selectStmt { ss }
+	| is=iterStmt { is }
+	| js=jumpStmt { js }
+	| gs=guardingStmt { gs }
+	| b=block { b }
 
 labelStmt:
 	id=IDENTIFIER COL { id^" : " }
@@ -134,9 +140,82 @@ labelStmt:
 	| DEFAULT COL { "default : " }
 ;
 
+selectStmt:
+	IF LPAR e=expression RPAR s=statement { "if("^e^") "^s }
+	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { "if("^e^") "^s1^"\nelse "^s2 }
+	| SWITCH LPAR e=expression RPAR b=block { "switch ("^e^") "^b } 
+;
+
+jumpStmt: 
+	BREAK id=IDENTIFIER SEMI { "break "^id^";" }
+	| BREAK SEMI { "break;" }
+    | CONTINUE id=IDENTIFIER SEMI { "continue "^id^";"}
+	| CONTINUE SEMI { "continue;"}
+	/* | RETURN e=expression SEMI { "return "^e^";"  }
+	| RETURN SEMI { "return;"}
+	| THROW e=expression SEMI { "throw "^e^";" }*/
+;
+
+iterStmt: 
+	WHILE LPAR e=expression RPAR s=statement { "while("^e^")"^s }
+	/* | DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^");"}
+	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s }
+	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for("^fi^fe^")"^s } */
+	/* TODO add a foreach */
+;
+
+guardingStmt: 
+	SYNCHRONIZED LPAR e=expression RPAR s=statement { "synchronized ("^e^") "^s }
+	| TRY b=block f=finally { "try "^b^f }
+	| TRY b=block c=catches { "try "^b^c }
+	| TRY b=block c=catches f=finally { "try "^b^c^f }
+;
+
+/* catch */
+catches: 
+	c=catch { c } 
+	| cs=catches c=catch { cs^c }
+;
+
+catch: 
+	ch=catchHeader b=block { ch^b }
+;
+
+catchHeader: 
+	CATCH RPAR ts=types id=IDENTIFIER RPAR { "catch ( "^ts^id^" ) "}
+	| CATCH RPAR ts=types LPAR { "catch ( "^ts^" ) " }
+;
+
+finally: 
+	FINALLY b=block { "finally "^b }
+;
+/* end catch */
+
 emptyStmt:
 	SEMI { ";" }
 ;
+
+expression: 
+	{ " some expression " }
+;
+
+/* types */
+types: 
+	pt=primitive { pt }
+	/* need classes here */
+;
+
+primitive: 
+	BOOLEAN { "boolean" }
+	| CHAR  { "char" }
+	| BYTE { "byte" }
+	| SHORT { "short" }
+	| INT { "int" }
+	| LONG { "long" }
+	| FLOAT { "float" }
+	| DOUBLE { "double" }
+	| VOID { "void" }
+	;
 %%
 let parse_error s = 
 	print_endline s;
