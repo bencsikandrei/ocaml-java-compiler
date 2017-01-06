@@ -69,8 +69,12 @@
 	}
 }
 {
-	synchronized () {
-		
+	try { 
+		;	
+	} catch(int) {
+		;
+	} catch(float) {
+	
 	}
 }
 
