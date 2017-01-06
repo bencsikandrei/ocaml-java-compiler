@@ -12,7 +12,7 @@
 	| LONG {T_Long}
 	| SHORT {T_Short}
 	| DOUBLE {T_Double}
-	| id=IDENTIFIER t=type_generic_impl { T_Generic(id*t)}
+	| id=IDENTIFIER t=type_generic_impl { T_Generic(id,t)}
 
 type_generic_impl:
 	| LANG t=types RANG {t}

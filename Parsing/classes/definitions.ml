@@ -41,8 +41,6 @@ type resultType=
 type declaratorId = 
 	|DI_Identifier of string
 
-type typeParam={t:string};;
-
 type body={expr:string};;
 
 type formalParameter = {
@@ -59,7 +57,7 @@ type methodDeclarator= {
 
 type javaMethod={
 	jmmodifiers: modifier list;
-	jmtparam:typeParam list; 	
+	jmtparam:typeParamList list; 	
 	jmrtype:resultType;
 	jmdeclarator:methodDeclarator;
 	jmthrows:jexception list;
