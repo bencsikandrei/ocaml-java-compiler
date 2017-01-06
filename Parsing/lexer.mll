@@ -111,7 +111,7 @@ let long = (integer)('l'|'L')
 
 (* floating point types *)
 let float = (digit)+ '.' (digit)* ( ('e'|'E') ('+'|'-')? (digit)+ )? ('f'|'F')
-let double = (digit)+ ('.'(digit*))? ( ('e'|'E') ('+'|'-')? (digit)+ )? ('d'|'D')?
+let double = (digit)+ '.'(digit)* ( ('e'|'E') ('+'|'-')? (digit)+ )? ('d'|'D')?
 
 (* null literal *)
 let null = "null"
@@ -195,7 +195,7 @@ rule nexttoken = parse
 
 	(* some types *)
 	| integer as i { INTLIT(int_of_string i) }
-	| double as d { FLOATLIT(float_of_string d) }
+	| double as d { DOUBLELIT(float_of_string d) }
 	| float as f { FLOATLIT(float_of_string (String.sub f 0 ((String.length f)-1))) } (* maybe do a function for d and f *)
 	(*| char_literal as clit { CHARLIT clit } TODO now gets a string *)
 	| boolean as b { BOOLEANLIT(bool_of_string b) }
@@ -226,6 +226,7 @@ and multiline_comment = parse
 	let print_token = function 
 		| IDENTIFIER(id) -> print_string ( " id : " ^ id )
 		| INTLIT(intlit) -> print_string ( " intlit : " ^ string_of_int intlit )
+		| DOUBLELIT(doublelit) -> print_string ( " doublelit : " ^ string_of_float doublelit )
 		| FLOATLIT(floatlit) -> print_string ( " floatlit : " ^ string_of_float floatlit )
 		| BOOLEANLIT(boollit) -> print_string ( " boollit : " ^ string_of_bool boollit )
 		| STRLIT(slit) -> print_string ( " stlit : " ^ slit )

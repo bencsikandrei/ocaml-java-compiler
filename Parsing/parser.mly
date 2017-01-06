@@ -92,6 +92,7 @@
 %token <string> IDENTIFIER
 %token <string> STRLIT
 %token <int> INTLIT
+%token <float> DOUBLELIT
 %token <float> FLOATLIT
 %token <char> CHARLIT 
 %token <bool> BOOLEANLIT
