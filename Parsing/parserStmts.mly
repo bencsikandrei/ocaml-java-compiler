@@ -195,6 +195,7 @@ forExpr:
 	/* e=expression SEMI { e^";" } */
 	SEMI { ";" }
 ;
+
 /*
 forIncr: 
 	es=expressionStmts { es }
@@ -220,8 +221,8 @@ catch:
 ;
 
 catchHeader: 
-	CATCH RPAR ts=types id=IDENTIFIER RPAR { "catch ( "^ts^id^" ) "}
-	| CATCH RPAR ts=types LPAR { "catch ( "^ts^" ) " }
+	CATCH LPAR ts=types id=IDENTIFIER RPAR { "catch ( "^ts^id^" ) "}
+	| CATCH LPAR ts=types RPAR { "catch ( "^ts^" ) " }
 ;
 
 finally: 
@@ -261,13 +262,17 @@ expression:
 constantExpression:
 	{ " |some constant expression| " }
 ;
-/* types */
-types: 
+/*
 	pt=primitive { pt }
-	/* need classes here */
+	
 ;
 
-primitive: 
+primitive:
+*/
+
+/* types */
+
+types:  
 	BOOLEAN { "boolean " }
 	| CHAR  { "char " }
 	| BYTE { "byte " }
@@ -277,7 +282,7 @@ primitive:
 	| FLOAT { "float " }
 	| DOUBLE { "double " }
 	| VOID { "void " }
-	;
+;
 %%
 let parse_error s = 
 	print_endline s;
