@@ -3,13 +3,16 @@ open Definitions
 %}
 
 %start javaMethods
-%start <javaMethod list> javaMethods
+%start <abstractSyntaxTree> javaMethods
 
 %%
 
 javaMethods:
+	| p=javaMethod_list {JML p}	
+
+javaMethod_list:
 	|j1=javaMethod EOF {j1::[]}
-	|j1=javaMethod j2=javaMethods {j1::j2}
+	|j1=javaMethod j2=javaMethod_list {j1::j2}
 
 (* Method Layout declarations *)
 %public javaMethod:  

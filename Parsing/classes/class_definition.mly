@@ -1,13 +1,13 @@
 %{
-
+open Definitions
 %}
 
 %start javaClass
-%start <string> javaClass
+%start <abstractSyntaxTree> javaClass
 
 %%
 javaClass:
-	| c=j_class EOF { "" } (* for testing *)
+	| c=j_class EOF { STR "" } (* for testing *)
 
 %public j_class:
 	| modif=option(modifiers) CLASS id=IDENTIFIER 

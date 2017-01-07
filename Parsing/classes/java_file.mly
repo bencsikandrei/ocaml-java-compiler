@@ -1,13 +1,13 @@
 %{
-
+open Definitions
 %}
 
 %start javaFile
-%start <string> javaFile
+%start <abstractSyntaxTree> javaFile
 
 %%
 javaFile:
-	| option(package) option(imports) option(file_content) EOF { "" }
+	| option(package) option(imports) option(file_content) EOF { STR "" }
 
 package:
 	| PACKAGE pack_name SEMI { }
