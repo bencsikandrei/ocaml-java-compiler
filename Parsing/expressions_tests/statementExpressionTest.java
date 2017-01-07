@@ -64,6 +64,9 @@
 	a += 10;
 	
 	int a = { 10,20 };
+	a = new int[10];
+	a = new int[20] { 10 , 15 , 1};	
+	b = new Hello(10,12);
 }
 
 

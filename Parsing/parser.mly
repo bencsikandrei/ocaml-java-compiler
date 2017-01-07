@@ -110,8 +110,9 @@
 %left PLUS MINUS
 %left MUL DIV MOD
 %right NOT
-%left DOT
+
 */
+%nonassoc DOT
 /* starting point */
 %start compilationUnit
 %type <string> compilationUnit
@@ -413,8 +414,47 @@ qualifiedName:
 
 notJustName:
 	spn=specialName { spn }
-	/* | all=newAllocationExpression { all } */
+	| all=newAllocationExpression { all }
 	| cpri=complexPrimary { cpri }
+;
+
+newAllocationExpression:
+	pall=plainNewAllocationExpression { pall }
+	| qn=qualifiedName DOT pall=plainNewAllocationExpression { qn^"."^pall }
+;
+
+plainNewAllocationExpression:
+	arrall=arrayAllocationExpression { arrall }
+    	| call=classAllocationExpression { call }
+    	| arrall=arrayAllocationExpression LCURL RCURL { arrall^"{"^"}" }
+    	| call=classAllocationExpression LCURL RCURL { call^"{"^"}" }
+    	| arrall=arrayAllocationExpression LCURL arri=arrayInitializers RCURL { arrall^"{"^arri^"}" }
+    	(*| call=classAllocationExpression LCURL fdec=fieldDeclarations RCURL { call^"{"^fdec^"}" }*)
+;
+
+classAllocationExpression:
+	NEW tn=typeName LPAR args=argumentList RPAR { "new"^tn^"("^args^")" }
+	| NEW tn=typeName LPAR RPAR { "new"^tn^"("^")" }
+;
+
+argumentList:
+	ex=expression { ex }
+	| args=argumentList COMM ex=expression { args^" , "^ex }
+;
+
+arrayAllocationExpression:
+	NEW tn=typeName de=dimExprs d=dims { "new "^tn^de^d }
+	| NEW tn=typeName de=dimExprs { "new "^tn^de }
+        | NEW tn=typeName d=dims { "new "^tn^d }
+;
+
+dimExprs:
+	de=dimExpr { de }
+	| ds=dimExprs d=dimExpr { ds^d }
+;
+
+dimExpr:
+	LBRAC ex=expression RBRAC { "["^ex^"]" }
 ;
 
 complexPrimary:
