@@ -1,7 +1,7 @@
 %{
 	open Printf
 	open Lexing
-
+	open Expressions
 %}
 /* brackets */
 %token LANG RANG LPAR RPAR LBRAC RBRAC LCURL RCURL /* <> () [] {} */ 
