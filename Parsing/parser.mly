@@ -110,10 +110,12 @@
 %left PLUS MINUS
 %left MUL DIV MOD
 %right NOT
-
+%left DOT
 */
-%nonassoc DOT
 /* starting point */
+%nonassoc DANGLING_ELSE
+%nonassoc ELSE
+
 %start compilationUnit
 %type <string> compilationUnit
 
@@ -165,7 +167,7 @@ expressionStmt:
 ;
 
 selectStmt:
-	IF LPAR e=expression RPAR s=statement { "if("^e^") "^s }
+	IF LPAR e=expression RPAR s=statement %prec DANGLING_ELSE { "if("^e^") "^s }
 	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { "if("^e^") "^s1^"\nelse "^s2 }
 	| SWITCH LPAR e=expression RPAR b=block { "switch ("^e^") "^b } 
 ;
