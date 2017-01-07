@@ -149,6 +149,9 @@ rule nexttoken = parse
 	| '/' { DIV } 
 	| '*' { MUL }
 	| '%' { MOD }
+	| "<<" { LSHIFT }
+	| ">>" { RSHIFT }
+	| ">>>" { LOGSHIFT }
 	
 	(* unaries *)
 	| '!' { NOT }

@@ -30,6 +30,9 @@
 }
 {
 	char bc = a << 10;
+	char bc = a >> 10;
+	char bc = a >>> 10;
+
 	int a = a + b * c;
 	long a = (c + (a - b) * (c / c - c)) a;
 	
@@ -41,4 +44,11 @@
 	;
 	}
 	if(!a) { ; }
+
+	a < c;
+	a > c;
+	a <= c;
+	a >= c;
+	if (a < b) {}
+	if (a instanceof b) {}
 }

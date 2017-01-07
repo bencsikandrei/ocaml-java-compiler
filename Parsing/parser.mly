@@ -119,7 +119,7 @@
 %%
 compilationUnit:
 	s=block { s }
-	/* | error { " an error has occured\n" } */
+	| error { " an error has occured\n" }
 ;
 /* block */
 block:
@@ -152,7 +152,6 @@ statement:
 	| js=jumpStmt { js }
 	| gs=guardingStmt { gs }
 	| b=block { b }
-	| error { " an error has occured\n" }
 
 labelStmt:
 	id=IDENTIFIER COL { id^" : " }
@@ -173,7 +172,7 @@ selectStmt:
 jumpStmt: 
 	BREAK id=IDENTIFIER SEMI { "break "^id^"; " }
 	| BREAK SEMI { "break;" }
-    | CONTINUE id=IDENTIFIER SEMI { "continue "^id^"; "}
+    	| CONTINUE id=IDENTIFIER SEMI { "continue "^id^"; "}
 	| CONTINUE SEMI { "continue;"}
 	| RETURN e=expression SEMI { "return "^e^"; "  }
 	| RETURN SEMI { "return;"} 
@@ -268,7 +267,6 @@ expression:
 	ce=conditionalExpression { ce }
 ;
 
-
 constantExpression:
 	/* { " |some constant expression| " } */
 	ce=conditionalExpression { ce }
@@ -312,11 +310,11 @@ equalityExpression:
 
 relationalExpression:
 	sh=shiftExpression { sh }
-	/* | rel=relationalExpression LTHAN sh=shiftExpression { rel^"<"^sh }
-	| rel=relationalExpression GTHAN sh=shiftExpression { rel^">"^sh }
-	| rel=relationalExpression LETHAN sh=shiftExpression { rel^"<="^sh }
-	| rel=relationalExpression GETHAN sh=shiftExpression { rel^">="^sh } */
-	(* instance of dafuq *)
+	| rel=relationalExpression LTHAN sh=shiftExpression { rel^" < "^sh }
+	| rel=relationalExpression GTHAN sh=shiftExpression { rel^" > "^sh }
+	| rel=relationalExpression LETHAN sh=shiftExpression { rel^" <= "^sh }
+	| rel=relationalExpression GETHAN sh=shiftExpression { rel^" >= "^sh } 
+	| rel=relationalExpression INSTANCEOF ts=typeSpecifier { rel^" instanceof "^ts }
 ;
 
 shiftExpression:
@@ -324,7 +322,6 @@ shiftExpression:
 	| sh=shiftExpression LSHIFT add=additiveExpression { sh^"<<"^add }
 	| sh=shiftExpression RSHIFT add=additiveExpression { sh^">>"^add }
 	| sh=shiftExpression LOGSHIFT add=additiveExpression { sh^">>>"^add }
-	/* all shifts work */ 
 ;
 
 additiveExpression:
@@ -377,6 +374,16 @@ primaryExpression:
 typeName:
 	pri=primitiveType { pri }
 	| qn=qualifiedName { qn }
+;
+
+typeSpecifier:
+	tn=typeName { tn }
+	| tn=typeName ds=dims { tn^ds }
+;
+
+dims:
+	DIM { " [ ] " }
+	| ds=dims DIM { ds^" [ ] " }
 ;
 
 primitiveType:
