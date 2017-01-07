@@ -51,4 +51,8 @@
 	a >= c;
 	if (a < b) {}
 	if (a instanceof b) {}
+	a == b;
+	for (; a!= b; ) {
+		int c = a&b^c;
+	}
 }

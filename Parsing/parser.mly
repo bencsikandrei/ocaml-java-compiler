@@ -294,18 +294,18 @@ inclusiveOrExpression:
 
 exclusiveOrExpression:
 	a=andExpression { a }
-	/* | eor=exclusiveOrExpression XOR a=andExpression { eor^"^"^a } */
+	| eor=exclusiveOrExpression XOR a=andExpression { eor^" ^ "^a }
 ;
 
 andExpression:
 	eq=equalityExpression { eq }
-	/* | a=andExpression BAND eq=equalityExpression { a^"BAND"^eq } */
+	| a=andExpression BAND eq=equalityExpression { a^" & "^eq }
 ;
 
 equalityExpression:
 	rel=relationalExpression { rel }
-	/* | eq=equalityExpression EQUAL rel=relationalExpression { eq^"=="^rel }
-	| eq=equalityExpression NEQUAL rel=relationalExpression { eq^"!="^rel } */
+	| eq=equalityExpression EQUAL rel=relationalExpression { eq^"=="^rel }
+	| eq=equalityExpression NEQUAL rel=relationalExpression { eq^"!="^rel }
 ;
 
 relationalExpression:
