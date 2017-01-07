@@ -112,10 +112,10 @@
 %right NOT
 %left DOT
 */
-/* starting point */
 %nonassoc DANGLING_ELSE
 %nonassoc ELSE
 
+/* starting point */
 %start compilationUnit
 %type <string> compilationUnit
 
@@ -155,6 +155,7 @@ statement:
 	| js=jumpStmt { js }
 	| gs=guardingStmt { gs }
 	| b=block { b }
+;
 
 labelStmt:
 	id=IDENTIFIER COL { id^" : " }
@@ -199,7 +200,6 @@ forExpr:
 	e=expression SEMI { e^";" }
 	| SEMI { ";" }
 ;
-
 
 forIncr: 
 	es=expressionStmts { es }
@@ -265,6 +265,7 @@ arrayInitializers:
 	| ai=arrayInitializers COMM { ai^" , " }
 ;
 /* end variable declarators */
+
 emptyStmt:
 	SEMI { ";\n" }
 ;
@@ -283,6 +284,7 @@ constantExpression:
 	ce=conditionalExpression { ce }
 ;
 
+/* conditional expressions */
 conditionalExpression:
 	cor=conditionalOrExpression { cor }
 	| cor=conditionalOrExpression QM ex=expression COL ce=conditionalExpression { cor^" ? "^ex^" : "^ce }
@@ -327,7 +329,10 @@ relationalExpression:
 	| rel=relationalExpression GETHAN sh=shiftExpression { rel^" >= "^sh } 
 	| rel=relationalExpression INSTANCEOF ts=typeSpecifier { rel^" instanceof "^ts }
 ;
+/* end conditional expressions */
 
+
+/* operation expressions */
 shiftExpression:
 	add=additiveExpression { add }
 	| sh=shiftExpression LSHIFT add=additiveExpression { sh^"<<"^add }
@@ -375,51 +380,9 @@ realPostfixExpression:
 	post=postfixExpression INCREMENT { post^"++" }
 	| post=postfixExpression DECREMENT { post^"--" }
 ;
+/* end operationg expressions */
 
-primaryExpression:
-	qn=qualifiedName { qn }
-	| njs=notJustName {njs }
-;
-
-/* typeName */
-typeName:
-	pri=primitiveType { pri }
-	| qn=qualifiedName { qn }
-;
-
-typeSpecifier:
-	tn=typeName { tn }
-	| tn=typeName ds=dims { tn^ds }
-;
-
-dims:
-	DIM { " [ ] " }
-	| ds=dims DIM { ds^" [ ] " }
-;
-
-primitiveType:
-	BOOLEAN { "boolean" }
-	| CHAR { "char" }
-	| BYTE { "byte" }
-	| SHORT { "short" }
-	| INT { "int" }
-	| LONG { "long" }
-	| FLOAT { "float" }
-	| DOUBLE { "double" }
-	| VOID { "void" }
-;
-
-qualifiedName:
-	id=IDENTIFIER { id }
-	| qn=qualifiedName DOT id=IDENTIFIER { qn^"."^id }
-;
-
-notJustName:
-	spn=specialName { spn }
-	| all=newAllocationExpression { all }
-	| cpri=complexPrimary { cpri }
-;
-
+/* allocations */
 newAllocationExpression:
 	pall=plainNewAllocationExpression { pall }
 	| qn=qualifiedName DOT pall=plainNewAllocationExpression { qn^"."^pall }
@@ -458,6 +421,40 @@ dimExprs:
 dimExpr:
 	LBRAC ex=expression RBRAC { "["^ex^"]" }
 ;
+
+dims:
+	DIM { " [ ] " }
+	| ds=dims DIM { ds^" [ ] " }
+;
+/* end allocations */
+
+primaryExpression:
+	qn=qualifiedName { qn }
+	| njs=notJustName {njs }
+;
+
+/* typeName */
+typeName:
+	pri=primitiveType { pri }
+	| qn=qualifiedName { qn }
+;
+
+typeSpecifier:
+	tn=typeName { tn }
+	| tn=typeName ds=dims { tn^ds }
+;
+
+qualifiedName:
+	id=IDENTIFIER { id }
+	| qn=qualifiedName DOT id=IDENTIFIER { qn^"."^id }
+;
+
+notJustName:
+	spn=specialName { spn }
+	| all=newAllocationExpression { all }
+	| cpri=complexPrimary { cpri }
+;
+/* end typeName */
 
 complexPrimary:
 	LPAR ex=expression RPAR { "("^ex^")" }
@@ -502,6 +499,19 @@ arithmeticUnaryOperator:
 logicalUnaryOperator:
 	BNOT { "~" }
 	| NOT { "!" }
+;
+
+/* types */
+primitiveType:
+	BOOLEAN { "boolean" }
+	| CHAR { "char" }
+	| BYTE { "byte" }
+	| SHORT { "short" }
+	| INT { "int" }
+	| LONG { "long" }
+	| FLOAT { "float" }
+	| DOUBLE { "double" }
+	| VOID { "void" }
 ;
 %%
 let parse_error s = 
