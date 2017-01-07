@@ -471,7 +471,7 @@ complexPrimaryNoParenthesis:
 	/* | nlit=NULLLIT { nlit } */
 	| aa=arrayAccess { aa }
 	| fa=fieldAccess { fa }
-	/* | methodCall { } */
+	| mc=methodCall { mc } 
 (* for now they are strings *)
 ;
 
@@ -484,23 +484,21 @@ fieldAccess
 	: njn=notJustName DOT id=IDENTIFIER { njn^"."^id }
 	| rpe=realPostfixExpression DOT id=IDENTIFIER { rpe^"."^id }
     | qn=qualifiedName DOT THIS { qn^".this " }
-    | qn=qualifiedName DOT CLASS { qn^".class" }
-    | pt=primitiveType DOT CLASS { pt^".class" }
+    | qn=qualifiedName DOT CLASS { qn^".class " }
+    | pt=primitiveType DOT CLASS { pt^".class " }
 	;
 
-/*
-MethodCall
-	: MethodAccess '(' ArgumentList ')'
-	| MethodAccess '(' ')'
+methodCall
+	: ma=methodAccess LPAR al=argumentList RPAR { ma^"( "^al^" ) "}
+	| ma=methodAccess LPAR RPAR { ma^"(  ) "}
 	;
 
-MethodAccess
-	: ComplexPrimaryNoParenthesis
-	| SpecialName
-	| QualifiedName
+methodAccess
+	: cpnp=complexPrimaryNoParenthesis { cpnp }
+	| sn=specialName { sn }
+	| qn=qualifiedName { qn }
 	;
 
-*/
 specialName:
 	THIS { "this" }
 	| SUPER { "super" }

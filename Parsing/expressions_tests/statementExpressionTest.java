@@ -73,6 +73,9 @@
 	f = a.this;
 	g = b.class;
 	e = int.class;
+	
+	a_value = a.my_method();
+	a_value = a.my_method(a, b);
 }
 
 
