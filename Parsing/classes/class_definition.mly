@@ -7,9 +7,9 @@
 
 %%
 javaClass:
-	| c=j_class EOF { "" }
+	| c=j_class EOF { "" } (* for testing *)
 
-j_class:
+%public j_class:
 	| modif=option(class_modifs) CLASS id=IDENTIFIER 
 		tp=option(type_params_defin) sup=option(super) 
 		interf=option(interfaces) bod=class_body { }
