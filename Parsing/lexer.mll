@@ -162,6 +162,7 @@ rule nexttoken = parse
 	| "&&" { AND }
 	| "||" { OR }
 	| '^' { XOR }
+	| "!=" { NEQUAL }
 	| "==" { EQUAL }
 	| "<" { LTHAN }
 	| ">" { GTHAN }
@@ -337,6 +338,7 @@ and multiline_comment = parse
 		| BNOT -> print_string "BNOT"
 		| ANOT -> print_string "ANOT"
 		| EQUAL -> print_string "EQUAL"
+		| NEQUAL -> print_string "NOTEQUAL"
 		| ASSIGN -> print_string "ASSIGN"
 		| PEQUAL -> print_string "PEQUAL"
 		| MINUSEQUAL-> print_string "MINUSEQUAL"
