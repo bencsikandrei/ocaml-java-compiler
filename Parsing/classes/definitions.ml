@@ -64,3 +64,9 @@ type javaMethod={
 	jmbody:body;
 }
 
+
+(* return types of each defined parser*)
+
+type abstractSyntaxTree = 
+	| JML of javaMethod list
+	| STR of string
