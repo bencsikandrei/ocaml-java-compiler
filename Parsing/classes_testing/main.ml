@@ -7,6 +7,8 @@ let position lexbuf=
 	let error=Lexing.lexeme lexbuf in
 	"Unexpected: \""^error^"\" in line: "^string_of_int pos.pos_lnum^" char:"^string_of_int(pos.pos_cnum-pos.pos_bol+1);;
 
+let print arg=	print_string ("");print_newline ();;
+
 let compile file =
 		print_string ("File "^file^" is being treated!\n");
 		try

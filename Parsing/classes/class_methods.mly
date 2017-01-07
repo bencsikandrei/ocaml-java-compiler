@@ -1,73 +1,64 @@
 %{
-	
+open Definitions
 %}
 
 %start javaMethods
-%start <string> javaMethods
+%start <javaMethod list> javaMethods
 
 %%
 
 javaMethods:
-	|javaMethod EOF {""}
-	|javaMethod javaMethods {""}
+	|j1=javaMethod EOF {j1::[]}
+	|j1=javaMethod j2=javaMethods {j1::j2}
 
 (* Method Layout declarations *)
-	%public javaMethod:
-		|MethodHeader MethodBody {} (* It is a compile-time error if a method or constructor parameter that is declared final is assigned to within the body of the method or constructor. *)
+%public javaMethod:  
+		|mm=modifiers 	tp=type_params_defin 	rt=ResultType md=MethodDeclarator th=Throws mb=MethodBody { {jmmodifiers=mm;jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=mb} }
+		|				tp=type_params_defin 	rt=ResultType md=MethodDeclarator th=Throws mb=MethodBody { {jmmodifiers=[];jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=mb} }
+		|mm=modifiers 							rt=ResultType md=MethodDeclarator th=Throws mb=MethodBody { {jmmodifiers=mm;jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=mb} }
+		|										rt=ResultType md=MethodDeclarator th=Throws mb=MethodBody { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=mb} }
+		|mm=modifiers	tp=type_params_defin 	rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=mm;jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
+		|				tp=type_params_defin 	rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=[];jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
+		|mm=modifiers 						 	rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=mm;jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
+		|										rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
 
-	MethodHeader:  
-		|option(MethodModifiers) option(TypeParameters) ResultType MethodDeclarator option(Throws) {}
+
 
 	ResultType:
-		|types {}
-		|VOID {}
+		|e=types {RT_Type e}
+		|VOID {RT_Void}
 
 	MethodDeclarator: (*compile error if two methods with the same id and param list *)
-		|IDENTIFIER LPAR RPAR {}
-		|IDENTIFIER LPAR FormalParameters RPAR {}
+		|i=IDENTIFIER LPAR RPAR {{mname=i;mparams=[]}}
+		|i=IDENTIFIER LPAR p=FormalParameters RPAR {{mname=i;mparams=p}}
 
 (* Parameter List declarations *)
 
 	FormalParameters:(* two with same name compile error *)
-		|LastFormalParameter {}
-		|FormalParameter COMM FormalParameters {}
+		|p=LastFormalParameter {p::[]}
+		|p1=FormalParameter COMM p2=FormalParameters {p1::p2}
 
 	FormalParameter:
-		|option(VariableModifiers) types VariableDeclaratorId {}
+		|m=option(VariableModifiers) t=types v=VariableDeclaratorId 
+			{let m=match m with |None -> [] | Some m ->m in {pmodif=m;ptype=t;pname=v;pelipsis=false}}
 
 	LastFormalParameter:
-		|option(VariableModifiers) types ELIPSIS VariableDeclaratorId {}
-		|FormalParameter {}
+		|m=option(VariableModifiers) t=types ELIPSIS v=VariableDeclaratorId
+			{let m=match m with |None -> [] | Some m ->m in {pmodif=m;ptype=t;pname=v;pelipsis=true}}
+		| ep=FormalParameter {ep}
 
 	VariableModifiers:
-		|VariableModifier {}
-		|VariableModifier VariableModifiers {}
+		|m1=VariableModifier {m1::[]}
+		|m1=VariableModifier m2=VariableModifiers {m1::m2}
 
 	VariableModifier:
-		|FINAL {}
-		|Annotation {} (* If an annotation a on a formal parameter corresponds to an annotation type T, and T has a (meta-)annotation m that corresponds to annotation.Target , then m must have an element whose value is annotation.ElementType.PARAMETER , or a compile-time error occurs *)
-
-(* Method Modifiers *)
-	MethodModifiers: (* error if more than onae pub, priv, prot *) (* abstract -> ¬( private , static , final , native , strictfp , or synchronized *) (* native -> ¬ strictfp *)
-		|MethodModifier {}
-		|MethodModifier MethodModifiers{}
-
-	MethodModifier: 
-		|Annotation {}
-		|PUBLIC {}
-		|PROTECTED {}
-		|PRIVATE {}
-		|ABSTRACT {}
-		|STATIC {}
-		|FINAL {}
-		|SYNCHRONIZED {}
-		|NATIVE {}
-		|STRICTFP {}
+		|FINAL {VM_Final}
+		|a=Annotation {VM_Annot a} (* If an annotation a on a formal parameter corresponds to an annotation type T, and T has a (meta-)annotation m that corresponds to annotation.Target , then m must have an element whose value is annotation.ElementType.PARAMETER , or a compile-time error occurs *)
 
 (* throws *)
 
 	Throws:
-		THROWS ExceptionTypeList {}
+		THROWS ExceptionTypeList {[]}
 
 	ExceptionTypeList:
 		|ExceptionType {}
@@ -80,30 +71,17 @@ javaMethods:
 *)		
 		|types {}
 
-
-(* Method Body *)
+(* Method Body TODO *)
 MethodBody:
-	|Block {}
-	|SEMI {}
+	|Block {{expr=""}}
+	|SEMI {{expr=""}}
 
 
-(* aux *)
-Annotation:
-	|ANOT IDENTIFIER{}
+(* aux TODO *)
+
 
 VariableDeclaratorId:
-	|IDENTIFIER {}
-
-TypeParameters:
-	| LANG TypeParameterList RANG {}
-
-TypeParameterList:
-	|TypeParameter	{}
-	|TypeParameter COMM TypeParameterList {}
-	
-
-TypeParameter: (* TODO *)
-	|IDENTIFIER {}
+	|i=IDENTIFIER {DI_Identifier i}
 
 %public Block:
 	| LCURL RCURL {}
