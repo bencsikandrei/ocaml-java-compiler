@@ -85,6 +85,9 @@ let escape = ('\\'letter)
 let newline = ('\n' | '\r' | "\r\n")
 let others = ['+''-''*''/''=''"'':''('')''{''}''['']''!''&''|'';''.'',''<''>']
 
+(* arrays.. *)
+let dim = '[' (space|newline)* ']'
+
 (* java identifiers can start with an underscore or dollar sign or letter *)
 let identifier = ('_'|'$'|letter)(letter|digit|'_'|'$')*
 
@@ -198,6 +201,8 @@ rule nexttoken = parse
 	| ',' { COMM }
 	| ':' { COL }
 
+	(* array dimension *)
+	| dim { DIM }
 
 	(* some types *)
 	| integer as i { INTLIT(int_of_string i) }
@@ -242,6 +247,7 @@ and multiline_comment = parse
 		| BOOLEANLIT(boollit) -> print_string ( " boollit : " ^ string_of_bool boollit )
 		| CHARLIT(charlit) -> print_string (" charlit " ^ String.make 1 charlit)
 		| STRLIT(slit) -> print_string ( " stlit : " ^ slit )
+		| DIM -> print_string "[ ]"
 		| EOF -> print_string "EOF"
 		| PLUS -> print_string "PLUS"
 		| ABSTRACT -> print_string "ABSTRACT"
