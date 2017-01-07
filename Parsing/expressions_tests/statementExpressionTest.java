@@ -29,9 +29,9 @@
 	}
 }
 {
-	int a;
+	int a = b * c;
 	double d;
-	for(int a;!a;a++) {
+	for(int a;(b) a;--a, a++, a--, ++a) {
 	;
 	}
 	if(!a) { ; }

@@ -333,21 +333,21 @@ additiveExpression:
 
 multiplicativeExpression:
 	cast=castExpression { cast }
-	/* | mul=multiplicativeExpression MUL cast=castExpression { mul^"*"^cast }
+	| mul=multiplicativeExpression MUL cast=castExpression { mul^"*"^cast }
+	/*
 	| mul=multiplicativeExpression DIV cast=castExpression { mul^"/"^cast }
 	| mul=multiplicativeExpression MOD cast=castExpression { mul^"%"^cast } */
 ;
 
 castExpression:
 	un=unaryExpression { un }
-	/* | LPAR expression RPAR logicalUnaryExpression { } */
+	| LPAR e=expression RPAR lue=logicalUnaryExpression { " ("^e^") "^lue }
 ;
 
 unaryExpression:
 	INCREMENT un=unaryExpression { "++"^un }
-	/* 
-	| DECREMENT un=unaryExpression { "--"^un }
-	| aop=arithmeticUnaryOperator ct=castExpression { aop^ct } */
+	| DECREMENT un=unaryExpression { "--"^un } 
+	| aop=arithmeticUnaryOperator ct=castExpression { aop^ct }
 	| logu=logicalUnaryExpression { logu }
 ;
 
