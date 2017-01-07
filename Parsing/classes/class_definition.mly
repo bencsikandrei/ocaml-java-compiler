@@ -35,10 +35,11 @@ inside_class_l:
 
 inside_class:
 	| javaMethod { }
-	| javaClass { }
-(* | attribute { } 
+	| j_class { }
+	| attribute SEMI { }
 
 attribute:
-	| exprs { } *)
+	| modifiers IDENTIFIER ASSIGN exprs { }
+	| modifiers IDENTIFIER { }
 
 %%
