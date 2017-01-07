@@ -53,6 +53,8 @@
 	if (a instanceof b) {}
 	a == b;
 	for (; a!= b; ) {
-		int c = a&b^c;
+		int c = a&b^c|d;
+		a&&b||c;
+		int a = (b<c) ? 3 : a+1;
 	}
 }

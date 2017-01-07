@@ -262,34 +262,31 @@ emptyStmt:
 
 /* expressions */
 expression: 
-	/* { " |some expression| " } */
-	/* pe=primaryExpression { pe } */
 	ce=conditionalExpression { ce }
 ;
 
 constantExpression:
-	/* { " |some constant expression| " } */
 	ce=conditionalExpression { ce }
 ;
 
 conditionalExpression:
 	cor=conditionalOrExpression { cor }
-	/* | cor=conditionalOrExpression QM ex=expression COL ce=conditionalExpression { cor^" ? "^ex^" : "^ce } */
+	| cor=conditionalOrExpression QM ex=expression COL ce=conditionalExpression { cor^" ? "^ex^" : "^ce }
 ;
 
 conditionalOrExpression:
 	cand=conditionalAndExpression { cand }
-	/* | cor=conditionalOrExpression OR cand=conditionalAndExpression { cor^"OR"^cand } */
+	| cor=conditionalOrExpression OR cand=conditionalAndExpression { cor^" || "^cand }
 ;
 
 conditionalAndExpression:
 	ior=inclusiveOrExpression { ior }
-	/* | cand=conditionalAndExpression AND ior=inclusiveOrExpression { cand^"AND"^ior } */
+	| cand=conditionalAndExpression AND ior=inclusiveOrExpression { cand^"  && "^ior }
 ;
 
 inclusiveOrExpression:
 	eor=exclusiveOrExpression { eor }
-	/* | ior=inclusiveOrExpression BOR eor=exclusiveOrExpression { ior^"|"^eor } */
+	| ior=inclusiveOrExpression BOR eor=exclusiveOrExpression { ior^"|"^eor }
 ;
 
 exclusiveOrExpression:
