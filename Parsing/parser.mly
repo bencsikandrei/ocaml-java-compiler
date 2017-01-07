@@ -466,8 +466,38 @@ complexPrimaryNoParenthesis:
 	| blit=BOOLEANLIT { string_of_bool blit }
 	| ilit=INTLIT { string_of_int ilit }
 	| clit=CHARLIT { "'"^(String.make 1 clit)^"'" }
+	| dlit=DOUBLELIT { string_of_float dlit }
+	| flit=FLOATLIT { string_of_float flit }
+	/* | nlit=NULLLIT { nlit } */
+	| aa=arrayAccess { aa }
+	| fa=fieldAccess { fa }
+	| mc=methodCall { mc } 
 (* for now they are strings *)
 ;
+
+arrayAccess
+	: qn=qualifiedName LBRAC e=expression RBRAC { qn^" [ "^e^" ] " }
+	| cp=complexPrimary LBRAC e=expression RBRAC { cp^" [ "^e^" ] "}
+	;
+
+fieldAccess
+	: njn=notJustName DOT id=IDENTIFIER { njn^"."^id }
+	| rpe=realPostfixExpression DOT id=IDENTIFIER { rpe^"."^id }
+    | qn=qualifiedName DOT THIS { qn^".this " }
+    | qn=qualifiedName DOT CLASS { qn^".class " }
+    | pt=primitiveType DOT CLASS { pt^".class " }
+	;
+
+methodCall
+	: ma=methodAccess LPAR al=argumentList RPAR { ma^"( "^al^" ) "}
+	| ma=methodAccess LPAR RPAR { ma^"(  ) "}
+	;
+
+methodAccess
+	: cpnp=complexPrimaryNoParenthesis { cpnp }
+	| sn=specialName { sn }
+	| qn=qualifiedName { qn }
+	;
 
 specialName:
 	THIS { "this" }

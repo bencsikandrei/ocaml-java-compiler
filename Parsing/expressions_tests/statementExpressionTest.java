@@ -67,6 +67,15 @@
 	a = new int[10];
 	a = new int[20] { 10 , 15 , 1};	
 	b = new Hello(10,12);
+	c = a[10];
+	d = this.france;
+	e = (a++).germany;
+	f = a.this;
+	g = b.class;
+	e = int.class;
+	
+	a_value = a.my_method();
+	a_value = a.my_method(a, b);
 }
 
 
