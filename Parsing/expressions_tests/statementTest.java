@@ -17,7 +17,7 @@
 	synchronized () { ; } 
 }
 {
-	if() {
+	if(a.b) {
 		try {
 		;
 		} finally { 
@@ -28,8 +28,8 @@
 }
 
 {
-	switch() {
-		if() {
+	switch(b) {
+		if(a) {
 		try {
 		;
 		} finally { 
@@ -41,13 +41,13 @@
 }
 
 {
-	while() {
+	while(a.b) {
 		synchronized () { ; } 
 	}
 }
 {	
 	do {
-	} while();
+	} while(b);
 }
 {
 	return ;
@@ -59,8 +59,9 @@
 
 {int a;}{double d;}{float f;}{char c;}
 {
-	while() {
+	while(true) {
 	}
+	Hello.java a;
 	final int a;
 	float b;
 	double c =;
@@ -70,7 +71,7 @@
 }
 {
 	try { 
-		int a = b + c;	
+		;	
 	} catch(int) {
 		;
 	} catch(float) {
