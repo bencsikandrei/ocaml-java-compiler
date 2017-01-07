@@ -480,6 +480,27 @@ arrayAccess
 	| cp=complexPrimary LBRAC e=expression RBRAC { cp^" [ "^e^" ] "}
 	;
 
+fieldAccess
+	: njn=notJustName DOT id=IDENTIFIER { njn^"."^id }
+	| rpe=realPostfixExpression DOT id=IDENTIFIER { rpe^"."^id }
+    | qn=qualifiedName DOT THIS { qn^".this " }
+    | qn=qualifiedName DOT CLASS { qn^".class" }
+    | pt=primitiveType DOT CLASS { pt^".class" }
+	;
+
+/*
+MethodCall
+	: MethodAccess '(' ArgumentList ')'
+	| MethodAccess '(' ')'
+	;
+
+MethodAccess
+	: ComplexPrimaryNoParenthesis
+	| SpecialName
+	| QualifiedName
+	;
+
+*/
 specialName:
 	THIS { "this" }
 	| SUPER { "super" }
