@@ -344,7 +344,8 @@ castExpression:
 ;
 
 unaryExpression:
-	/* INCREMENT un=unaryExpression { "++"^un }
+	INCREMENT un=unaryExpression { "++"^un }
+	/* 
 	| DECREMENT un=unaryExpression { "--"^un }
 	| aop=arithmeticUnaryOperator ct=castExpression { aop^ct } */
 	| logu=logicalUnaryExpression { logu }
