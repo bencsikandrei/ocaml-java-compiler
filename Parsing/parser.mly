@@ -119,7 +119,7 @@
 %%
 compilationUnit:
 	s=block { s }
-	| error { " an error has occured\n" }
+	/* | error { " an error has occured\n" } */
 ;
 /* block */
 block:
@@ -152,6 +152,7 @@ statement:
 	| js=jumpStmt { js }
 	| gs=guardingStmt { gs }
 	| b=block { b }
+	| error { " an error has occured\n" }
 
 labelStmt:
 	id=IDENTIFIER COL { id^" : " }
@@ -320,8 +321,9 @@ relationalExpression:
 
 shiftExpression:
 	add=additiveExpression { add }
-	/* | sh=shiftExpression LSHIFT add=additiveExpression { sh^"<<"^add }
+	| sh=shiftExpression LSHIFT add=additiveExpression { sh^"<<"^add }
 	| sh=shiftExpression RSHIFT add=additiveExpression { sh^">>"^add }
+	/* 
 	| sh=shiftExpression LOGSHIFT add=additiveExpression { sh^">>>"^add } */
 ;
 

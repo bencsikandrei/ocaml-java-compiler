@@ -29,6 +29,7 @@
 	}
 }
 {
+	char bc = a << 10;
 	int a = a + b * c;
 	long a = (c + (a - b) * (c / c - c)) a;
 	
