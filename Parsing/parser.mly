@@ -252,8 +252,14 @@ declaratorName:
 
 variableInitializer:
 	ex=expression { ex }
-	| LCURL RCURL { "{"^"}" }
-	/* | LCURL arri=arrayInitializers RCURL { "{"^arri^"}" } */
+	| LCURL RCURL { " { "^" } " }
+	| LCURL arri=arrayInitializers RCURL { " { "^arri^" } " }
+;
+
+arrayInitializers:
+	vi=variableInitializer { vi }
+	| ai=arrayInitializers COMM vi=variableInitializer  { ai^" , "^vi }
+	| ai=arrayInitializers COMM { ai^" , " }
 ;
 /* end variable declarators */
 emptyStmt:
@@ -262,7 +268,12 @@ emptyStmt:
 
 /* expressions */
 expression: 
+	ae=assignmentExpression { ae }
+;
+
+assignmentExpression:
 	ce=conditionalExpression { ce }
+	| ue=unaryExpression ass=assignmentOperator ae=assignmentExpression { ue^ass^ae }
 ;
 
 constantExpression:
@@ -286,7 +297,7 @@ conditionalAndExpression:
 
 inclusiveOrExpression:
 	eor=exclusiveOrExpression { eor }
-	| ior=inclusiveOrExpression BOR eor=exclusiveOrExpression { ior^"|"^eor }
+	| ior=inclusiveOrExpression BOR eor=exclusiveOrExpression { ior^" | "^eor }
 ;
 
 exclusiveOrExpression:
