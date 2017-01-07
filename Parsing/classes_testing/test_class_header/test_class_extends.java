@@ -1,0 +1,1 @@
+public static final class Main extends String {}

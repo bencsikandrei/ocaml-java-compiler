@@ -1,0 +1,1 @@
+public static public public void main(){}

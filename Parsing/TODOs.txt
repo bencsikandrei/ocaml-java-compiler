@@ -1,0 +1,2 @@
+- ";" can be multiples and with spaces
+- Class as a type, and separated from primitive

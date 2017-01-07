@@ -13,7 +13,7 @@ let compile file =
 		let input_file = open_in file in
 		let lexbuf = Lexing.from_channel input_file in
 		try
-			print_string (javaClass nexttoken lexbuf);
+			print_string (javaFile nexttoken lexbuf);
 			print_newline ();
 			close_in (input_file);
 		with 

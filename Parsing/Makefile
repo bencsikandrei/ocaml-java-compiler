@@ -22,7 +22,7 @@ main: $(BUILD) $(BUILD)/javaParser.cmo $(BUILD)/javaLexer.cmo $(BUILD)/main.ml
 $(BUILD): 
 	mkdir -p $(BUILD)
 	cp $(COPYPATH)/* $(BUILD)/
-	cp $(COPYPATH_TEST)/* $(BUILD)/
+	cp $(COPYPATH_TEST)/main.ml $(BUILD)/
 	cp ./tokens.mly $(BUILD)/
 	cp ./javaLexer.mll $(BUILD)/
 
