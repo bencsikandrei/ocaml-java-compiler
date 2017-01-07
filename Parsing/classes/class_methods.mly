@@ -13,12 +13,16 @@ javaMethods:
 
 (* Method Layout declarations *)
 %public javaMethod:  
-		|mm=option(MethodModifiers) tp=option(type_params_defin) rt=ResultType md=MethodDeclarator th=option(Throws) mb=MethodBody {
-			let mm=match mm with | None -> [] | Some mm ->mm in
-			let tp=match tp with | None -> [] | Some tp -> tp in
-			let th=match th with | None	-> [] | Some th -> th in 
-			{jmmodifiers=mm;jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=mb} 
-		}
+		|mm=modifiers 	tp=type_params_defin 	rt=ResultType md=MethodDeclarator th=Throws mb=MethodBody { {jmmodifiers=mm;jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=mb} }
+		|				tp=type_params_defin 	rt=ResultType md=MethodDeclarator th=Throws mb=MethodBody { {jmmodifiers=[];jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=mb} }
+		|mm=modifiers 							rt=ResultType md=MethodDeclarator th=Throws mb=MethodBody { {jmmodifiers=mm;jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=mb} }
+		|										rt=ResultType md=MethodDeclarator th=Throws mb=MethodBody { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=mb} }
+		|mm=modifiers	tp=type_params_defin 	rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=mm;jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
+		|				tp=type_params_defin 	rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=[];jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
+		|mm=modifiers 						 	rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=mm;jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
+		|										rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
+
+
 
 	ResultType:
 		|e=types {RT_Type e}
@@ -51,23 +55,6 @@ javaMethods:
 		|FINAL {VM_Final}
 		|a=Annotation {VM_Annot a} (* If an annotation a on a formal parameter corresponds to an annotation type T, and T has a (meta-)annotation m that corresponds to annotation.Target , then m must have an element whose value is annotation.ElementType.PARAMETER , or a compile-time error occurs *)
 
-(* Method Modifiers *)
-	MethodModifiers: (* error if more than onae pub, priv, prot *) (* abstract -> ¬( private , static , final , native , strictfp , or synchronized *) (* native -> ¬ strictfp *)
-		|m1=MethodModifier {m1::[]}
-		|m1=MethodModifier m2=MethodModifiers{m1::m2}
-
-	MethodModifier: 
-		|a=Annotation {MM_Annot a}
-		|PUBLIC {MM_Public}
-		|PROTECTED {MM_Protected}
-		|PRIVATE {MM_Private}
-		|ABSTRACT {MM_Abstract}
-		|STATIC {MM_Static}
-		|FINAL {MM_Final}
-		|SYNCHRONIZED {MM_Synchronized}
-		|NATIVE {MM_Native}
-		|STRICTFP {MM_Strictfp}
-
 (* throws *)
 
 	Throws:
@@ -91,8 +78,7 @@ MethodBody:
 
 
 (* aux TODO *)
-Annotation:
-	|ANOT i=IDENTIFIER{  { aname=i ; aoth="" } }
+
 
 VariableDeclaratorId:
 	|i=IDENTIFIER {DI_Identifier i}

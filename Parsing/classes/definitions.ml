@@ -2,16 +2,16 @@ type annotation = { aname:string ; aoth:string };; (* TODO *)
 type jexception = { ename:string ; eoth:string };; (* TODO *)
 
 type modifier=
-	|MM_Annot of annotation
-	|MM_Public
-	|MM_Protected
-	|MM_Private
-	|MM_Abstract
-	|MM_Static
-	|MM_Final
-	|MM_Synchronized
-	|MM_Native
-	|MM_Strictfp;;
+	|M_Annot of annotation
+	|M_Public
+	|M_Protected
+	|M_Private
+	|M_Abstract
+	|M_Static
+	|M_Final
+	|M_Synchronized
+	|M_Native
+	|M_Strictfp;;
 
 type variableModifier =
 	|VM_Final
