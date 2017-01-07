@@ -466,8 +466,19 @@ complexPrimaryNoParenthesis:
 	| blit=BOOLEANLIT { string_of_bool blit }
 	| ilit=INTLIT { string_of_int ilit }
 	| clit=CHARLIT { "'"^(String.make 1 clit)^"'" }
+	| dlit=DOUBLELIT { string_of_float dlit }
+	| flit=FLOATLIT { string_of_float flit }
+	/* | nlit=NULLLIT { nlit } */
+	| aa=arrayAccess { aa }
+	| fa=fieldAccess { fa }
+	/* | methodCall { } */
 (* for now they are strings *)
 ;
+
+arrayAccess
+	: qn=qualifiedName LBRAC e=expression RBRAC { qn^" [ "^e^" ] " }
+	| cp=complexPrimary LBRAC e=expression RBRAC { cp^" [ "^e^" ] "}
+	;
 
 specialName:
 	THIS { "this" }

@@ -67,6 +67,7 @@
 	a = new int[10];
 	a = new int[20] { 10 , 15 , 1};	
 	b = new Hello(10,12);
+	c = a[10];
 }
 
 
