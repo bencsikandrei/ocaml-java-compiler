@@ -323,8 +323,8 @@ shiftExpression:
 	add=additiveExpression { add }
 	| sh=shiftExpression LSHIFT add=additiveExpression { sh^"<<"^add }
 	| sh=shiftExpression RSHIFT add=additiveExpression { sh^">>"^add }
-	/* 
-	| sh=shiftExpression LOGSHIFT add=additiveExpression { sh^">>>"^add } */
+	| sh=shiftExpression LOGSHIFT add=additiveExpression { sh^">>>"^add }
+	/* all shifts work */ 
 ;
 
 additiveExpression:
