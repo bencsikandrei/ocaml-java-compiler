@@ -327,16 +327,16 @@ shiftExpression:
 
 additiveExpression:
 	mul=multiplicativeExpression { mul }
-	/* | add=additiveExpression PLUS mul=multiplicativeExpression { add^"+"^mul }
-	| add=additiveExpression MINUS mul=multiplicativeExpression { add^"-"^mul } */
+	| add=additiveExpression PLUS mul=multiplicativeExpression { add^"+"^mul } 
+	| add=additiveExpression MINUS mul=multiplicativeExpression { add^"-"^mul }
 ;
 
 multiplicativeExpression:
 	cast=castExpression { cast }
 	| mul=multiplicativeExpression MUL cast=castExpression { mul^"*"^cast }
-	/*
 	| mul=multiplicativeExpression DIV cast=castExpression { mul^"/"^cast }
-	| mul=multiplicativeExpression MOD cast=castExpression { mul^"%"^cast } */
+	| mul=multiplicativeExpression MOD cast=castExpression { mul^"%"^cast }
+	
 ;
 
 castExpression:
@@ -409,6 +409,7 @@ complexPrimaryNoParenthesis:
 	stlit=STRLIT { stlit }
 	| blit=BOOLEANLIT { string_of_bool blit }
 	| ilit=INTLIT { string_of_int ilit }
+	| clit=CHARLIT { "'"^(String.make 1 clit)^"'" }
 (* for now they are strings *)
 ;
 
