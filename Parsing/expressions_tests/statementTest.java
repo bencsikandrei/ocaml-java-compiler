@@ -70,7 +70,7 @@
 }
 {
 	try { 
-		;	
+		int a = b + c;	
 	} catch(int) {
 		;
 	} catch(float) {
