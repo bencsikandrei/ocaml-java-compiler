@@ -1,6 +1,6 @@
 BUILD = ./build
 
-PARSING =  types.mly expr.mly tokens.mly  class_methods.mly class_definition.mly types_params_defin.mly modifiers.mly java_file.mly
+PARSING =  types.mly expr.mly tokens.mly  class_methods.mly class_definition.mly types_params_defin.mly modifiers.mly java_file.mly interface_definition.mly
 
 COPYPATH = ./classes
 COPYPATH_TEST = ./classes_testing

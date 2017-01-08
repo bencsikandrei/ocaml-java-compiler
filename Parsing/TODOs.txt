@@ -3,3 +3,4 @@
 - constructor
 - annotations before package (7.4.1.1)
 - attributes/variable declarators add array init
+- modifiers: separate? class, method, interface, variable

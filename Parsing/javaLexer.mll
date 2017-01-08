@@ -16,10 +16,12 @@ rule nexttoken = parse
 	| eof { EOF }
 	| "+" { PLUS }
 	| "-" { MINUS }
+	| "*" { MUL }
 	| "/" { DIV }
 	| "," {COMM}
 	| ";" { SEMI }
 	| "@" {ANOT}
+	| "." { DOT }
 	| "void" {VOID}
 	| "static" {STATIC}
 	| "abstract" {ABSTRACT}
@@ -48,6 +50,7 @@ rule nexttoken = parse
 	| "..." {ELIPSIS}
 	| "throws" {THROWS}
 	| "class" {CLASS}
+	| "interface" {INTERFACE}
 	| "extends" {EXTENDS}
 	| "implements" {IMPLEMENTS}
 	| "package" {PACKAGE}

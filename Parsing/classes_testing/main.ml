@@ -23,14 +23,17 @@ let compile mode file =
 		try
 		let input_file = open_in file in
 		let lexbuf = Lexing.from_channel input_file in
-		try
-			print( (fakeDict mode) nexttoken lexbuf );
-			close_in (input_file);
-			print_endline("OK");
-		with 
-				|SyntaxError s -> print_endline (s^" BAD");
-				|JavaParser.Error -> print_endline ("Parsing error  "^(position lexbuf)^" BAD");
-		with	Sys_error s -> print_endline ("Can't find file ' " ^ file ^ "'");;
+			try
+				print( (fakeDict mode) nexttoken lexbuf );
+				close_in (input_file);
+				print_endline("OK");
+			with 
+					|SyntaxError s -> print_endline (s^" BAD");
+					|JavaParser.Error -> print_endline ("Parsing error  "^(position lexbuf)^" BAD");
+					|e -> print_endline ("Unexpected error while parsing - "^(Printexc.to_string e));
+		with	
+				|Sys_error s -> print_endline ("Can't find file ' " ^ file ^ "'");
+				|_ -> print_endline ("Unexpected error with the file");;
 
 try 
 	compile Sys.argv.(1) Sys.argv.(2)
