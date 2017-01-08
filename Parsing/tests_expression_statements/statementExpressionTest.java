@@ -66,6 +66,10 @@
 	
 	for(int i = 1, j = 3 ;; i ++ ) 
 		System.out.println();
+		
+	for(int i : integers) {
+		;	
+	}
 }		
 
 

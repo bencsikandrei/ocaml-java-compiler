@@ -220,6 +220,7 @@ iterStmt:
 	| DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^"); "} 
 	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s }
 	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for("^fi^fe^")"^s } 
+	| FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { "for("^fvo^":"^e^")"^s }
 	/* TODO add a foreach */
 ;
 
@@ -237,6 +238,11 @@ forIncr:
 	es=expressionStmts { es }
 ;
 
+forVarOpt:
+	ts=typeSpecifier id=IDENTIFIER { ts^" "^id }
+	/* | ms=modifiers ts=typeSpecifier id=IDENTIFIER { ms^" "^ts^" "^id } */
+	/* TODO add modifiers here */
+;
 expressionStmts
 	: es=expressionStmt { es }
 	| ess=expressionStmts COMM es=expressionStmt { ess^" , "^es}
@@ -586,6 +592,26 @@ primitiveType:
 	| DOUBLE { "double" }
 	| VOID { "void" }
 ;
+
+/* modifiers */
+modifiers: 
+	m=modifier { m }
+	| ms=modifiers m=modifier { ms^m }
+;
+
+modifier: 
+	ABSTRACT { "abstract " }
+	| FINAL { "final " }
+	| PUBLIC { "public " }
+	| PROTECTED { "protected " }
+	| PRIVATE { "private " }
+	| STATIC { "static " }
+	| TRANSIENT { "transient " }
+	| VOLATILE { "volatile " }
+	| NATIVE { "native " }
+	| SYNCHRONIZED { "synchronized " }
+;
+
 %%
 let parse_error s = 
 	print_endline s;
