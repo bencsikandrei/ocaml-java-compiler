@@ -12,7 +12,7 @@ type unop =
 	| UO_PreIncrement
 	| UO_PreDecrement
 	| UO_BNot
-	
+
 (* logical ops *)
 type logbinop =
 	| LBO_and (* && *)
@@ -63,17 +63,25 @@ type primitive =
   	| Short 
   	| Long
 
+type literal =
+	| L_Int of int
+	| L_Str of string
+	| L_Float of float
+	| L_Double of float
+	| L_Char of char
+	| L_Boolean of bool
+	| L_Null of string
+
 type expression =
-	(*STRLIT of string
-	| DOUBLELIT of float
-	| FLOATLIT of float
-	| CHARLIT of char
-	| BOOLEANLIT of bool
-	| NULLLIT of string*)
-	| Literal of int
+	| Identifier of string
+	| Literal of literal
 	| Binop of binop * expression * expression
+	| Compop of compop * expression * expression
+	| Bitop of bitop * expression * expression
+	| Logbinop of logbinop * expression * expression
+	| Loguop of loguop * expression
 	| Unop of unop * expression
-(* to add variables later *)
+	| Assign of assign * expression * expression	
 
 type statement = 
 	| ST_empty_stmt 
@@ -94,7 +102,7 @@ type statement =
 	| ST_finally_stmt
 
 (* get arithmetic operations *)
-let get_bo op x y = 
+let get_bo_int op x y = 
 	match op with
 	| BO_Add -> x + y
 	| BO_Minus -> x - y
@@ -145,6 +153,8 @@ let get_bitop op x y =
 	| SO_And -> x land y
 	| SO_Or -> x lor y
 	| SO_Xor -> x lxor y
+
+(* get assign TODO *)
 
 (* get string of operations *)
 let string_of_bo = function
@@ -208,16 +218,33 @@ let string_of_primitive = function
   	| Byte -> "byte"
   	| Short -> "short"
 
+ let string_of_literal x =
+ 	match x with
+	| L_Str x -> x
+	| L_Float x -> string_of_float x
+	| L_Double x -> string_of_float x
+	| L_Char x -> String.make 1 x
+	| L_Boolean x -> string_of_bool x
+ 	| L_Int x -> string_of_int x
+ 	| L_Null x -> "null"
+
+let rec string_of_exp exp =
+	match exp with
+	| Identifier id -> id
+	| Literal lit -> string_of_literal lit
+	| Binop(op, e1, e2) -> (string_of_exp e1)^(string_of_bo op)^(string_of_exp e2)
+	| Compop(op, e1, e2) -> (string_of_exp e1)^(string_of_compop op)^(string_of_exp e2)
+	| Bitop(op, e1, e2)-> (string_of_exp e1)^(string_of_bitop op)^(string_of_exp e2)
+	| Logbinop(op, e1, e2) -> (string_of_exp e1)^(string_of_lbo op)^(string_of_exp e2)
+	| Loguop(op, e) -> (string_of_luo op)^(string_of_exp e)
+	| Unop(op, e) -> (string_of_uo op)^(string_of_exp e)
+	| Assign(op, e1, e2) -> (string_of_exp e1)^(string_of_assign op)^(string_of_exp e2)
+
+(*
 (* evaluate *)
 let rec eval exp =
 	match exp with
-	| Literal ilit -> ilit
-	| Binop(op, e1, e2) -> (get_bo op) (eval e1) (eval e2)
+	| L_Int ilit -> ilit
+	| Binop(op, e1, e2) -> (get_bo_int op) (eval e1) (eval e2)
 	| Unop(op, e) -> (get_uo op) (eval e)
-
-(* string *)
-let rec string_of_exp exp =
-	match exp with
-	| Literal ilit -> string_of_int ilit
-	| Binop(op, e1, e2) -> (string_of_exp e1)^(string_of_bo op)^(string_of_exp e2)
-	| Unop(op, e) -> (string_of_uo op)^(string_of_exp e)
+*)
