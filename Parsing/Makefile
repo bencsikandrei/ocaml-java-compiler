@@ -21,7 +21,7 @@ $(BUILD)/definitions.cmo:
 
 main: $(BUILD) $(BUILD)/definitions.cmo $(BUILD)/javaParser.cmo $(BUILD)/javaLexer.cmo $(BUILD)/main.ml
 	cd $(BUILD); ocamlc -c main.ml
-	cd $(BUILD); ocamlc -pp "#load"  javaParser.cmo javaLexer.cmo main.cmo -o main
+	cd $(BUILD); ocamlc -pp "#load"  definitions.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
 
 $(BUILD): 
 	mkdir -p $(BUILD)

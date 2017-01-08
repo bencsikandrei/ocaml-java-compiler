@@ -10,7 +10,7 @@ let position lexbuf=
 
 let print arg=	match arg with
 	| STR s -> print_string (s);
-	| JML j -> print_string ("");;
+	| JML j -> print_string (print_list print_java_method j "\n");;
 
 let fakeDict str= match str with 
 	| "file" -> javaFile
