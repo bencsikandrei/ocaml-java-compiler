@@ -70,11 +70,14 @@
 	for(int i : integers) {
 		search : {;}
 		int a = 10;
-		if( true ) {
+		if( true 1 ) {
 			break search;
 		}
 		throw new Exception();	
 	}
 }		
 
+{
+;
+}
 
