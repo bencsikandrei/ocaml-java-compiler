@@ -1,2 +1,5 @@
 - ";" can be multiples and with spaces
 - Class as a type, and separated from primitive
+- constructor
+- annotations before package (7.4.1.1)
+- attributes/variable declarators add array init

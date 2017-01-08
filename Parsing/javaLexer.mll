@@ -50,6 +50,8 @@ rule nexttoken = parse
 	| "class" {CLASS}
 	| "extends" {EXTENDS}
 	| "implements" {IMPLEMENTS}
+	| "package" {PACKAGE}
+	| "import" {IMPORT}
 	| real as nb { FLOATLIT (float_of_string nb) }
 	| ident as str { IDENTIFIER str }
 	| _	{ raise (SyntaxError("Unexpected: "^Lexing.lexeme lexbuf))}
