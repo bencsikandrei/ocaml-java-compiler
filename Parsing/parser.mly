@@ -356,7 +356,18 @@ multiplicativeExpression:
 
 castExpression:
 	un=unaryExpression { un }
+	| LPAR pte=primitiveTypeExpression RPAR ce=castExpression { " ("^pte^") "^ce }
+	| LPAR cte=classTypeExpression RPAR ce=castExpression { " ("^cte^") "^ce }
 	| LPAR e=expression RPAR lue=logicalUnaryExpression { " ("^e^") "^lue }
+;
+
+primitiveTypeExpression: 
+	pt=primitiveType { pt }
+    | pt=primitiveType d=dims { pt^d } 
+;
+
+classTypeExpression: 
+	qn=qualifiedName d=dims { qn^d }
 ;
 
 unaryExpression:
