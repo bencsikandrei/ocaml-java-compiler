@@ -1,0 +1,9 @@
+{
+	while() {
+		synchronized () { ; } 
+	}
+}
+{	
+	do {
+	} while();
+}
