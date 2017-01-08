@@ -1,3 +1,4 @@
+(* arithmetic ops *)
 type binop =
 	| BO_Add
 	| BO_Minus
@@ -12,24 +13,31 @@ type unop =
 	| UO_PreDecrement
 	| UO_BNot
 	
-(* logical unary ops *)
+(* logical ops *)
+type logbinop =
+	| LBO_and (* && *)
+	| LBO_or
+
 type loguop =
 	| LUO_Not
 
+(* any type ops *)
 type compop =
-	| BO_or 
-	| BO_and
 	| BO_gt
 	| BO_lt
 	| BO_ge
 	| BO_le 
 	| BO_neq
 	| BO_eq
-	
-type shiftop =
+
+(* bitwise ops *)
+type bitop =
 	| SO_lshift 
 	| SO_rshift 
 	| SO_logshift
+	| SO_And (* & *)
+	| SO_Or
+	| SO_Xor
 
 type assign =
 	| ASS_Equal
@@ -85,7 +93,7 @@ type statement =
 	| ST_catch_stmt
 	| ST_finally_stmt
 
-(* get operations *)
+(* get arithmetic operations *)
 let get_bo op x y = 
 	match op with
 	| BO_Add -> x + y
@@ -109,20 +117,36 @@ let get_uo = function
 	| UO_PreDecrement -> fun x -> succ x
 	| UO_BNot -> fun x -> lnot x
 
+(* get logical ops *)
+let get_lbo op a b =
+	match op with
+	| LBO_and -> a && b
+	| LBO_or -> a || b
+
 let get_luo = function
 	| LUO_Not -> fun x -> not x
 
-(* get string of operations *)
-let string_of_primitive = function
-  | Int -> "int"
-  | Float -> "float"
-  | Double -> "double"
-  | Boolean -> "boolean"
-  | Char -> "char"
-  | Long -> "long"
-  | Byte -> "byte"
-  | Short -> "short"
+(* get any type ops *)
+let get_compop op x y =
+	match op with
+	| BO_gt -> x > y
+	| BO_lt -> x < y
+	| BO_ge -> x >= y
+	| BO_le -> x <= y
+	| BO_neq -> x != y
+	| BO_eq -> x == y
 
+(* get bitwise ops *)
+let get_bitop op x y =
+	match op with
+	| SO_lshift -> x lsl y
+	| SO_rshift -> x lsr y
+	| SO_logshift -> x asr y
+	| SO_And -> x land y
+	| SO_Or -> x lor y
+	| SO_Xor -> x lxor y
+
+(* get string of operations *)
 let string_of_bo = function
 	| BO_Add -> "+"
 	| BO_Minus -> "-"
@@ -137,12 +161,14 @@ let string_of_uo = function
 	| UO_PreDecrement -> "--"
 	| UO_BNot -> "~"
 
+let string_of_lbo = function
+	| LBO_or -> "||"
+	| LBO_and -> "&&"
+
 let string_of_luo = function
 	| LUO_Not -> "!"
 
 let string_of_compop = function
-	| BO_or -> "||"
-	| BO_and -> "&&"
 	| BO_gt -> ">"
 	| BO_lt -> "<"
 	| BO_ge -> ">="
@@ -150,10 +176,13 @@ let string_of_compop = function
 	| BO_neq -> "!="
 	| BO_eq -> "==" 
 
-let string_of_shiftop = function
+let string_of_bitop = function
 	| SO_lshift -> "<<"
 	| SO_rshift -> ">>"
 	| SO_logshift-> ">>>"
+	| SO_And -> "&"
+	| SO_Or -> "|"
+	| SO_Xor -> "^"
 
 let string_of_assign = function
 	| ASS_Equal -> "="
@@ -168,6 +197,16 @@ let string_of_assign = function
 	| ASS_RShift -> ">>="
 	| ASS_LShift -> "<<="
 	| ASS_LogShift -> ">>>="
+
+let string_of_primitive = function
+  	| Int -> "int"
+	| Float -> "float"
+	| Double -> "double"
+  	| Boolean -> "boolean"
+  	| Char -> "char"
+  	| Long -> "long"
+  	| Byte -> "byte"
+  	| Short -> "short"
 
 (* evaluate *)
 let rec eval exp =
