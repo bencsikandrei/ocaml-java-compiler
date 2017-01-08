@@ -9,7 +9,7 @@
 {
 	try {
 		;
-	} catch() { 
+	} catch(int) { 
 		;
 	}
 }
@@ -17,7 +17,7 @@
 {
 	try {
 		;
-	} catch() {
+	} catch(int) {
 		;
 	} finally {
 		;
