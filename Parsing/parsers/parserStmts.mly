@@ -175,8 +175,34 @@ assertStmt:
 selectStmt:
 	IF LPAR e=expression RPAR s=statement { "if("^e^") "^s }
 	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { "if("^e^") "^s1^"\nelse "^s2 }
-	| SWITCH LPAR e=expression RPAR b=block { "switch ("^e^") "^b } 
+	| SWITCH LPAR e=expression RPAR b=switchBlock { "switch ("^e^") "^b } 
 ;
+
+/* switch blocks */
+switchBlock:
+	LCURL RCURL { "{ }" }
+	| LCURL sbsgs=switchBlockStmtGroups RCURL { "{ "^sbsgs^"}" }
+;
+
+switchBlockStmtGroups:
+	sbsg=switchBlockStmtGroup { sbsg }
+	| sbsgs=switchBlockStmtGroups sbsg=switchBlockStmtGroup { sbsgs^"\n"^sbsg }
+;
+
+switchBlockStmtGroup:
+	sls=switchLabels bss=block { sls^"\n"^bss }
+;
+
+switchLabels:
+	sl=switchLabel { sl }
+	| sls=switchLabels sl=switchLabel { sls^"\n"^sl }
+;
+
+switchLabel:
+	CASE ce=constantExpression COL { "case "^ce^" :" }
+	| DEFAULT COL { "default : " }
+;
+/* end switch blocks */
 
 jumpStmt: 
 	BREAK id=IDENTIFIER SEMI { "break "^id^"; " }
@@ -194,7 +220,7 @@ iterStmt:
 	/*
 	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s } */
 	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for("^fi^fe^")"^s } 
-	/* TODO add a foreach */
+	/* | FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { "for("^fvo^":"^e^")"^s } */
 ;
 
 forInit: 
@@ -210,6 +236,14 @@ forExpr:
 /*
 forIncr: 
 	es=expressionStmts { es }
+;
+*/
+
+/*
+forVarOpt:
+	ts=typeSpecifier id=IDENTIFIER { ts^" "^id }
+	/* | ms=modifiers ts=typeSpecifier id=IDENTIFIER { ms^" "^ts^" "^id } */
+	/* TODO add modifiers here */
 ;
 */
 

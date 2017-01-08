@@ -68,7 +68,12 @@
 		System.out.println();
 		
 	for(int i : integers) {
-		;	
+		search : {;}
+		int a = 10;
+		if( true ) {
+			break search;
+		}
+		throw new Exception();	
 	}
 }		
 
