@@ -84,22 +84,24 @@ type expression =
 	| Assign of assign * expression * expression	
 
 type statement = 
-	| ST_empty_stmt 
-	| ST_label_stmt of string
-	| ST_if_stmt of expression * statement * statement option
-	| ST_switch_stmt of expression * statement list
-	| ST_while_stmt of expression * statement
-	| ST_for_stmt of expression list * expression option * expression list * statement
-	| ST_do_while_stmt
-	| ST_break_stmt
-	| ST_continue_stmt
-	| ST_return_stmt
-	| ST_throw_stmt
-	| ST_lvar_decl_stmt
-	| ST_synch_stmt
-	| ST_try_stmt
-	| ST_catch_stmt
-	| ST_finally_stmt
+	| ST_empty 
+	| ST_label of string
+	| ST_expression of expression
+	| ST_if of expression * statement list * statement
+	| ST_switch of expression * statement list
+	| ST_while of expression * statement list
+	| ST_for of expression list * expression * expression list * statement list
+	| ST_do_while of statement list * expression
+	| ST_break of expression
+	| ST_continue of expression
+	| ST_return of expression
+	| ST_throw of expression
+	| ST_lvar_decl of expression
+	| ST_synch of expression
+	| ST_try of statement list
+	| ST_catch of expression * statement list
+	| ST_finally of statement list
+(* option removed; TODO revise statement *)
 
 (* get arithmetic operations *)
 let get_bo_int op x y = 
@@ -240,11 +242,22 @@ let rec string_of_exp exp =
 	| Unop(op, e) -> (string_of_uo op)^(string_of_exp e)
 	| Assign(op, e1, e2) -> (string_of_exp e1)^(string_of_assign op)^(string_of_exp e2)
 
-(*
-(* evaluate *)
-let rec eval exp =
-	match exp with
-	| L_Int ilit -> ilit
-	| Binop(op, e1, e2) -> (get_bo_int op) (eval e1) (eval e2)
-	| Unop(op, e) -> (get_uo op) (eval e)
-*)
+let rec string_of_stmt stmt =
+	match stmt with
+	| ST_empty -> ";"
+	| ST_label x -> x
+	| ST_expression e -> string_of_exp e
+	| ST_if(e, st1, st2) -> "if ("^(string_of_exp e)^") {"^(String.concat "; " (List.map string_of_stmt st1))^(string_of_stmt st2)^"}"
+	| ST_switch(e, st) -> "switch ("^(string_of_exp e)^") "^(String.concat "; " (List.map string_of_stmt st))
+	| ST_while(e, st) ->  "while ("^(string_of_exp e)^") {"^(String.concat "; " (List.map string_of_stmt st))^"}"
+	| ST_for(e1, e2, e3, st) -> "for ("^(String.concat "; " (List.map string_of_exp e1))^"; "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_exp e3))^")"^(String.concat "; " (List.map string_of_stmt st))
+	| ST_do_while(st, e) -> "do {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^")"
+	| ST_break(e) -> "break "^(string_of_exp e)
+	| ST_continue(e) -> "continue "^(string_of_exp e)
+	| ST_return(e) -> "return "^(string_of_exp e)
+	| ST_throw(e) -> "throw "^(string_of_exp e)
+	| ST_lvar_decl(e) -> (string_of_exp e)
+	| ST_synch(e) -> "synchronized "^(string_of_exp e)
+	| ST_try(st) ->  "try {"^(String.concat "; " (List.map string_of_stmt st))^"}"
+	| ST_catch(e, st) ->  "catch ("^(string_of_exp e)^")"^"{"^(String.concat "; " (List.map string_of_stmt st))^"}"
+	| ST_finally(st) -> "finally {"^(String.concat "; " (List.map string_of_stmt st))^"}"
