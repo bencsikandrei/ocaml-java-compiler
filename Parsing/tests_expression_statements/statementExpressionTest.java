@@ -46,6 +46,11 @@
 	
 	a_value = a.my_method();
 	a_value = a.my_method(a, b);
+	
+	assert (1+2):(a+b);
+	assert (a==true);
+	
+	final int [][][][][][] a [];
 }
 
 

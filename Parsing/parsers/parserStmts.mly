@@ -149,7 +149,8 @@ localVariableDeclStmt:
 statement:
 	es=emptyStmt { es }
 	| ls=labelStmt { ls }
-	/* | exs=expressionStmt SEMI { exs } */
+	/* | ass=assertStmt { ass }
+	| exs=expressionStmt SEMI { exs } */
  	| ss=selectStmt { ss }
 	| is=iterStmt { is }
 	| js=jumpStmt { js }
@@ -164,6 +165,11 @@ labelStmt:
 /*
 expressionStmt:
 	e=expression { e }
+;
+
+assertStmt:
+	ASSERT e=expression SEMI { "assert "^e }
+	| ASSERT e1=expression COL e2=expression SEMI { "assert "^e1^" : "^e2 }
 ;
 */
 selectStmt:
