@@ -21,8 +21,9 @@ imports:
 	| imports import { }
 
 import:
-	| IMPORT pack_name SEMI { }
-	| IMPORT pack_name DOT MUL SEMI { }
+	| IMPORT option(STATIC) pack_name SEMI { }
+	| IMPORT option(STATIC) pack_name DOT MUL SEMI { }
 
 file_content:
 	| j_class { }
+	| j_interface { }
