@@ -1,33 +1,3 @@
- {;}
- { a:}
- { case a: }
- { default : }
-{ break a; }
-{ continue a; }
-{ break; }
-{ continue; }
-{ return a; }
-{ return; }
-{ 
-	try {
-		;
-	} finally { 
-		;
-	}
-}
-{
-	if(a.b) {
-		try {
-		;
-		} finally { 
-			;
-		}
-	} 
-	else { ; }
-	int b=a;
-	for(int a=c.d;a; a.b) {
-	}
-}
 {
 	char bc = a << 10;
 	char bc = a >> 10;
@@ -76,6 +46,35 @@
 	
 	a_value = a.my_method();
 	a_value = a.my_method(a, b);
-}
+	
+	assert (1+2):(a+b);
+	assert (a==true);
+	
+	final int [][][][][][] a;
+	
+	if(true)
+		if (false) 
+			b = 1;
+		else
+			c = 1;
+	
+	switch(a) {
+		case 1: 
+		case 2: { break; }
+		default: { break; }
+	}
+	
+	for(int i = 1, j = 3 ;; i ++ ) 
+		System.out.println();
+		
+	for(int i : integers) {
+		search : {;}
+		int a = 10;
+		if( true ) {
+			break search;
+		}
+		throw new Exception();	
+	}
+}		
 
 
