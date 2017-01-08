@@ -50,7 +50,22 @@
 	assert (1+2):(a+b);
 	assert (a==true);
 	
-	final int [][][][][][] a [];
-}
+	final int [][][][][][] a;
+	
+	if(true)
+		if (false) 
+			b = 1;
+		else
+			c = 1;
+	
+	switch(a) {
+		case 1: 
+		case 2: { break; }
+		default: { break; }
+	}
+	
+	for(int i = 1, j = 3 ;; i ++ ) 
+		System.out.println();
+}		
 
 

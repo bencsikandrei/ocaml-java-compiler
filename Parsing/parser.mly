@@ -160,8 +160,8 @@ statement:
 
 labelStmt:
 	id=IDENTIFIER COL { id^" : " }
-	| CASE ce=constantExpression COL { "case "^ce^": " }
-	| DEFAULT COL { "default : " }
+	/* | CASE ce=constantExpression COL { "case "^ce^": " }
+	| DEFAULT COL { "default : " } */
 ;
 
 assertStmt:
@@ -176,8 +176,34 @@ expressionStmt:
 selectStmt:
 	IF LPAR e=expression RPAR s=statement %prec DANGLING_ELSE { "if("^e^") "^s }
 	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { "if("^e^") "^s1^"\nelse "^s2 }
-	| SWITCH LPAR e=expression RPAR b=block { "switch ("^e^") "^b } 
+	| SWITCH LPAR e=expression RPAR sb=switchBlock { "switch ("^e^") "^sb }
 ;
+
+/* switch blocks */
+switchBlock:
+	LCURL RCURL { "{ }" }
+	| LCURL sbsgs=switchBlockStmtGroups RCURL { "{ "^sbsgs^"}" }
+;
+
+switchBlockStmtGroups:
+	sbsg=switchBlockStmtGroup { sbsg }
+	| sbsgs=switchBlockStmtGroups sbsg=switchBlockStmtGroup { sbsgs^"\n"^sbsg }
+;
+
+switchBlockStmtGroup:
+	sls=switchLabels bss=block { sls^"\n"^bss }
+;
+
+switchLabels:
+	sl=switchLabel { sl }
+	| sls=switchLabels sl=switchLabel { sls^"\n"^sl }
+;
+
+switchLabel:
+	CASE ce=constantExpression COL { "case "^ce^" :" }
+	| DEFAULT COL { "default : " }
+;
+/* end switch blocks */
 
 jumpStmt: 
 	BREAK id=IDENTIFIER SEMI { "break "^id^"; " }
