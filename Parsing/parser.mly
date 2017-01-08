@@ -122,7 +122,7 @@
 %%
 compilationUnit:
 	s=block { s }
-	| error { " an error has occured\n" }
+	| error { "ERROR -> statement" }
 ;
 /* block */
 block:
@@ -311,6 +311,7 @@ emptyStmt:
 /* expressions */
 expression: 
 	ae=assignmentExpression { ae }
+	| error { " ERROR -> expression\n" }
 ;
 
 assignmentExpression:
