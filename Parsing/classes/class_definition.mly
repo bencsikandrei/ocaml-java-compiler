@@ -36,10 +36,24 @@ inside_class_l:
 inside_class:
 	| javaMethod { }
 	| j_class { }
-	| attribute SEMI { }
+(*	| attribute SEMI { }
 
 attribute:
-	| modifiers IDENTIFIER ASSIGN exprs { }
-	| modifiers IDENTIFIER { }
+	| option(modifiers) types variable_decls { } 
+
+variable_decls:
+	| var_decl { }
+	| variable_decls COMM var_decl { }
+
+var_decl:
+ 	| var_decl_id { }
+ 	| var_decl_id ASSIGN var_init { }
+
+var_decl_id:
+	| IDENTIFIER { }
+	| var_decl_id LBRAC RBRAC { }
+
+var_init:
+	| exprs { } *)
 
 %%
