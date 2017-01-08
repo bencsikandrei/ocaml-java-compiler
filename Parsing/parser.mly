@@ -141,14 +141,15 @@ localVariableDeclOrStmt:
 ;
 
 localVariableDeclStmt:
-	ts=typeName vd=variableDeclarators SEMI { ts^vd^";" }
-	| FINAL ts=typeName vd=variableDeclarators SEMI { "final "^ts^" "^vd^";" }
+	ts=typeSpecifier vd=variableDeclarators SEMI { ts^vd^";" }
+	| FINAL ts=typeSpecifier vd=variableDeclarators SEMI { "final "^ts^" "^vd^";" }
 ;
 
 /* statements */
 statement:
 	es=emptyStmt { es }
 	| ls=labelStmt { ls }
+	| ass=assertStmt { ass }
 	| exs=expressionStmt SEMI { exs^";\n"}
  	| ss=selectStmt { ss }
 	| is=iterStmt { is }
@@ -161,6 +162,11 @@ labelStmt:
 	id=IDENTIFIER COL { id^" : " }
 	| CASE ce=constantExpression COL { "case "^ce^": " }
 	| DEFAULT COL { "default : " }
+;
+
+assertStmt:
+	ASSERT e=expression SEMI { "assert "^e }
+	| ASSERT e1=expression COL e2=expression SEMI { "assert "^e1^" : "^e2 }
 ;
 
 expressionStmt:
@@ -229,8 +235,8 @@ catch:
 ;
 
 catchHeader: 
-	CATCH LPAR ts=typeName id=IDENTIFIER RPAR { "catch ( "^ts^id^" ) "}
-	| CATCH LPAR ts=typeName RPAR { "catch ( "^ts^" ) " }
+	CATCH LPAR ts=typeSpecifier id=IDENTIFIER RPAR { "catch ( "^ts^id^" ) "}
+	| CATCH LPAR ts=typeSpecifier RPAR { "catch ( "^ts^" ) " }
 ;
 
 finally: 
@@ -421,7 +427,7 @@ argumentList:
 arrayAllocationExpression:
 	NEW tn=typeName de=dimExprs d=dims { "new "^tn^de^d }
 	| NEW tn=typeName de=dimExprs { "new "^tn^de }
-        | NEW tn=typeName d=dims { "new "^tn^d }
+    | NEW tn=typeName d=dims { "new "^tn^d }
 ;
 
 dimExprs:
