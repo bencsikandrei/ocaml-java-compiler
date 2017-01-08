@@ -25,7 +25,13 @@ javaMethod_list:
 		|mm=modifiers 						 	rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=mm;jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
 		|										rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
 
+%public javaMethod_plain_return:  
+		|rt=ResultType md=MethodDeclarator th=Throws mb=MethodBody { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=mb} }
+		|rt=ResultType md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=mb} }
 
+%public javaMethod_plain:  
+		|md=MethodDeclarator th=Throws  mb=MethodBody { {jmmodifiers=[];jmtparam=[];jmrtype=RT_Void;jmdeclarator=md;jmthrows=th;jmbody=mb} }
+		|md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=[];jmtparam=[];jmrtype=RT_Void;jmdeclarator=md;jmthrows=[];jmbody=mb} }
 
 	ResultType:
 		|e=types {RT_Type e}

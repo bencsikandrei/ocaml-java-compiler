@@ -56,14 +56,19 @@ type methodDeclarator= {
 }
 
 type javaMethod={
-	jmmodifiers: modifier list;
-	jmtparam: typeParam list; 	
-	jmrtype: resultType;
+	mutable jmmodifiers: modifier list;
+	mutable jmtparam: typeParam list; 	
+	mutable jmrtype: resultType;
 	jmdeclarator: methodDeclarator;
 	jmthrows: jexception list;
 	jmbody: body;
 }
 
+
+type insideClass=
+	|IC_Method of javaMethod
+	|IC_Attribute
+	|IC_Class
 
 (* return types of each defined parser*)
 

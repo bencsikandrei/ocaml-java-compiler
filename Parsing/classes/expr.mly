@@ -10,7 +10,7 @@
 	| expr SEMI  {""}
 	| expr SEMI exprs  {""}
 
-expr:
+%public expr:
 	| id= IDENTIFIER {id}
 	| num= FLOATLIT {string_of_float num}
 	| e1=expr MINUS e2=expr {"menos("^e1^","^e2^")"}
