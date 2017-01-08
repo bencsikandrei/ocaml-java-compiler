@@ -112,6 +112,9 @@
 %right NOT
 %left DOT
 */
+%nonassoc DANGLING_ELSE
+%nonassoc ELSE
+
 /* starting point */
 %start compilationUnit
 %type <string> compilationUnit
