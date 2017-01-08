@@ -19,7 +19,7 @@
 	
 	// tringBuffer buf = new StringBuffer(8);
 	do {
-		buf.append(Character.forDigit(i & 0xF, 16));
+		buf.append(Character.forDigit(i & 2, 16));
 		i >>>= 4;
 	} while (i != 0);
 	

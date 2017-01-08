@@ -311,7 +311,7 @@ emptyStmt:
 /* expressions */
 expression: 
 	ae=assignmentExpression { ae }
-	| error { " an error has occured\n" }
+	| error { " ERROR -> expression\n" }
 ;
 
 assignmentExpression:

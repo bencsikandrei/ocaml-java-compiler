@@ -70,7 +70,7 @@
 	for(int i : integers) {
 		search : {;}
 		int a = 10;
-		if( true 1 ) {
+		if( true) {
 			break search;
 		}
 		throw new Exception();	
@@ -78,6 +78,6 @@
 }		
 
 {
-	a = x & y;
+	forDigit(i & 2, 16);
 }
 
