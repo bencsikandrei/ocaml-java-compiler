@@ -1,7 +1,7 @@
 %{
 	open Printf
 	open Lexing
-
+	open Expressions
 %}
 /* brackets */
 %token LANG RANG LPAR RPAR LBRAC RBRAC LCURL RCURL /* <> () [] {} */ 
@@ -112,8 +112,6 @@
 %right NOT
 %left DOT
 */
-%nonassoc DANGLING_ELSE
-%nonassoc ELSE
 
 /* starting point */
 %start compilationUnit
@@ -122,7 +120,7 @@
 %%
 compilationUnit:
 	s=block { s }
-	| error { " an error has occured\n" }
+	| error { "ERROR -> statement" }
 ;
 /* block */
 block:
@@ -141,8 +139,8 @@ localVariableDeclOrStmt:
 ;
 
 localVariableDeclStmt:
-	ts=typeName vd=variableDeclarators SEMI { ts^vd^";" }
-	| FINAL ts=typeName vd=variableDeclarators SEMI { "final "^ts^" "^vd^";" }
+	ts=typeSpecifier vd=variableDeclarators SEMI { ts^vd^";\n" }
+	| FINAL ts=typeSpecifier vd=variableDeclarators SEMI { "final "^ts^" "^vd^";\n" }
 ;
 
 /* statements */
@@ -150,93 +148,19 @@ statement:
 	es=emptyStmt { es }
 	| ls=labelStmt { ls }
 	| exs=expressionStmt SEMI { exs^";\n"}
- 	| ss=selectStmt { ss }
-	| is=iterStmt { is }
-	| js=jumpStmt { js }
-	| gs=guardingStmt { gs }
 	| b=block { b }
 ;
 
 labelStmt:
 	id=IDENTIFIER COL { id^" : " }
-	| CASE ce=constantExpression COL { "case "^ce^": " }
-	| DEFAULT COL { "default : " }
+	/* | CASE ce=constantExpression COL { "case "^ce^": " }
+	| DEFAULT COL { "default : " } */
 ;
 
 expressionStmt:
 	e=expression { e }
 ;
-
-selectStmt:
-	IF LPAR e=expression RPAR s=statement %prec DANGLING_ELSE { "if("^e^") "^s }
-	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { "if("^e^") "^s1^"\nelse "^s2 }
-	| SWITCH LPAR e=expression RPAR b=block { "switch ("^e^") "^b } 
-;
-
-jumpStmt: 
-	BREAK id=IDENTIFIER SEMI { "break "^id^"; " }
-	| BREAK SEMI { "break;" }
-    	| CONTINUE id=IDENTIFIER SEMI { "continue "^id^"; "}
-	| CONTINUE SEMI { "continue;"}
-	| RETURN e=expression SEMI { "return "^e^"; "  }
-	| RETURN SEMI { "return;"} 
-	| THROW e=expression SEMI { "throw "^e^"; " }
-;
-
-iterStmt: 
-	WHILE LPAR e=expression RPAR s=statement { "while("^e^")"^s }
-	| DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^"); "} 
-	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s }
-	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for("^fi^fe^")"^s } 
-	/* TODO add a foreach */
-;
-
-forInit: 
-	lvds=localVariableDeclStmt { lvds }
-	| SEMI { ";" }
-;
-
-forExpr: 
-	e=expression SEMI { e^";" }
-	| SEMI { ";" }
-;
-
-forIncr: 
-	es=expressionStmts { es }
-;
-
-expressionStmts
-	: es=expressionStmt { es }
-	| ess=expressionStmts COMM es=expressionStmt { ess^" , "^es}
-	;
-
-guardingStmt: 
-	SYNCHRONIZED LPAR e=expression RPAR s=statement { "synchronized ("^e^") "^s }
-	| TRY b=block f=finally { "try "^b^f }
-	| TRY b=block c=catches { "try "^b^c }
-	| TRY b=block c=catches f=finally { "try "^b^c^f }
-;
 /* end statements */
-
-/* catch */
-catches: 
-	c=catch { c } 
-	| cs=catches c=catch { cs^c }
-;
-
-catch: 
-	ch=catchHeader b=block { ch^b }
-;
-
-catchHeader: 
-	CATCH LPAR ts=typeName id=IDENTIFIER RPAR { "catch ( "^ts^id^" ) "}
-	| CATCH LPAR ts=typeName RPAR { "catch ( "^ts^" ) " }
-;
-
-finally: 
-	FINALLY b=block { "finally "^b }
-;
-/* end catch */
 
 /* variable declarators */
 variableDeclarators: 
@@ -261,7 +185,7 @@ variableInitializer:
 
 arrayInitializers:
 	vi=variableInitializer { vi }
-	| ai=arrayInitializers COMM vi=variableInitializer  { ai^" , "^vi }
+	| ai=arrayInitializers COMM vi=variableInitializer  { ai^", "^vi }
 	| ai=arrayInitializers COMM { ai^" , " }
 ;
 /* end variable declarators */
@@ -273,15 +197,12 @@ emptyStmt:
 /* expressions */
 expression: 
 	ae=assignmentExpression { ae }
+	| error { " ERROR -> expression\n" }
 ;
 
 assignmentExpression:
 	ce=conditionalExpression { ce }
 	| ue=unaryExpression ass=assignmentOperator ae=assignmentExpression { ue^ass^ae }
-;
-
-constantExpression:
-	ce=conditionalExpression { ce }
 ;
 
 /* conditional expressions */
@@ -292,41 +213,41 @@ conditionalExpression:
 
 conditionalOrExpression:
 	cand=conditionalAndExpression { cand }
-	| cor=conditionalOrExpression OR cand=conditionalAndExpression { cor^" || "^cand }
+	| cor=conditionalOrExpression OR cand=conditionalAndExpression { "("^cor^" || "^cand^")" }
 ;
 
 conditionalAndExpression:
 	ior=inclusiveOrExpression { ior }
-	| cand=conditionalAndExpression AND ior=inclusiveOrExpression { cand^"  && "^ior }
+	| cand=conditionalAndExpression AND ior=inclusiveOrExpression { "("^cand^" && "^ior^")" }
 ;
 
 inclusiveOrExpression:
 	eor=exclusiveOrExpression { eor }
-	| ior=inclusiveOrExpression BOR eor=exclusiveOrExpression { ior^" | "^eor }
+	| ior=inclusiveOrExpression BOR eor=exclusiveOrExpression { "("^ior^" | "^eor^")" }
 ;
 
 exclusiveOrExpression:
 	a=andExpression { a }
-	| eor=exclusiveOrExpression XOR a=andExpression { eor^" ^ "^a }
+	| eor=exclusiveOrExpression XOR a=andExpression { "("^eor^" ^ "^a^")" }
 ;
 
 andExpression:
 	eq=equalityExpression { eq }
-	| a=andExpression BAND eq=equalityExpression { a^" & "^eq }
+	| a=andExpression BAND eq=equalityExpression { "("^a^" & "^eq^")" }
 ;
 
 equalityExpression:
 	rel=relationalExpression { rel }
-	| eq=equalityExpression EQUAL rel=relationalExpression { eq^"=="^rel }
-	| eq=equalityExpression NEQUAL rel=relationalExpression { eq^"!="^rel }
+	| eq=equalityExpression EQUAL rel=relationalExpression { "("^eq^" == "^rel^")" }
+	| eq=equalityExpression NEQUAL rel=relationalExpression { "("^eq^" != "^rel^")" }
 ;
 
 relationalExpression:
 	sh=shiftExpression { sh }
-	| rel=relationalExpression LTHAN sh=shiftExpression { rel^" < "^sh }
-	| rel=relationalExpression GTHAN sh=shiftExpression { rel^" > "^sh }
-	| rel=relationalExpression LETHAN sh=shiftExpression { rel^" <= "^sh }
-	| rel=relationalExpression GETHAN sh=shiftExpression { rel^" >= "^sh } 
+	| rel=relationalExpression LTHAN sh=shiftExpression { "("^rel^" < "^sh^")" }
+	| rel=relationalExpression GTHAN sh=shiftExpression { "("^rel^" > "^sh^")" }
+	| rel=relationalExpression LETHAN sh=shiftExpression { "("^rel^" <= "^sh^")" }
+	| rel=relationalExpression GETHAN sh=shiftExpression { "("^rel^" >= "^sh^")" } 
 	| rel=relationalExpression INSTANCEOF ts=typeSpecifier { rel^" instanceof "^ts }
 ;
 /* end conditional expressions */
@@ -335,40 +256,51 @@ relationalExpression:
 /* operation expressions */
 shiftExpression:
 	add=additiveExpression { add }
-	| sh=shiftExpression LSHIFT add=additiveExpression { sh^"<<"^add }
-	| sh=shiftExpression RSHIFT add=additiveExpression { sh^">>"^add }
-	| sh=shiftExpression LOGSHIFT add=additiveExpression { sh^">>>"^add }
+	| sh=shiftExpression LSHIFT add=additiveExpression { "("^sh^" << "^add^")" }
+	| sh=shiftExpression RSHIFT add=additiveExpression { "("^sh^" >> "^add^")" }
+	| sh=shiftExpression LOGSHIFT add=additiveExpression { "("^sh^" >>> "^add^")" }
 ;
 
 additiveExpression:
 	mul=multiplicativeExpression { mul }
-	| add=additiveExpression PLUS mul=multiplicativeExpression { add^"+"^mul } 
-	| add=additiveExpression MINUS mul=multiplicativeExpression { add^"-"^mul }
+	| add=additiveExpression PLUS mul=multiplicativeExpression { "("^add^" + "^mul^")" } 
+	| add=additiveExpression MINUS mul=multiplicativeExpression { "("^add^" - "^mul^")" }
 ;
 
 multiplicativeExpression:
 	cast=castExpression { cast }
-	| mul=multiplicativeExpression MUL cast=castExpression { mul^"*"^cast }
-	| mul=multiplicativeExpression DIV cast=castExpression { mul^"/"^cast }
-	| mul=multiplicativeExpression MOD cast=castExpression { mul^"%"^cast }
+	| mul=multiplicativeExpression MUL cast=castExpression { "("^mul^" * "^cast^")" }
+	| mul=multiplicativeExpression DIV cast=castExpression { "("^mul^" / "^cast^")" }
+	| mul=multiplicativeExpression MOD cast=castExpression { "("^mul^" % "^cast^")" }
 	
 ;
 
 castExpression:
 	un=unaryExpression { un }
+	| LPAR pte=primitiveTypeExpression RPAR ce=castExpression { " ("^pte^") "^ce }
+	| LPAR cte=classTypeExpression RPAR ce=castExpression { " ("^cte^") "^ce }
 	| LPAR e=expression RPAR lue=logicalUnaryExpression { " ("^e^") "^lue }
 ;
 
+primitiveTypeExpression: 
+	pt=primitiveType { pt }
+    | pt=primitiveType d=dims { pt^d } 
+;
+
+classTypeExpression: 
+	qn=qualifiedName d=dims { qn^d }
+;
+
 unaryExpression:
-	INCREMENT un=unaryExpression { "++"^un }
-	| DECREMENT un=unaryExpression { "--"^un } 
+	INCREMENT un=unaryExpression { "("^"++"^un^")" }
+	| DECREMENT un=unaryExpression { "("^"--"^un^")" } 
 	| aop=arithmeticUnaryOperator ct=castExpression { aop^ct }
 	| logu=logicalUnaryExpression { logu }
 ;
 
 logicalUnaryExpression:
 	post=postfixExpression { post }
-	| loguop=logicalUnaryOperator un=unaryExpression { loguop^un }
+	| loguop=logicalUnaryOperator un=unaryExpression { "("^loguop^un^")" }
 ;
 
 postfixExpression:
@@ -377,8 +309,8 @@ postfixExpression:
 ;
 
 realPostfixExpression:
-	post=postfixExpression INCREMENT { post^"++" }
-	| post=postfixExpression DECREMENT { post^"--" }
+	post=postfixExpression INCREMENT { "("^post^"++"^")" }
+	| post=postfixExpression DECREMENT { "("^post^"--"^")" }
 ;
 /* end operationg expressions */
 
@@ -398,19 +330,19 @@ plainNewAllocationExpression:
 ;
 
 classAllocationExpression:
-	NEW tn=typeName LPAR args=argumentList RPAR { "new"^tn^"("^args^")" }
-	| NEW tn=typeName LPAR RPAR { "new"^tn^"("^")" }
+	NEW tn=typeName LPAR args=argumentList RPAR { "new "^tn^"("^args^")" }
+	| NEW tn=typeName LPAR RPAR { "new "^tn^"("^")" }
 ;
 
 argumentList:
 	ex=expression { ex }
-	| args=argumentList COMM ex=expression { args^" , "^ex }
+	| args=argumentList COMM ex=expression { args^", "^ex }
 ;
 
 arrayAllocationExpression:
 	NEW tn=typeName de=dimExprs d=dims { "new "^tn^de^d }
 	| NEW tn=typeName de=dimExprs { "new "^tn^de }
-        | NEW tn=typeName d=dims { "new "^tn^d }
+    | NEW tn=typeName d=dims { "new "^tn^d }
 ;
 
 dimExprs:
@@ -466,8 +398,38 @@ complexPrimaryNoParenthesis:
 	| blit=BOOLEANLIT { string_of_bool blit }
 	| ilit=INTLIT { string_of_int ilit }
 	| clit=CHARLIT { "'"^(String.make 1 clit)^"'" }
+	| dlit=DOUBLELIT { string_of_float dlit }
+	| flit=FLOATLIT { string_of_float flit }
+	/* | nlit=NULLLIT { nlit } */
+	| aa=arrayAccess { aa }
+	| fa=fieldAccess { fa }
+	| mc=methodCall { mc } 
 (* for now they are strings *)
 ;
+
+arrayAccess
+	: qn=qualifiedName LBRAC e=expression RBRAC { qn^" [ "^e^" ] " }
+	| cp=complexPrimary LBRAC e=expression RBRAC { cp^" [ "^e^" ] "}
+	;
+
+fieldAccess
+	: njn=notJustName DOT id=IDENTIFIER { njn^"."^id }
+	| rpe=realPostfixExpression DOT id=IDENTIFIER { rpe^"."^id }
+    | qn=qualifiedName DOT THIS { qn^".this " }
+    | qn=qualifiedName DOT CLASS { qn^".class " }
+    | pt=primitiveType DOT CLASS { pt^".class " }
+	;
+
+methodCall
+	: ma=methodAccess LPAR al=argumentList RPAR { ma^"( "^al^" ) "}
+	| ma=methodAccess LPAR RPAR { ma^"(  ) "}
+	;
+
+methodAccess
+	: cpnp=complexPrimaryNoParenthesis { cpnp }
+	| sn=specialName { sn }
+	| qn=qualifiedName { qn }
+	;
 
 specialName:
 	THIS { "this" }
@@ -477,18 +439,18 @@ specialName:
 
 /* operators */
 assignmentOperator:
-	ASSIGN { "=" }
-	| PEQUAL { "+=" }
-	| MINUSEQUAL { "-=" }
-	| MULEQUAL { "*=" }
-	| DIVEQUAL { "/=" }
-	| MODEQUAL { "%=" }
-	| ANDEQUAL { "&=" }
-	| OREQUAL { "|=" }
-	| XOREQUAL { "^=" }
-	| RSHIFTEQUAL { ">>=" }
-	| LSHIFTEQUAL { "<<=" }
-	| LOGSHIFTEQUAL { ">>>=" }
+	ASSIGN { " = " }
+	| PEQUAL { " += " }
+	| MINUSEQUAL { " -= " }
+	| MULEQUAL { " *= " }
+	| DIVEQUAL { " /= " }
+	| MODEQUAL { " %= " }
+	| ANDEQUAL { " &= " }
+	| OREQUAL { " |= " }
+	| XOREQUAL { " ^= " }
+	| RSHIFTEQUAL { " >>= " }
+	| LSHIFTEQUAL { " <<= " }
+	| LOGSHIFTEQUAL { " >>>= " }
 ;
 
 arithmeticUnaryOperator:
@@ -503,16 +465,17 @@ logicalUnaryOperator:
 
 /* types */
 primitiveType:
-	BOOLEAN { "boolean" }
-	| CHAR { "char" }
-	| BYTE { "byte" }
-	| SHORT { "short" }
-	| INT { "int" }
-	| LONG { "long" }
-	| FLOAT { "float" }
-	| DOUBLE { "double" }
-	| VOID { "void" }
-;
+	BOOLEAN { "boolean " }
+	| CHAR { "char " }
+	| BYTE { "byte " }
+	| SHORT { "short " }
+	| INT { "int " }
+	| LONG { "long " }
+	| FLOAT { "float " }
+	| DOUBLE { "double " }
+	| VOID { "void " }
+
+
 %%
 let parse_error s = 
 	print_endline s;
