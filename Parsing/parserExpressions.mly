@@ -24,7 +24,7 @@ conditionalOrExpression:
 
 conditionalAndExpression:
 	ior=inclusiveOrExpression { ior }
-	| cand=conditionalAndExpression AND ior=inclusiveOrExpression { cand^"  && "^ior }
+	| cand=conditionalAndExpression AND ior=inclusiveOrExpression { cand^" && "^ior }
 ;
 
 inclusiveOrExpression:
@@ -44,8 +44,8 @@ andExpression:
 
 equalityExpression:
 	rel=relationalExpression { rel }
-	| eq=equalityExpression EQUAL rel=relationalExpression { eq^"=="^rel }
-	| eq=equalityExpression NEQUAL rel=relationalExpression { eq^"!="^rel }
+	| eq=equalityExpression EQUAL rel=relationalExpression { eq^" == "^rel }
+	| eq=equalityExpression NEQUAL rel=relationalExpression { eq^" != "^rel }
 ;
 
 relationalExpression:
@@ -61,22 +61,22 @@ relationalExpression:
 /* operation expressions */
 shiftExpression:
 	add=additiveExpression { add }
-	| sh=shiftExpression LSHIFT add=additiveExpression { sh^"<<"^add }
-	| sh=shiftExpression RSHIFT add=additiveExpression { sh^">>"^add }
-	| sh=shiftExpression LOGSHIFT add=additiveExpression { sh^">>>"^add }
+	| sh=shiftExpression LSHIFT add=additiveExpression { sh^" << "^add }
+	| sh=shiftExpression RSHIFT add=additiveExpression { sh^" >> "^add }
+	| sh=shiftExpression LOGSHIFT add=additiveExpression { sh^" >>> "^add }
 ;
 
 additiveExpression:
 	mul=multiplicativeExpression { mul }
-	| add=additiveExpression PLUS mul=multiplicativeExpression { add^"+"^mul } 
-	| add=additiveExpression MINUS mul=multiplicativeExpression { add^"-"^mul }
+	| add=additiveExpression PLUS mul=multiplicativeExpression { add^" + "^mul } 
+	| add=additiveExpression MINUS mul=multiplicativeExpression { add^" - "^mul }
 ;
 
 multiplicativeExpression:
 	cast=castExpression { cast }
-	| mul=multiplicativeExpression MUL cast=castExpression { mul^"*"^cast }
-	| mul=multiplicativeExpression DIV cast=castExpression { mul^"/"^cast }
-	| mul=multiplicativeExpression MOD cast=castExpression { mul^"%"^cast }
+	| mul=multiplicativeExpression MUL cast=castExpression { mul^" * "^cast }
+	| mul=multiplicativeExpression DIV cast=castExpression { mul^" / "^cast }
+	| mul=multiplicativeExpression MOD cast=castExpression { mul^" % "^cast }
 	
 ;
 

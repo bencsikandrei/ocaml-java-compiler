@@ -29,14 +29,14 @@ localVariableDeclOrStmt:
 ;
 
 %public localVariableDeclStmt:
-	ts=typeSpecifier vd=variableDeclarators SEMI { ts^vd^";" }
+	ts=typeSpecifier vd=variableDeclarators SEMI { ts^" "^vd^";" }
 	| FINAL ts=typeSpecifier vd=variableDeclarators SEMI { "final "^ts^" "^vd^";" }
 ;
 
 /* variable declarators */
 variableDeclarators: 
  	vd=variableDeclarator { vd }
-	| vds=variableDeclarators COMM vd=variableDeclarator { vds^" , "^vd }
+	| vds=variableDeclarators COMM vd=variableDeclarator { vds^", "^vd }
 ;
 
 variableDeclarator:
@@ -77,8 +77,8 @@ plainNewAllocationExpression:
 ;
 
 classAllocationExpression:
-	NEW tn=typeName LPAR args=argumentList RPAR { "new"^tn^"("^args^")" }
-	| NEW tn=typeName LPAR RPAR { "new"^tn^"("^")" }
+	NEW tn=typeName LPAR args=argumentList RPAR { "new "^tn^"("^args^")" }
+	| NEW tn=typeName LPAR RPAR { "new "^tn^"("^")" }
 ;
 
 argumentList:
@@ -185,12 +185,12 @@ specialName:
 ;
 
 /* modifiers */
-modifiers: 
+%public modifiers: 
 	m=modifier { m }
 	| ms=modifiers m=modifier { ms^m }
 ;
 
-%public modifier: 
+modifier: 
 	ABSTRACT { "abstract " }
 	| FINAL { "final " }
 	| PUBLIC { "public " }

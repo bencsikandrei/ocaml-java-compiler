@@ -1,5 +1,3 @@
-%{
-%}
 
 %%
 
@@ -36,8 +34,8 @@ expressionStmt:
 ;
 
 selectStmt:
-	IF LPAR e=expression RPAR s=statement %prec DANGLING_ELSE { "if("^e^") "^s }
-	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { "if("^e^") "^s1^"\nelse "^s2 }
+	IF LPAR e=expression RPAR s=statement %prec DANGLING_ELSE { "if ("^e^") "^s }
+	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { "if ("^e^") "^s1^"\nelse "^s2 }
 	| SWITCH LPAR e=expression RPAR sb=switchBlock { "switch ("^e^") "^sb }
 ;
 
@@ -78,11 +76,11 @@ jumpStmt:
 ;
 
 iterStmt: 
-	WHILE LPAR e=expression RPAR s=statement { "while("^e^")"^s }
+	WHILE LPAR e=expression RPAR s=statement { "while ("^e^") "^s }
 	| DO s=statement WHILE LPAR e=expression RPAR SEMI { "do "^s^" while ("^e^"); "} 
-	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for("^fi^fe^fin^")"^s }
-	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for("^fi^fe^")"^s } 
-	| FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { "for("^fvo^":"^e^")"^s }
+	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { "for ("^fi^" "^fe^" "^fin^") "^s }
+	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { "for ("^fi^fe^") "^s } 
+	| FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { "for ("^fvo^" : "^e^") "^s }
 	/* TODO add a foreach */
 ;
 
@@ -102,13 +100,13 @@ forIncr:
 
 forVarOpt:
 	ts=typeSpecifier id=IDENTIFIER { ts^" "^id }
-	/* | ms=modifiers ts=typeSpecifier id=IDENTIFIER { ms^" "^ts^" "^id } */
-	/* TODO add modifiers here */
+	/*| ms=modifiers ts=typeSpecifier id=IDENTIFIER { ms^" "^ts^" "^id }
+*/
 ;
 
 expressionStmts:
 	es=expressionStmt { es }
-	| ess=expressionStmts COMM es=expressionStmt { ess^" , "^es}
+	| ess=expressionStmts COMM es=expressionStmt { ess^", "^es}
 ;
 
 guardingStmt: 
