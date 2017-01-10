@@ -62,6 +62,7 @@ type primitive =
   	| Byte 
   	| Short 
   	| Long
+  	| Void
 
 type literal =
 	| L_Int of int
@@ -219,6 +220,7 @@ let string_of_primitive = function
   	| Long -> "long"
   	| Byte -> "byte"
   	| Short -> "short"
+  	| Void -> "void"
 
  let string_of_literal x =
  	match x with
