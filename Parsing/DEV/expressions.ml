@@ -108,11 +108,11 @@ type statement =
 	| ST_empty 
 	| ST_block of statement list
 	| ST_label of string
-	| ST_expression of expression list
+	| ST_expression of expression
 	| ST_if of expression * statement * statement option
 	| ST_switch of expression * statement
 	| ST_while of expression * statement
-	| ST_for of expression list * expression * expression list * statement
+	| ST_for of expression list * expression * statement list * statement
 	| ST_efor of enhanced_for * expression * statement 
 	| ST_do_while of statement list * expression
 	| ST_break of string
@@ -121,8 +121,9 @@ type statement =
 	| ST_throw of expression
 	| ST_lvar_decl of expression
 	| ST_synch of expression * statement
-	| ST_try of statement * statement * statement option
+	| ST_try of statement * statement list * statement
 	| ST_catch of catch_header * statement
+	| ST_catches of statement list
 	| ST_finally of statement
 	| ST_assert of expression * expression option
 
@@ -135,7 +136,7 @@ and case_block =
 	
 and label =
 	| Case of expression 
-	| Cases of label list 
+	(* | Cases of label list *)
 	| Default
 
 (* option removed; TODO revise statement *)

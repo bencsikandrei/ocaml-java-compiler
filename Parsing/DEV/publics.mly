@@ -9,6 +9,6 @@
 ;
 
 %public block:
-	{ ST_block(ST_empty) }
+	{ ST_block([]) }
 ;
 %%
