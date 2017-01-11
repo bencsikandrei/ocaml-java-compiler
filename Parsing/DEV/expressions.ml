@@ -233,7 +233,7 @@ let string_of_luo = function
 let string_of_compop = function
 	| BO_Gt -> ">"
 	| BO_Lt -> "<"
-	| BO_Gt -> ">="
+	| BO_Ge -> ">="
 	| BO_Le  -> "<="
 	| BO_Neq -> "!="
 	| BO_Eq -> "==" 
@@ -310,12 +310,10 @@ let stms_of_option s =
 let string_of_catch_header ch =
 	match ch with 
 	| Catch_header(t,s) -> (string_of_types t)^" "^s
-	| _ -> ""
   
 let string_of_enhanced_for ef =
 	match ef with
 	| Enhanced_for(t,s) -> (string_of_types t)^" "^s
-	| _ -> ""
 
 let rec string_of_exp exp =
 	match exp with
@@ -345,7 +343,6 @@ let rec string_of_exp exp =
 	| EX_Class_alloc(t,elo) -> "new "^(string_of_types t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
 	| EX_New_alloc(so, e) -> (str_of_option so)^"."^(string_of_exp e) (* dot optional *)
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
-	| _ -> ""
   
 let rec string_of_stmt =
 	function
@@ -356,6 +353,7 @@ let rec string_of_stmt =
 	| ST_if(e, st1, st2) -> "if ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
 	| ST_switch(e, st) -> "switch ("^(string_of_exp e)^") "^(string_of_stmt st)
 	| ST_while(e, st) ->  "while ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
+	| ST_case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(string_of_stmt st) 
 	| ST_for(e1, e2, e3, st) -> "for ("^(String.concat "; " (List.map string_of_stmt e1))^"; "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
 	| ST_efor(ef,e,s) -> "for("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
 	| ST_do_while(st, e) -> "do {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
