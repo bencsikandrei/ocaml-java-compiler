@@ -16,8 +16,8 @@ type unop =
 
 (* logical ops *)
 type logbinop =
-	| LBO_and (* && *)
-	| LBO_or
+	| LBO_And (* && *)
+	| LBO_Or
 
 type loguop =
 	| LUO_Not
@@ -25,19 +25,19 @@ type loguop =
 
 (* any type ops *)
 type compop =
-	| BO_gt
-	| BO_lt
-	| BO_ge
-	| BO_le 
-	| BO_neq
-	| BO_eq
+	| BO_Gt
+	| BO_Lt
+	| BO_Ge
+	| BO_Le 
+	| BO_Neq
+	| BO_Eq
 	| BO_instanceof
 
 (* bitwise ops *)
 type bitop =
-	| SO_lshift 
-	| SO_rshift 
-	| SO_logshift
+	| SO_Lshift 
+	| SO_Rshift 
+	| SO_Logshift
 	| SO_And (* & *)
 	| SO_Or
 	| SO_Xor
@@ -97,6 +97,8 @@ type expression =
 	| EX_Cast of expression * expression 
 	| EX_Class of string 
 	| EX_Ternary of expression * expression * expression
+	| EX_Case of expression
+	| EX_Default
 
 type catch_header =
 	| Catch_header of types * string
@@ -111,6 +113,7 @@ type statement =
 	| ST_expression of expression
 	| ST_if of expression * statement * statement option
 	| ST_switch of expression * statement
+	| ST_case of expression list * statement
 	| ST_while of expression * statement
 	| ST_for of expression list * expression * statement list * statement
 	| ST_efor of enhanced_for * expression * statement 
@@ -126,7 +129,7 @@ type statement =
 	| ST_catches of statement list
 	| ST_finally of statement
 	| ST_assert of expression * expression option
-
+(*
 and switch_block =
 	| Switch_block of case_block list
  	| Empty
@@ -138,7 +141,7 @@ and label =
 	| Case of expression 
 	(* | Cases of label list *)
 	| Default
-
+*)
 (* option removed; TODO revise statement *)
 
 (* get arithmetic operations *)
@@ -167,8 +170,8 @@ let get_uo = function
 (* get logical ops *)
 let get_lbo op a b =
 	match op with
-	| LBO_and -> a && b
-	| LBO_or -> a || b
+	| LBO_And -> a && b
+	| LBO_Or -> a || b
 
 let get_luo = function
 	| LUO_Not -> fun x -> not x
@@ -176,19 +179,19 @@ let get_luo = function
 (* get any type ops *)
 let get_compop op x y =
 	match op with
-	| BO_gt -> x > y
-	| BO_lt -> x < y
-	| BO_ge -> x >= y
-	| BO_le -> x <= y
-	| BO_neq -> x != y
-	| BO_eq -> x == y
+	| BO_Gt -> x > y
+	| BO_Lt -> x < y
+	| BO_Ge -> x >= y
+	| BO_Le -> x <= y
+	| BO_Neq -> x != y
+	| BO_Eq -> x == y
 
 (* get bitwise ops *)
 let get_bitop op x y =
 	match op with
-	| SO_lshift -> x lsl y
-	| SO_rshift -> x lsr y
-	| SO_logshift -> x asr y
+	| SO_Lshift -> x lsl y
+	| SO_Rshift -> x lsr y
+	| SO_Logshift -> x asr y
 	| SO_And -> x land y
 	| SO_Or -> x lor y
 	| SO_Xor -> x lxor y
@@ -196,7 +199,6 @@ let get_bitop op x y =
 (* get assign TODO *)
 
 (* get string of operations *)
-(*
 let string_of_bo = function
 	| BO_Add -> "+"
 	| BO_Minus -> "-"
@@ -211,26 +213,26 @@ let string_of_uo = function
 	| UO_Decrement -> "--"
 
 let string_of_lbo = function
-	| LBO_or -> "||"
-	| LBO_and -> "&&"
+	| LBO_Or -> "||"
+	| LBO_And -> "&&"
 
 let string_of_luo = function
 	| LUO_Not -> "!"
 	| UO_BNot -> "~"
 
 let string_of_compop = function
-	| BO_gt -> ">"
-	| BO_lt -> "<"
-	| BO_ge -> ">="
-	| BO_le  -> "<="
-	| BO_neq -> "!="
-	| BO_eq -> "==" 
+	| BO_Gt -> ">"
+	| BO_Lt -> "<"
+	| BO_Gt -> ">="
+	| BO_Le  -> "<="
+	| BO_Neq -> "!="
+	| BO_Eq -> "==" 
 	| BO_instanceof -> "instanceof"
 
 let string_of_bitop = function
-	| SO_lshift -> "<<"
-	| SO_rshift -> ">>"
-	| SO_logshift-> ">>>"
+	| SO_Lshift -> "<<"
+	| SO_Rshift -> ">>"
+	| SO_Logshift-> ">>>"
 	| SO_And -> "&"
 	| SO_Or -> "|"
 	| SO_Xor -> "^"
@@ -275,6 +277,7 @@ let rec string_of_types = function
  	| L_Int x -> string_of_int x
  	| L_Null x -> "null"
 
+(*
 let rec string_of_exp exp =
 	match exp with
 	| Identifier id -> id

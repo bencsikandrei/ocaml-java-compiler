@@ -41,32 +41,32 @@ expressionStmt:
 selectStmt:
 	IF LPAR e=expression RPAR s=statement %prec DANGLING_ELSE { ST_if(e, s, None) }
 	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { ST_if(e, s1, Some(s2)) }
-	| SWITCH LPAR e=expression RPAR sb=block { ST_switch(e, sb) }
+	| SWITCH LPAR e=expression RPAR sb=switchBlock { ST_switch(e, sb) }
 ;
 
 /* switch blocks */
 switchBlock:
-	LCURL RCURL { Empty }
-	| LCURL sbsgs=list(switchBlockStmtGroups) RCURL { Switch_block(sbsgs) }
+	LCURL RCURL { ST_empty } /* Empty */
+	| LCURL sbsgs=switchBlockStmtGroups RCURL { ST_block(sbsgs) } /* sw_block */
 ;
 
 switchBlockStmtGroups:
-	sbsg=list(switchBlockStmtGroup) { sbsg }
-	| sbsgs=nonempty_list(switchBlockStmtGroups) sbsg=switchBlockStmtGroup { sbsgs::sbsg }
+	sbsg=nonempty_list(switchBlockStmtGroup) { sbsg }
+	| sbsgs=switchBlockStmtGroups sbsg=nonempty_list(switchBlockStmtGroup) { sbsgs@sbsg } /* concatenate two lists @ */
 ;
 
 switchBlockStmtGroup:
-	sls=nonempty_list(switchLabel) bss=block { Case_block(sls,bss) }
+	sls=switchLabels bss=block { ST_case(sls,bss) } /* nonempty_list  case_block */
 ;
-/*
+
 switchLabels:
-	sl=switchLabel { sl }
-	| sls=switchLabels sl=switchLabel { sls::sl }
+	sl=nonempty_list(switchLabel) { sl }
+	| sls=switchLabels sl=nonempty_list(switchLabel) { sls@sl }
 ;
-*/
+
 switchLabel:
-	CASE ce=constantExpression COL { Case(ce) }
-	| DEFAULT COL { Default }
+	CASE ce=constantExpression COL { EX_Case(ce) } /* Case */
+	| DEFAULT COL { EX_Default }
 ;
 /* end switch blocks */
 

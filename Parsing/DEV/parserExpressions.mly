@@ -26,12 +26,12 @@ assignmentExpression:
 
 conditionalOrExpression:
 	cand=conditionalAndExpression { cand }
-	| cor=conditionalOrExpression OR cand=conditionalAndExpression { EX_Logbinop(LBO_or,cor, cand) }
+	| cor=conditionalOrExpression OR cand=conditionalAndExpression { EX_Logbinop(LBO_Or,cor, cand) }
 ;
 
 conditionalAndExpression:
 	ior=inclusiveOrExpression { ior }
-	| cand=conditionalAndExpression AND ior=inclusiveOrExpression { EX_Logbinop(LBO_and,cand, ior) }
+	| cand=conditionalAndExpression AND ior=inclusiveOrExpression { EX_Logbinop(LBO_And,cand, ior) }
 ;
 
 inclusiveOrExpression:
@@ -51,16 +51,16 @@ andExpression:
 
 equalityExpression:
 	rel=relationalExpression { rel }
-	| eq=equalityExpression EQUAL rel=relationalExpression { EX_Compop(BO_eq,eq,rel) }
-	| eq=equalityExpression NEQUAL rel=relationalExpression { EX_Compop(BO_neq,eq,rel) }
+	| eq=equalityExpression EQUAL rel=relationalExpression { EX_Compop(BO_Eq,eq,rel) }
+	| eq=equalityExpression NEQUAL rel=relationalExpression { EX_Compop(BO_Neq,eq,rel) }
 ;
 
 relationalExpression:
 	sh=shiftExpression { sh }
-	| rel=relationalExpression LTHAN sh=shiftExpression { EX_Compop(BO_lt,rel,sh) }
-	| rel=relationalExpression GTHAN sh=shiftExpression { EX_Compop(BO_gt,rel,sh) }
-	| rel=relationalExpression LETHAN sh=shiftExpression { EX_Compop(BO_le,rel,sh) }
-	| rel=relationalExpression GETHAN sh=shiftExpression { EX_Compop(BO_ge,rel,sh) } 
+	| rel=relationalExpression LTHAN sh=shiftExpression { EX_Compop(BO_Lt,rel,sh) }
+	| rel=relationalExpression GTHAN sh=shiftExpression { EX_Compop(BO_Gt,rel,sh) }
+	| rel=relationalExpression LETHAN sh=shiftExpression { EX_Compop(BO_Le,rel,sh) }
+	| rel=relationalExpression GETHAN sh=shiftExpression { EX_Compop(BO_Ge,rel,sh) } 
 	| rel=relationalExpression INSTANCEOF ts=typeSpecifier { EX_Instanceof(BO_instanceof,rel,ts) }
 ;
 /* end conditional expressions */
@@ -68,9 +68,9 @@ relationalExpression:
 /* operation expressions */
 shiftExpression:
 	add=additiveExpression { add }
-	| sh=shiftExpression LSHIFT add=additiveExpression { EX_Bitop(SO_lshift, sh, add) }
-	| sh=shiftExpression RSHIFT add=additiveExpression { EX_Bitop(SO_rshift, sh, add) }
-	| sh=shiftExpression LOGSHIFT add=additiveExpression { EX_Bitop(SO_logshift, sh, add) }
+	| sh=shiftExpression LSHIFT add=additiveExpression { EX_Bitop(SO_Lshift, sh, add) }
+	| sh=shiftExpression RSHIFT add=additiveExpression { EX_Bitop(SO_Rshift, sh, add) }
+	| sh=shiftExpression LOGSHIFT add=additiveExpression { EX_Bitop(SO_Logshift, sh, add) }
 ;
 
 additiveExpression:
