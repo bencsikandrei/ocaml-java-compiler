@@ -292,45 +292,81 @@ let rec string_of_exp exp =
 	match exp with
 	| Identifier id -> id
 	| Literal lit -> string_of_literal lit
-	| _ -> ""
-	(*
+	| EX_Empty -> ""
 	| EX_Binop(op, e1, e2) -> (string_of_exp e1)^(string_of_bo op)^(string_of_exp e2)
 	| EX_Compop(op, e1, e2) -> (string_of_exp e1)^(string_of_compop op)^(string_of_exp e2)
+	| EX_Instanceof(op, e1, e2) -> (string_of_exp e1)^(string_of_compop op)^ (string_of_types types)
 	| EX_Bitop(op, e1, e2)-> (string_of_exp e1)^(string_of_bitop op)^(string_of_exp e2)
 	| EX_Logbinop(op, e1, e2) -> (string_of_exp e1)^(string_of_lbo op)^(string_of_exp e2)
 	| EX_Loguop(op, e) -> (string_of_luo op)^(string_of_exp e)
 	| EX_Unop(op, e) -> (string_of_uo op)^(string_of_exp e)
 	| EX_Postfix(op, e) -> (string_of_exp e)^(string_of_uo op)
 	| EX_Assign(op, e1, e2) -> (string_of_exp e1)^(string_of_assign op)^(string_of_exp e2)
+	| EX_Primitive(p, so) -> (string_of_primitive p)^(str_of_option so)
 	| EX_Cast(e1, e2) -> " ("^(string_of_exp e1)^") "^(string_of_exp e2)
 	| EX_Class(s) -> s
-	| EX_Primitive(p, s) -> (string_of_primitive p)^" "^s
-	| EX_Ternary(e1, e2, e3) -> (string_of_exp e1)^" ? "^(string_of_exp e2)^" : "^(string_of_exp e3) 
-	| EX_Instanceof(op, e1, e2) -> (string_of_exp e1)^(string_of_compop op)^(string_of_types e2)
-*)
+	| EX_Ternary(e1,e2,e3) -> (string_of_exp e1)^" ? "^(string_of_exp e2)^" : "^(string_of_exp e3)
+	| EX_Case(e) -> "case "^(string_of_exp e)^":"
+	| EX_Default -> "default:"
+	| EX_Array_access(e1,e2) -> (string_of_exp e1)^"["^(string_of_exp e2)^"]"
+	| EX_Field_access(e, eo) -> (string_of_exp e)^"."^(exp_of_option eo)
+	| EX_Method_access(e,el) -> (string_of_exp e)^"("^(String.concat "," (List.map string_of_exp el))^")"
+	| EX_Array_alloc(t,elo, so) -> "new "^(string_of_types types)^(String.concat "" (List.map(list_of_option elo)))^(str_of_option so)
+	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(String.concat "," (List.map string_of_exp el))^"}"
+	| EX_Class_alloc(t,elo) -> "new "^(string_of_types types)^"("^(String.concat "," (List.map(list_of_option elo)))^")"
+	| EX_New_alloc(so, e) -> (str_of_option so)^"."^(string_of_exp e) (* dot optional *)
+	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map (list_of_option elo))) (* assign optional *)
+	| _ -> ""
+
+let str_of_option e =
+	match e with
+	| Some(ex) -> ex
+	| _ -> ""
+
+let list_of_option l =
+  match l with
+  | Some(x) -> x
+  | _ -> []
+
 let exp_of_option e =
 	match e with
 	| Some(ex) -> ex
 	| _ -> Identifier("")
 
+let stms_of_option s =
+  match s with
+  | Some(s) -> s
+  | _ -> ST_empty 
+
+let string_of_catch_header ch =
+  | Catch_header(t,s) -> (string_of_types t)^" "^s
+  | _ -> ""
+  
+let string_of_enhanced_for ef =
+  | Enhanced_for(t,s) -> (string_of_types t)^" "^s
+  | _ -> ""
+  
 let rec string_of_stmt =
 	function
 	| ST_empty -> ";"
 	| ST_label x -> x
+	| ST_block(stl) -> (String.concat ";\n" (List.map string_of_stmt stl))
 	| ST_expression e -> string_of_exp e
-	| _ -> ""
-	(*| ST_if(e, st1, st2) -> "if ("^(string_of_exp e)^") {"^(String.concat "; " (List.map string_of_stmt st1))^(string_of_stmt st2)^"}"
-	| ST_switch(e, st) -> "switch ("^(string_of_exp e)^") "^(String.concat "; " (List.map string_of_stmt st))
-	| ST_while(e, st) ->  "while ("^(string_of_exp e)^") {"^(String.concat "; " (List.map string_of_stmt st))^"}"
-	| ST_for(e1, e2, e3, st) -> "for ("^(String.concat "; " (List.map string_of_exp e1))^"; "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_exp e3))^")"^(String.concat "; " (List.map string_of_stmt st))
+	| ST_if(e, st1, st2) -> "if ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stmt_of_option st2))
+	| ST_switch(e, st) -> "switch ("^(string_of_exp e)^") "^(string_of_stmt st)
+	| ST_while(e, st) ->  "while ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
+	| ST_for(e1, e2, e3, st) -> "for ("^(String.concat "; " (List.map string_of_stmt e1))^"; "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
+	| ST_efor(ef,e,s) -> "for("^(string_of_efor ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
 	| ST_do_while(st, e) -> "do {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^")"
-	| ST_break(e) -> "break "^(string_of_exp e)
-	| ST_continue(e) -> "continue "^(string_of_exp e)
+	| ST_break(e) -> "break "^e
+	| ST_continue(e) -> "continue "^e
 	| ST_return(e) -> "return "^(string_of_exp e)
 	| ST_throw(e) -> "throw "^(string_of_exp e)
 	| ST_lvar_decl(e) -> (string_of_exp e)
-	| ST_synch(e1,e2) -> "synchronized "^(string_of_exp e)^" : "^(string_of_exp (exp_of_option e))
-	| ST_try(st) ->  "try {"^(String.concat "; " (List.map string_of_stmt st))^"}"
-	| ST_catch(e, st) ->  "catch ("^(string_of_types e)^")"^(string_of_block st)
-	| ST_finally(st) -> "finally "^(string_of_block st)
-*)
+	| ST_synch(e1,e2) -> "synchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2))
+	| ST_try(st1,stl,st2) ->  "try {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
+	| ST_catch(ch, st) ->  "catch ("^(string_of_catch_header ch)^")"^(string_of_block st)
+	| ST_catches(stl) -> (String.concat "; " (List.map string_of_stmt stl))
+	| ST_finally(st) -> "finally "^(string_of_stmt st)
+	| ST_assert(e1,e2) -> "assert "^(string_of_exp e1)^" : "^(string_of_exp(exp_of_option e2))^";"
+	| ST_var_decl(so,t, e) -> (str_of_option so)^" "^(string_of_types t)^" = "^(List.map string_of_exp e))
