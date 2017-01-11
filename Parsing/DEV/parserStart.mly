@@ -120,12 +120,12 @@ complexPrimary:
 ;
 
 %public complexPrimaryNoParenthesis:
-	stlit=STRLIT { Literal(L_Str) }
-	| blit=BOOLEANLIT { Literal(L_Boolean) }
-	| ilit=INTLIT { Literal(L_Int) }
-	| clit=CHARLIT { Literal(L_Char) }
-	| dlit=DOUBLELIT { Literal(L_Double) }
-	| flit=FLOATLIT { Literal(L_Float) }
+	stlit=STRLIT { Literal(L_Str stlit) }
+	| blit=BOOLEANLIT { Literal(L_Boolean blit) }
+	| ilit=INTLIT { Literal(L_Int ilit) }
+	| clit=CHARLIT { Literal(L_Char clit) }
+	| dlit=DOUBLELIT { Literal(L_Double dlit) }
+	| flit=FLOATLIT { Literal(L_Float flit) }
 	/*| nlit=NULLLIT { Literal(L_Null) }*/
 	| aa=arrayAccess { aa }
 	| fa=fieldAccess { fa }
