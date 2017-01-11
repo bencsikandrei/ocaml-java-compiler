@@ -346,7 +346,7 @@ let rec string_of_exp exp =
   
 let rec string_of_stmt =
 	function
-	| ST_empty -> "/* ST_empty */;"
+	| ST_empty -> "/* ST_empty */"
 	| ST_label x -> "/* ST_label */\n"^x
 	| ST_block(stl) -> (String.concat "/* ST_block */\n" (List.map string_of_stmt stl))
 	| ST_expression e -> "/* ST_expression */\n"^string_of_exp e
@@ -354,7 +354,7 @@ let rec string_of_stmt =
 	| ST_switch(e, st) -> "/* ST_switch */\nswitch ("^(string_of_exp e)^") "^(string_of_stmt st)
 	| ST_while(e, st) ->  "/* ST_while */\nwhile ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
 	| ST_case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(string_of_stmt st) 
-	| ST_for(e1, e2, e3, st) -> "/* ST_for */\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^"; "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
+	| ST_for(e1, e2, e3, st) -> "/* ST_for */\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^" "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
 	| ST_efor(ef,e,s) -> "/* ST_efor */\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
 	| ST_do_while(st, e) -> "/* ST_do_while */\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
 	| ST_break(e) -> "/* ST_break */\nbreak "^e
@@ -368,4 +368,4 @@ let rec string_of_stmt =
 	| ST_catches(stl) -> "/* ST_catches */\n"^(String.concat "; " (List.map string_of_stmt stl))
 	| ST_finally(st) -> "/* ST_finally */\nfinally "^(string_of_stmt st)
 	| ST_assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
-	| ST_var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_types t)^" "^(String.concat ", " (List.map string_of_exp e))
+	| ST_var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_types t)^" "^(String.concat ", " (List.map string_of_exp e))^";"
