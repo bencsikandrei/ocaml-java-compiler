@@ -88,7 +88,7 @@ iterStmt:
 
 forInit: 
 	lvds=localVariableDeclStmt { []@[lvds] }
-	| SEMI { ST_label(";")::[] }
+	| SEMI { ST_empty::[] }
 ;
 
 forExpr: 

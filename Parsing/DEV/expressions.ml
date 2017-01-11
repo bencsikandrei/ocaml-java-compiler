@@ -346,26 +346,26 @@ let rec string_of_exp exp =
   
 let rec string_of_stmt =
 	function
-	| ST_empty -> ";"
-	| ST_label x -> x
-	| ST_block(stl) -> (String.concat ";\n" (List.map string_of_stmt stl))
-	| ST_expression e -> string_of_exp e
-	| ST_if(e, st1, st2) -> "if ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
-	| ST_switch(e, st) -> "switch ("^(string_of_exp e)^") "^(string_of_stmt st)
-	| ST_while(e, st) ->  "while ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
+	| ST_empty -> "/* ST_empty */;"
+	| ST_label x -> "/* ST_label */\n"^x
+	| ST_block(stl) -> (String.concat "/* ST_block */\n" (List.map string_of_stmt stl))
+	| ST_expression e -> "/* ST_expression */\n"^string_of_exp e
+	| ST_if(e, st1, st2) -> "/* ST_if */\nif ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
+	| ST_switch(e, st) -> "/* ST_switch */\nswitch ("^(string_of_exp e)^") "^(string_of_stmt st)
+	| ST_while(e, st) ->  "/* ST_while */\nwhile ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
 	| ST_case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(string_of_stmt st) 
-	| ST_for(e1, e2, e3, st) -> "for ("^(String.concat "; " (List.map string_of_stmt e1))^"; "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
-	| ST_efor(ef,e,s) -> "for("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
-	| ST_do_while(st, e) -> "do {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
-	| ST_break(e) -> "break "^e
-	| ST_continue(e) -> "continue "^e
-	| ST_return(e) -> "return "^(string_of_exp e)
-	| ST_throw(e) -> "throw "^(string_of_exp e)
-	| ST_lvar_decl(e) -> (string_of_exp e)
-	| ST_synch(e1,e2) -> "synchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
-	| ST_try(st1,stl,st2) ->  "try {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
-	| ST_catch(ch, st) ->  "catch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
-	| ST_catches(stl) -> (String.concat "; " (List.map string_of_stmt stl))
-	| ST_finally(st) -> "finally "^(string_of_stmt st)
-	| ST_assert(e1,e2) -> "assert "^(string_of_exp e1)^" : "^(string_of_exp(exp_of_option e2))^";"
-	| ST_var_decl(so,t, e) -> (str_of_option so)^" "^(string_of_types t)^" = "^(String.concat "; " (List.map string_of_exp e))
+	| ST_for(e1, e2, e3, st) -> "/* ST_for */\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^"; "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
+	| ST_efor(ef,e,s) -> "/* ST_efor */\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
+	| ST_do_while(st, e) -> "/* ST_do_while */\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
+	| ST_break(e) -> "/* ST_break */\nbreak "^e
+	| ST_continue(e) -> "/* ST_continue */\ncontinue "^e
+	| ST_return(e) -> "/* ST_return */\nreturn "^(string_of_exp e)
+	| ST_throw(e) -> "/* ST_throw */\nthrow "^(string_of_exp e)
+	| ST_lvar_decl(e) -> "/* ST_lvar_decl */\n"^(string_of_exp e)
+	| ST_synch(e1,e2) -> "/* ST_synch */\nsynchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
+	| ST_try(st1,stl,st2) ->  "/* ST_try */\ntry {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
+	| ST_catch(ch, st) ->  "/* ST_catch */\ncatch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
+	| ST_catches(stl) -> "/* ST_catches */\n"^(String.concat "; " (List.map string_of_stmt stl))
+	| ST_finally(st) -> "/* ST_finally */\nfinally "^(string_of_stmt st)
+	| ST_assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
+	| ST_var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_types t)^" "^(String.concat ", " (List.map string_of_exp e))
