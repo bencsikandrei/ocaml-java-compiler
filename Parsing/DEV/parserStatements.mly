@@ -48,8 +48,8 @@ switchBlock:
 ;
 
 switchBlockStmtGroups:
-	sbsg=nonempty_list(switchBlockStmtGroup) { sbsg }
-	| sbsgs=switchBlockStmtGroups sbsg=nonempty_list(switchBlockStmtGroup) { sbsgs@sbsg } /* concatenate two lists @ */
+	sbsg=switchBlockStmtGroup { []@[sbsg] }
+	| sbsgs=switchBlockStmtGroups sbsg=switchBlockStmtGroup { sbsgs@[sbsg] } /* concatenate two lists @ */
 ;
 
 switchBlockStmtGroup:
@@ -57,8 +57,8 @@ switchBlockStmtGroup:
 ;
 
 switchLabels:
-	sl=nonempty_list(switchLabel) { sl }
-	| sls=switchLabels sl=nonempty_list(switchLabel) { sls@sl }
+	sl=switchLabel { []@[sl] }
+	| sls=switchLabels sl=switchLabel { sls@[sl] }
 ;
 
 switchLabel:
@@ -80,14 +80,14 @@ jumpStmt:
 iterStmt: 
 	WHILE LPAR e=expression RPAR s=statement { ST_while(e,s) }
 	| DO s=statement WHILE LPAR e=expression RPAR SEMI { ST_do_while((List.append [] [s]),e) } 
-	| FOR LPAR fi=forInit fe=forExpr fin=nonempty_list(forIncr) RPAR s=statement { ST_for(fi,fe,fin, s) }
+	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { ST_for(fi,fe,[]@[fin], s) }
 	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { ST_for(fi,fe,[],s) } 
 	| FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { ST_efor(fvo,e,s) }
 	/* TODO add a foreach */
 ;
 
 forInit: 
-	lvds=list(localVariableDeclStmt) { lvds }
+	lvds=localVariableDeclStmt { []@[lvds] }
 	| SEMI { ST_label(";")::[] }
 ;
 
@@ -114,8 +114,8 @@ expressionStmts:
 guardingStmt: 
 	SYNCHRONIZED LPAR e=expression RPAR s=statement { ST_synch(e,s) }
 	| TRY b=block f=finally { ST_try(b,[],f) }
-	| TRY b=block c=nonempty_list(catch) { ST_try(b,c,ST_empty) }
-	| TRY b=block c=list(catch) f=finally { ST_try(b,c,f) }
+	| TRY b=block c=catch { ST_try(b,[]@[c],ST_empty) }
+	| TRY b=block c=catch f=finally { ST_try(b,[]@[c],f) }
 ;
 
 /* catch */

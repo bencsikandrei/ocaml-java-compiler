@@ -19,8 +19,8 @@ compilationUnit:
 ;
 
 localVariableDeclAndStmts:
-	lvd=nonempty_list(localVariableDeclOrStmt) { lvd }
-	| lvds=localVariableDeclAndStmts lvd=nonempty_list(localVariableDeclOrStmt) { lvds@lvd }
+	lvd=localVariableDeclOrStmt { []@[lvd] }
+	| lvds=localVariableDeclAndStmts lvd=localVariableDeclOrStmt { lvds@[lvd] }
 ;
 
 localVariableDeclOrStmt:
@@ -35,8 +35,8 @@ localVariableDeclOrStmt:
 
 /* variable declarators */
 variableDeclarators: 
- 	vd=nonempty_list(variableDeclarator) { vd }
-	| vds=variableDeclarators COMM vd=nonempty_list(variableDeclarator) { vds@vd }
+ 	vd=variableDeclarator { []@[vd] }
+	| vds=variableDeclarators COMM vd=variableDeclarator { vds@[vd] }
 ;
 
 variableDeclarator:
@@ -49,7 +49,7 @@ declaratorName:
 ;
 
 variableInitializer:
-	ex=nonempty_list(expression) { ex }
+	ex=expression { []@[ex] }
 	| LCURL RCURL { [] } /* AAAAAAAAAH */
 	| LCURL arri=arrayInitializers RCURL { arri }
 ;
@@ -82,8 +82,8 @@ classAllocationExpression:
 ;
 
 argumentList:
-	ex=nonempty_list(expression) { ex }
-	| args=argumentList COMM ex=nonempty_list(expression) { args@ex }
+	ex=expression { []@[ex] }
+	| args=argumentList COMM ex=expression { args@[ex] }
 ;
 
 arrayAllocationExpression:
@@ -93,8 +93,8 @@ arrayAllocationExpression:
 ;
 
 dimExprs:
-	de=nonempty_list(dimExpr) { de }
-	| ds=dimExprs d=nonempty_list(dimExpr) { ds@d }
+	de=dimExpr { []@[de] }
+	| ds=dimExprs d=dimExpr { ds@[d] }
 ;
 
 dimExpr:
