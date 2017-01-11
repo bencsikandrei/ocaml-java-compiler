@@ -2,16 +2,6 @@
 	open Expressions
 %}
 
-%start assignmentOperator
-%type < Expressions.assign > assignmentOperator
-
-%start arithmeticUnaryOperator
-%type < Expressions.unop > arithmeticUnaryOperator
-
-%start logicalUnaryOperator
-%type < Expressions.loguop > logicalUnaryOperator
-
-
 %%
 
 /* operators */

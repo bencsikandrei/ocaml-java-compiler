@@ -2,8 +2,6 @@
 	open Expressions
 %}
 
-%start expression
-%type < Expressions.expression > expression
 
 %%
 
@@ -95,8 +93,8 @@ castExpression:
 ;
 
 primitiveTypeExpression: 
-	pt=primitiveType { EX_Primitive(pt,"") }
-    | pt=primitiveType d=dims { EX_Primitive(pt,d) } 
+	pt=primitiveType { EX_Primitive(pt,None) }
+    | pt=primitiveType d=dims { EX_Primitive(pt,Some(d)) } 
 ;
 
 classTypeExpression: 

@@ -24,7 +24,7 @@
 ;
 
 /* typeName */
-typeName:
+%public typeName:
 	pri=primitiveType { Primitive(pri) }
 	| qn=qualifiedName { Qualified(qn) }
 ;

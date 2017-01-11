@@ -4,8 +4,8 @@ open Lexer
 open Parser 
 
 let test_parser lexbuf =
-	let res = Parser.expression Lexer.nexttoken lexbuf in
-	print_endline (Expressions.string_of_exp res)
+	let res = Parser.compilationUnit Lexer.nexttoken lexbuf in
+	print_endline (Expressions.string_of_stmt res)
 
 let test_lexer lexbuf = 
 	let res = Lexer.nexttoken lexbuf in

@@ -2,9 +2,6 @@
 	open Expressions
 %}
 
-%start statement
-%type < Expressions.statement > statement
-
 %%
 /* statements */
 %public statement:
@@ -82,8 +79,8 @@ jumpStmt:
 
 iterStmt: 
 	WHILE LPAR e=expression RPAR s=statement { ST_while(e,s) }
-	| DO s=list(statement) WHILE LPAR e=expression RPAR SEMI { ST_do_while(s,e) } 
-	| FOR LPAR fi=forInit fe=forExpr fin=list(forIncr) RPAR s=statement { ST_for(fi,fe,fin, s) }
+	| DO s=statement WHILE LPAR e=expression RPAR SEMI { ST_do_while((List.append [] [s]),e) } 
+	| FOR LPAR fi=forInit fe=forExpr fin=nonempty_list(forIncr) RPAR s=statement { ST_for(fi,fe,fin, s) }
 	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { ST_for(fi,fe,[],s) } 
 	| FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { ST_efor(fvo,e,s) }
 	/* TODO add a foreach */
@@ -91,7 +88,7 @@ iterStmt:
 
 forInit: 
 	lvds=list(localVariableDeclStmt) { lvds }
-	| SEMI { List.append [] [Identifier(";")] }
+	| SEMI { ST_label(";")::[] }
 ;
 
 forExpr: 

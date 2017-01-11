@@ -73,17 +73,18 @@ and primitive =
   	| P_Void
 
 type literal =
-	| L_Int of int
-	| L_Str of string
-	| L_Float of float
-	| L_Double of float
-	| L_Char of char
-	| L_Boolean of bool
-	| L_Null of string
+	| L_Int
+	| L_Str
+	| L_Float
+	| L_Double
+	| L_Char
+	| L_Boolean
+	| L_Null
 
 type expression =
 	| Identifier of string
 	| Literal of literal
+	| EX_Empty
 	| EX_Binop of binop * expression * expression
 	| EX_Compop of compop * expression * expression
 	| EX_Instanceof of compop * expression * types
@@ -93,12 +94,20 @@ type expression =
 	| EX_Unop of unop * expression
 	| EX_Postfix of unop * expression
 	| EX_Assign of assign * expression * expression	
-	| EX_Primitive of primitive * string
+	| EX_Primitive of primitive * string option
 	| EX_Cast of expression * expression 
 	| EX_Class of string 
 	| EX_Ternary of expression * expression * expression
 	| EX_Case of expression
 	| EX_Default
+	| EX_Array_access of expression * expression
+	| EX_Field_access of expression * expression option
+	| EX_Method_access of expression * expression list
+	| EX_Array_alloc of types * expression list option * string option
+	| EX_Plain_array_alloc of expression * expression list
+	| EX_Class_alloc of types * expression list option
+	| EX_New_alloc of string option * expression
+	| EX_Var_decl of expression * expression list option
 
 type catch_header =
 	| Catch_header of types * string
@@ -115,7 +124,7 @@ type statement =
 	| ST_switch of expression * statement
 	| ST_case of expression list * statement
 	| ST_while of expression * statement
-	| ST_for of expression list * expression * statement list * statement
+	| ST_for of statement list * expression * statement list * statement
 	| ST_efor of enhanced_for * expression * statement 
 	| ST_do_while of statement list * expression
 	| ST_break of string
@@ -129,6 +138,7 @@ type statement =
 	| ST_catches of statement list
 	| ST_finally of statement
 	| ST_assert of expression * expression option
+	| ST_var_decl of string option * types * expression list
 (*
 and switch_block =
 	| Switch_block of case_block list
@@ -143,7 +153,7 @@ and label =
 	| Default
 *)
 (* option removed; TODO revise statement *)
-
+(*
 (* get arithmetic operations *)
 let get_bo_int op x y = 
 	match op with
@@ -195,7 +205,7 @@ let get_bitop op x y =
 	| SO_And -> x land y
 	| SO_Or -> x lor y
 	| SO_Xor -> x lxor y
-
+*)
 (* get assign TODO *)
 
 (* get string of operations *)
@@ -269,19 +279,21 @@ let rec string_of_types = function
 
  let string_of_literal x =
  	match x with
-	| L_Str x -> x
-	| L_Float x -> string_of_float x
-	| L_Double x -> string_of_float x
-	| L_Char x -> String.make 1 x
-	| L_Boolean x -> string_of_bool x
- 	| L_Int x -> string_of_int x
- 	| L_Null x -> "null"
+	| L_Str -> "string"
+	| L_Float ->  "float"
+	| L_Double -> "double"
+	| L_Char -> "char" 
+	| L_Boolean -> "boolean"
+ 	| L_Int -> "int"
+ 	| L_Null -> "null"
 
-(*
+
 let rec string_of_exp exp =
 	match exp with
 	| Identifier id -> id
 	| Literal lit -> string_of_literal lit
+	| _ -> ""
+	(*
 	| EX_Binop(op, e1, e2) -> (string_of_exp e1)^(string_of_bo op)^(string_of_exp e2)
 	| EX_Compop(op, e1, e2) -> (string_of_exp e1)^(string_of_compop op)^(string_of_exp e2)
 	| EX_Bitop(op, e1, e2)-> (string_of_exp e1)^(string_of_bitop op)^(string_of_exp e2)
@@ -295,7 +307,7 @@ let rec string_of_exp exp =
 	| EX_Primitive(p, s) -> (string_of_primitive p)^" "^s
 	| EX_Ternary(e1, e2, e3) -> (string_of_exp e1)^" ? "^(string_of_exp e2)^" : "^(string_of_exp e3) 
 	| EX_Instanceof(op, e1, e2) -> (string_of_exp e1)^(string_of_compop op)^(string_of_types e2)
-
+*)
 let exp_of_option e =
 	match e with
 	| Some(ex) -> ex
@@ -306,7 +318,8 @@ let rec string_of_stmt =
 	| ST_empty -> ";"
 	| ST_label x -> x
 	| ST_expression e -> string_of_exp e
-	| ST_if(e, st1, st2) -> "if ("^(string_of_exp e)^") {"^(String.concat "; " (List.map string_of_stmt st1))^(string_of_stmt st2)^"}"
+	| _ -> ""
+	(*| ST_if(e, st1, st2) -> "if ("^(string_of_exp e)^") {"^(String.concat "; " (List.map string_of_stmt st1))^(string_of_stmt st2)^"}"
 	| ST_switch(e, st) -> "switch ("^(string_of_exp e)^") "^(String.concat "; " (List.map string_of_stmt st))
 	| ST_while(e, st) ->  "while ("^(string_of_exp e)^") {"^(String.concat "; " (List.map string_of_stmt st))^"}"
 	| ST_for(e1, e2, e3, st) -> "for ("^(String.concat "; " (List.map string_of_exp e1))^"; "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_exp e3))^")"^(String.concat "; " (List.map string_of_stmt st))
@@ -317,12 +330,7 @@ let rec string_of_stmt =
 	| ST_throw(e) -> "throw "^(string_of_exp e)
 	| ST_lvar_decl(e) -> (string_of_exp e)
 	| ST_synch(e1,e2) -> "synchronized "^(string_of_exp e)^" : "^(string_of_exp (exp_of_option e))
-	| ST_try(st,) ->  "try {"^(String.concat "; " (List.map string_of_stmt st))^"}"
+	| ST_try(st) ->  "try {"^(String.concat "; " (List.map string_of_stmt st))^"}"
 	| ST_catch(e, st) ->  "catch ("^(string_of_types e)^")"^(string_of_block st)
 	| ST_finally(st) -> "finally "^(string_of_block st)
-
-and string_of_block  = 
-	function
-	| BL_NonEmptyBlock(st) -> "{"^(String.concat "; " (List.map string_of_stmt st))^"}"
-	| BL_Empty -> "{ }"
 *)
