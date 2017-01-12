@@ -6,6 +6,7 @@
 	assert (a==c);
 	assert (a.length < 10);
 	assert (a && c);
+	assert (b != null);
 	
 }
 

@@ -126,7 +126,7 @@ complexPrimary:
 	| clit=CHARLIT { Literal(L_Char clit) }
 	| dlit=DOUBLELIT { Literal(L_Double dlit) }
 	| flit=FLOATLIT { Literal(L_Float flit) }
-	/*| nlit=NULLLIT { Literal(L_Null) }*/
+	| nlit=NULLLIT { Literal(L_Null) }
 	| aa=arrayAccess { aa }
 	| fa=fieldAccess { fa }
 	| mc=methodCall { mc }
@@ -159,7 +159,7 @@ methodAccess
 specialName:
 	THIS { "this" }
 	| SUPER { "super" }
-	| NULLLIT { "null" }
+	/* | NULLLIT { "null" } */
 ;
 
 /* modifiers */

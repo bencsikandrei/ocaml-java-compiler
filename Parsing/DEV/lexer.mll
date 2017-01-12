@@ -213,7 +213,7 @@ rule nexttoken = parse
 	| double as d { DOUBLELIT(float_of_string d) }
 	| float as f { FLOATLIT(float_of_string (String.sub f 0 ((String.length f)-1))) } (* maybe do a function for d and f *)
 	| boolean as b { BOOLEANLIT(bool_of_string b) }
-	| null as n { NULLLIT n } 
+	| null as n { NULLLIT } 
 
 	
 	(* identifiers without keywords *)
@@ -251,6 +251,7 @@ and multiline_comment = parse
 		| BOOLEANLIT(boollit) -> print_string ( " boollit : " ^ string_of_bool boollit )
 		| CHARLIT(charlit) -> print_string (" charlit " ^ String.make 1 charlit)
 		| STRLIT(slit) -> print_string ( " stlit : " ^ slit )
+		| NULLLIT -> print_string (" nulllit: null ") 
 		| DIM -> print_string "[ ]"
 		| EOF -> print_string "EOF"
 		| PLUS -> print_string "PLUS"

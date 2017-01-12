@@ -79,7 +79,7 @@ type literal =
 	| L_Double of float
 	| L_Char of char
 	| L_Boolean of bool
-	| L_Null of string
+	| L_Null
 
 type expression =
 	| Identifier of string
@@ -285,7 +285,7 @@ let rec string_of_types = function
 	| L_Char(v) -> (String.make 1 v)
 	| L_Boolean(v) -> string_of_bool v
  	| L_Int(v) -> string_of_int v
- 	| L_Null(v) -> "null"
+ 	| L_Null -> "null"
 
 let str_of_option e =
 	match e with
