@@ -162,25 +162,6 @@ specialName:
 	/* | NULLLIT { "null" } */
 ;
 
-/* modifiers */
-%public modifiers: 
-	m=modifier { m }
-	| ms=modifiers m=modifier { ms^m }
-;
-
-modifier: 
-	ABSTRACT { "abstract " }
-	| FINAL { "final " }
-	| PUBLIC { "public " }
-	| PROTECTED { "protected " }
-	| PRIVATE { "private " }
-	| STATIC { "static " }
-	| TRANSIENT { "transient " }
-	| VOLATILE { "volatile " }
-	| NATIVE { "native " }
-	| SYNCHRONIZED { "synchronized " }
-;
-
 %%
 let parse_error s = 
 	print_endline s;

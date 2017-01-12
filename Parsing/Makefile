@@ -6,14 +6,14 @@ MYBUILDFOLDER=_build
 
 MYBUILD = ./build
 COPYPATH = "./classes"
+COPYPATH_EXPR = "./expressions"
 COPYPATH_TEST="./classes_testing"
 
-PARSING =  types.mly expr.mly tokens.mly  class_methods.mly class_definition.mly types_params_defin.mly modifiers.mly java_file.mly interface_definition.mly
-
+PARSING =  types.mly expr.mly tokens.mly  class_methods.mly class_definition.mly types_params_defin.mly modifiers.mly java_file.mly interface_definition.mly parserStart.mly parserStatements.mly parserOperators.mly parserExpressions.mly
 all: clean main
 
 $(MYBUILD)/javaParser.cmo: 
-	cd $(MYBUILD); menhir $(PARSING) --strict  -v --base javaParser
+	cd $(MYBUILD); menhir $(PARSING)  -v --base javaParser
 	cd $(MYBUILD); rm javaParser.mli
 	cd $(MYBUILD); ocamlc -c javaParser.ml
 
@@ -24,16 +24,21 @@ $(MYBUILD)/javaLexer.cmo: $(MYBUILD)/javaLexer.mll
 $(MYBUILD)/definitions.cmo:
 	cd $(MYBUILD); ocamlc -c definitions.ml
 
-main: $(MYBUILD) $(MYBUILD)/definitions.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml
+$(MYBUILD)/expressions.cmo:
+	cd $(MYBUILD); ocamlc -c expressions.ml
+
+main: $(MYBUILD) $(MYBUILD)/expressions.cmo $(MYBUILD)/definitions.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml 
 	cd $(MYBUILD); ocamlc -c main.ml
-	cd $(MYBUILD); ocamlc -pp "#load"  definitions.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
+	cd $(MYBUILD); ocamlc -pp "#load"  expressions.cmo definitions.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
 
 $(MYBUILD): 
 	mkdir -p $(MYBUILD)
 	cp $(COPYPATH)/* $(MYBUILD)/
+	cp $(COPYPATH_EXPR)/* $(MYBUILD)/
 	cp $(COPYPATH_TEST)/main.ml $(MYBUILD)/
 	cp ./tokens.mly $(MYBUILD)/
 	cp ./javaLexer.mll $(MYBUILD)/
+
 
 clean:
 	rm -rf $(MYBUILD)

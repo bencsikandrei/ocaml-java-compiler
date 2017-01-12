@@ -15,5 +15,6 @@ def main(files_dir):
 				else:
 					os.system("./build/main "+mode+" "+file_name+ " -vervose")
 
-files_dir="./classes_testing/"
-main(files_dir)
+files_dir=("./classes_testing/","expression_testing")
+for i in files_dir:
+	main(i)

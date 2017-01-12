@@ -1,5 +1,5 @@
 %{
-open Definitions
+	open Definitions
 %}
 
 %start javaClass
