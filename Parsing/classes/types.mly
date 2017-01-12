@@ -1,5 +1,4 @@
 %{
-	open Expressions
 
 %}
 %%
@@ -24,7 +23,7 @@
 
 %public allTypes:
 	| t=types {AL_Types t}
-	| a=arrayTypes { a}
+	| a=arrayTypes {a}
 
 %public arrayTypes: /* types with dimensions */ 
 	| tn=types ds=dims { AL_Array(tn,ds) } 
