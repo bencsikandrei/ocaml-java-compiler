@@ -139,6 +139,28 @@ type statement =
 	| ST_finally of statement
 	| ST_assert of expression * expression option
 	| ST_var_decl of string option * types * expression list
+
+(* extract from option *)
+let str_of_option e =
+	match e with
+	| Some(ex) -> ex
+	| _ -> ""
+
+let list_of_option l =
+  match l with
+  | Some(x) -> x
+  | _ -> []
+
+let exp_of_option e =
+	match e with
+	| Some(ex) -> ex
+	| _ -> Identifier("")
+
+let stms_of_option s =
+	match s with
+	| Some(s) -> s
+	| _ -> ST_empty 
+
 (*
 and switch_block =
 	| Switch_block of case_block list
@@ -277,7 +299,15 @@ let rec string_of_types = function
 	| ArrayType(t, s) -> (string_of_types t) ^ s
 	| Qualified(qn) -> qn
 
- let string_of_literal x =
+let string_of_catch_header ch =
+	match ch with 
+	| Catch_header(t,s) -> (string_of_types t)^" "^s
+  
+let string_of_enhanced_for ef =
+	match ef with
+	| Enhanced_for(t,s) -> (string_of_types t)^" "^s
+
+let string_of_literal x =
  	match x with
 	| L_Str(v)-> v
 	| L_Float(v) ->  string_of_float v
@@ -286,34 +316,6 @@ let rec string_of_types = function
 	| L_Boolean(v) -> string_of_bool v
  	| L_Int(v) -> string_of_int v
  	| L_Null -> "null"
-
-let str_of_option e =
-	match e with
-	| Some(ex) -> ex
-	| _ -> ""
-
-let list_of_option l =
-  match l with
-  | Some(x) -> x
-  | _ -> []
-
-let exp_of_option e =
-	match e with
-	| Some(ex) -> ex
-	| _ -> Identifier("")
-
-let stms_of_option s =
-	match s with
-	| Some(s) -> s
-	| _ -> ST_empty 
-
-let string_of_catch_header ch =
-	match ch with 
-	| Catch_header(t,s) -> (string_of_types t)^" "^s
-  
-let string_of_enhanced_for ef =
-	match ef with
-	| Enhanced_for(t,s) -> (string_of_types t)^" "^s
 
 let rec string_of_exp exp =
 	match exp with
@@ -351,7 +353,7 @@ let rec string_of_stmt =
 	| ST_block(stl) -> (String.concat "/* ST_block */\n" (List.map string_of_stmt stl))
 	| ST_expression e -> "/* ST_expression */\n"^string_of_exp e
 	| ST_if(e, st1, st2) -> "/* ST_if */\nif ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
-	| ST_switch(e, st) -> "/* ST_switch */\nswitch ("^(string_of_exp e)^") "^(string_of_stmt st)
+	| ST_switch(e, sb) -> "/* ST_switch */\nswitch ("^(string_of_exp e)^") "^(string_of_stmt sb)
 	| ST_while(e, st) ->  "/* ST_while */\nwhile ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
 	| ST_case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(string_of_stmt st) 
 	| ST_for(e1, e2, e3, st) -> "/* ST_for */\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^" "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)

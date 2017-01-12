@@ -44,6 +44,7 @@ selectStmt:
 /* switch blocks */
 switchBlock:
 	LCURL RCURL { ST_empty } /* Empty */
+	| sbsgs=switchBlockStmtGroups { ST_block(sbsgs) } /* sw_block */
 	| LCURL sbsgs=switchBlockStmtGroups RCURL { ST_block(sbsgs) } /* sw_block */
 ;
 

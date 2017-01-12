@@ -2,10 +2,15 @@
 open Lexing
 open Lexer
 open Parser 
+open Expressions
 
 let test_parser lexbuf =
-	let res = Parser.compilationUnit Lexer.nexttoken lexbuf in
-	print_endline (Expressions.string_of_stmt res)
+(* 	try  *)
+		let res = Parser.compilationUnit Lexer.nexttoken lexbuf in
+		print_endline (Expressions.string_of_stmt res)
+(* 	with
+	| JavaException(s) -> print_endline s 
+	| _ -> print_endline "Unknown exception" *)
 
 let test_lexer lexbuf = 
 	let res = Lexer.nexttoken lexbuf in

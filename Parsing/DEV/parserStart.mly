@@ -64,7 +64,7 @@ arrayInitializers:
 /* allocations */
 newAllocationExpression:
 	pall=plainNewAllocationExpression { EX_New_alloc(None, pall) }
-	/*| qn=qualifiedName DOT pall=plainNewAllocationExpression { EX_New_alloc(Some(qn),pall) }*/
+	| qn=qualifiedName DOT pall=plainNewAllocationExpression { EX_New_alloc(Some(qn),pall) }
 ;
 
 plainNewAllocationExpression:

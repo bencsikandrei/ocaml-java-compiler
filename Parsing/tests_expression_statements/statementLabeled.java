@@ -2,6 +2,6 @@
 {
 	my_label: { ; }
 	
-	another_label { ; }
+	another_label: { ; }
 }
 
