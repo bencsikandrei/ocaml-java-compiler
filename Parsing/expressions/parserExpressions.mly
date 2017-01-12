@@ -59,7 +59,7 @@ relationalExpression:
 	| rel=relationalExpression RANG sh=shiftExpression { EX_Compop(BO_Gt,rel,sh) }
 	| rel=relationalExpression LETHAN sh=shiftExpression { EX_Compop(BO_Le,rel,sh) }
 	| rel=relationalExpression GETHAN sh=shiftExpression { EX_Compop(BO_Ge,rel,sh) } 
-	| rel=relationalExpression INSTANCEOF ts=typeSpecifier { EX_Instanceof(BO_instanceof,rel,ts) }
+	| rel=relationalExpression INSTANCEOF ts=types { EX_Instanceof(BO_instanceof,rel,ts) }
 ;
 /* end conditional expressions */
 
@@ -98,7 +98,7 @@ primitiveTypeExpression:
 ;
 
 classTypeExpression: 
-	qn=qualifiedName d=dims { EX_Class(qn^d) }
+	qn=qualifiedName d=dims { EX_Class(EX_QualifiedName(qn),d) }
 ;
 
 unaryExpression:
@@ -114,7 +114,7 @@ logicalUnaryExpression:
 ;
 
 postfixExpression:
-	pri=primaryExpression { pri }
+	pri=primaryExpression { EX_Primary(pri) }
 	| rpost=realPostfixExpression { rpost }
 ;
 

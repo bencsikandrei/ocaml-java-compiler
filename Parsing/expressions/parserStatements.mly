@@ -116,8 +116,8 @@ forIncr:
 ;
 
 forVarOpt:
-	ts=typeSpecifier id=IDENTIFIER { Enhanced_for(ts,id) }
-	/*| ms=modifiers ts=typeSpecifier id=IDENTIFIER { ms^" "^ts^" "^id }
+	ts=types id=IDENTIFIER { Enhanced_for(ts,id) }
+	/*| ms=modifiers ts=types id=IDENTIFIER { ms^" "^ts^" "^id }
 */
 ;
 
@@ -144,8 +144,8 @@ catch:
 ;
 
 catchHeader: 
-	CATCH LPAR ts=typeSpecifier id=IDENTIFIER RPAR { Catch_header(ts,id) }
-	| CATCH LPAR ts=typeSpecifier RPAR { Catch_header(ts,"") }
+	CATCH LPAR ts=types id=IDENTIFIER RPAR { Catch_header(ts,id) }
+	| CATCH LPAR ts=types RPAR { Catch_header(ts,"") }
 ;
 
 finally: 

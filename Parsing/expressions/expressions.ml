@@ -56,22 +56,6 @@ type assign =
 	| ASS_LShift
 	| ASS_LogShift
 
-type types =
-	| Primitive of primitive
-	| ArrayType of types * string
-	| Qualified of string
-
-and primitive =
-  	| P_Int 
-  	| P_Float 
-  	| P_Double 
-  	| P_Char 
-  	| P_Boolean 
-  	| P_Byte 
-  	| P_Short 
-  	| P_Long
-  	| P_Void
-
 type literal =
 	| L_Int of int
 	| L_Str of string
@@ -80,6 +64,10 @@ type literal =
 	| L_Char of char
 	| L_Boolean of bool
 	| L_Null
+
+type primaryType =
+	| P_Qualified of definedType list
+	| P_NotJustName of expression
 
 type expression =
 	| Identifier of string
@@ -94,20 +82,22 @@ type expression =
 	| EX_Unop of unop * expression
 	| EX_Postfix of unop * expression
 	| EX_Assign of assign * expression * expression	
-	| EX_Primitive of primitive * string option
+	| EX_Primitive of primTypes * string option
 	| EX_Cast of expression * expression 
-	| EX_Class of string 
+	| EX_Class of expression * int 
 	| EX_Ternary of expression * expression * expression
 	| EX_Case of expression
 	| EX_Default
 	| EX_Array_access of expression * expression
 	| EX_Field_access of expression * expression option
 	| EX_Method_access of expression * expression list
-	| EX_Array_alloc of types * expression list option * string option
+	| EX_Array_alloc of allTypes * expression list option * string option
 	| EX_Plain_array_alloc of expression * expression list
-	| EX_Class_alloc of types * expression list option
+	| EX_Class_alloc of allTypes * expression list option
 	| EX_New_alloc of string option * expression
 	| EX_Var_decl of expression * expression list option
+	| EX_Primary of primaryType
+	| EX_QualifiedName of defineType list
 
 type catch_header =
 	| Catch_header of types * string
@@ -138,7 +128,7 @@ type statement =
 	| ST_catches of statement list
 	| ST_finally of statement
 	| ST_assert of expression * expression option
-	| ST_var_decl of string option * types * expression list
+	| ST_var_decl of string option * allTypes * expression list
 
 (* extract from option *)
 let str_of_option e =
@@ -283,22 +273,6 @@ let string_of_assign = function
 	| ASS_LShift -> "<<="
 	| ASS_LogShift -> ">>>="
 
-let string_of_primitive = function
-  	| P_Int -> "int"
-	| P_Float -> "float"
-	| P_Double -> "double"
-  	| P_Boolean -> "boolean"
-  	| P_Char -> "char"
-  	| P_Long -> "long"
-  	| P_Byte -> "byte"
-  	| P_Short -> "short"
-  	| P_Void -> "void"
-
-let rec string_of_types = function
-	| Primitive(p) -> (string_of_primitive p)
-	| ArrayType(t, s) -> (string_of_types t) ^ s
-	| Qualified(qn) -> qn
-
 let string_of_catch_header ch =
 	match ch with 
 	| Catch_header(t,s) -> (string_of_types t)^" "^s
@@ -324,7 +298,7 @@ let rec string_of_exp exp =
 	| EX_Empty -> ""
 	| EX_Binop(op, e1, e2) -> (string_of_exp e1)^(string_of_bo op)^(string_of_exp e2)
 	| EX_Compop(op, e1, e2) -> (string_of_exp e1)^(string_of_compop op)^(string_of_exp e2)
-	| EX_Instanceof(op, e1, t) -> (string_of_exp e1)^(string_of_compop op)^ (string_of_types t)
+	| EX_Instanceof(op, e1, t) -> (string_of_exp e1)^(string_of_compop op)^ (string_of_allTypes t) (* allows instanceof generics*)
 	| EX_Bitop(op, e1, e2)-> (string_of_exp e1)^(string_of_bitop op)^(string_of_exp e2)
 	| EX_Logbinop(op, e1, e2) -> (string_of_exp e1)^(string_of_lbo op)^(string_of_exp e2)
 	| EX_Loguop(op, e) -> (string_of_luo op)^(string_of_exp e)
@@ -333,16 +307,16 @@ let rec string_of_exp exp =
 	| EX_Assign(op, e1, e2) -> (string_of_exp e1)^(string_of_assign op)^(string_of_exp e2)
 	| EX_Primitive(p, so) -> (string_of_primitive p)^(str_of_option so)
 	| EX_Cast(e1, e2) -> " ("^(string_of_exp e1)^") "^(string_of_exp e2)
-	| EX_Class(s) -> s
+	| EX_Class(e,i) -> (string_of_exp e)^(String.make i "[]") (* TO CHECK *)
 	| EX_Ternary(e1,e2,e3) -> (string_of_exp e1)^" ? "^(string_of_exp e2)^" : "^(string_of_exp e3)
 	| EX_Case(e) -> "case "^(string_of_exp e)^":"
 	| EX_Default -> "default:"
 	| EX_Array_access(e1,e2) -> (string_of_exp e1)^"["^(string_of_exp e2)^"]"
 	| EX_Field_access(e, eo) -> (string_of_exp e)^"."^(string_of_exp (exp_of_option eo))
 	| EX_Method_access(e,el) -> (string_of_exp e)^"("^(String.concat "," (List.map string_of_exp el))^")"
-	| EX_Array_alloc(t,elo, so) -> "new "^(string_of_types t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(str_of_option so)
+	| EX_Array_alloc(t,elo, so) -> "new "^(string_of_allTypes t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(str_of_option so)
 	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(String.concat "," (List.map string_of_exp el))^"}"
-	| EX_Class_alloc(t,elo) -> "new "^(string_of_types t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
+	| EX_Class_alloc(t,elo) -> "new "^(string_of_allTypes t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
 	| EX_New_alloc(so, e) -> (str_of_option so)^"."^(string_of_exp e) (* dot optional *)
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
   
@@ -370,4 +344,4 @@ let rec string_of_stmt =
 	| ST_catches(stl) -> "/* ST_catches */\n"^(String.concat "; " (List.map string_of_stmt stl))
 	| ST_finally(st) -> "/* ST_finally */\nfinally "^(string_of_stmt st)
 	| ST_assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
-	| ST_var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_types t)^" "^(String.concat ", " (List.map string_of_exp e))^";"
+	| ST_var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";"
