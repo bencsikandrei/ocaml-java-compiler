@@ -1,5 +1,6 @@
 %{
 open Definitions
+open Expressions
 %}
 
 %start javaMethods
@@ -82,8 +83,8 @@ javaMethod_list:
 
 (* Method Body TODO *)
 MethodBody:
-	|Block {{expr=""}}
-	|SEMI {{expr=""}}
+	|b=block {{expr=(Expressions.string_of_stmt b)}}
+	|SEMI {{expr=";"}}
 
 
 (* aux TODO *)
@@ -92,8 +93,9 @@ MethodBody:
 VariableDeclaratorId:
 	|i=IDENTIFIER {DI_Identifier i}
 
-%public Block:
+(*
+	%public Block:
 	| LCURL RCURL {}
 	| LCURL exprs RCURL {}
-
+*)
 %%
