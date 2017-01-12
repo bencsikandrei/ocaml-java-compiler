@@ -18,7 +18,7 @@ compilationUnit:
 	| LCURL RCURL { ST_block(List.append [] [ST_empty]) }
 ;
 
-localVariableDeclAndStmts:
+%public localVariableDeclAndStmts:
 	lvd=localVariableDeclOrStmt { []@[lvd] }
 	| lvds=localVariableDeclAndStmts lvd=localVariableDeclOrStmt { lvds@[lvd] }
 ;
@@ -126,7 +126,7 @@ complexPrimary:
 	| clit=CHARLIT { Literal(L_Char clit) }
 	| dlit=DOUBLELIT { Literal(L_Double dlit) }
 	| flit=FLOATLIT { Literal(L_Float flit) }
-	| nlit=NULLLIT { Literal(L_Null) }
+	| NULLLIT { Literal(L_Null) }
 	| aa=arrayAccess { aa }
 	| fa=fieldAccess { fa }
 	| mc=methodCall { mc }

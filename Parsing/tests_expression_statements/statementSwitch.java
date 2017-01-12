@@ -12,17 +12,6 @@
 		case 2: { break; } 
 	}
 	
-	switch (k) {
-		case 1: System.out.println("one");
-			break;
-		// exit the switch
-		case 2: System.out.println("two");
-			break;
-		// exit the switch
-		case 3: System.out.println("many");
-			break;
-		// not needed, but good style
-	}
 	
 	
 	

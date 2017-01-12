@@ -213,7 +213,7 @@ rule nexttoken = parse
 	| double as d { DOUBLELIT(float_of_string d) }
 	| float as f { FLOATLIT(float_of_string (String.sub f 0 ((String.length f)-1))) } (* maybe do a function for d and f *)
 	| boolean as b { BOOLEANLIT(bool_of_string b) }
-	| null as n { NULLLIT } 
+	| null { NULLLIT } 
 
 	
 	(* identifiers without keywords *)

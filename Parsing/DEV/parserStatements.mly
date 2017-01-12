@@ -53,8 +53,22 @@ switchBlockStmtGroups:
 	| sbsgs=switchBlockStmtGroups sbsg=switchBlockStmtGroup { sbsgs@[sbsg] } /* concatenate two lists @ */
 ;
 
+statementCase:
+	es=emptyStmt { ST_empty }
+	/*
+	| ls=labelStmt { ls }
+	| ass=assertStmt { ass }
+	| exs=expressionStmt SEMI { exs }
+ 	| ss=selectStmt { ss }
+ 	*/
+	| js=jumpStmt { js }
+	/* | is=iterStmt { is }
+	| gs=guardingStmt { gs } */
+;
+
 switchBlockStmtGroup:
 	sls=switchLabels bss=block { ST_case(sls,bss) } /* nonempty_list  case_block */
+	/* | sls=switchLabels bss=statementCase { ST_empty (* ST_case(sls,bss) *) } */
 ;
 
 switchLabels:
