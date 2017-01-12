@@ -3,6 +3,7 @@ open JavaParser
 open Lexing 
 open Definitions
 open Array
+open Printing 
 
 let position lexbuf=
 	let pos=lexeme_start_p lexbuf in 
@@ -13,7 +14,7 @@ let print arg vervose=
 	if vervose then 
 		match arg with
 			| STR s -> print_string (s);
-			| JML j -> print_string (print_list print_java_method j "\n");;
+			| JML j -> print_string (Printing.print_list print_java_method j "\n");;
 
 let fakeDict str= match str with 
 	| "file" -> javaFile

@@ -27,7 +27,7 @@ type typeParam =
 
 
 type resultType=
-	|RT_Type of allTypes	
+	|RT_Type of types	
 	|RT_Void
 
 type declaratorId = 
@@ -37,7 +37,7 @@ type body={expr:string};;
 
 type formalParameter = {
 	pmodif: variableModifier list; 
-	ptype: allTypes; 
+	ptype: types; 
 	pname: declaratorId;
 	pelipsis: bool;
 };;
@@ -98,7 +98,7 @@ let print_type_param var = match var with
 
 
 let print_return_type var = match var with
-	|RT_Type t-> string_of_allTypes t	
+	|RT_Type t-> string_of_types t	
 	|RT_Void -> "void"
 
 let print_declaratorId var = match var with 
@@ -108,7 +108,7 @@ let print_body var = var.expr;;
 
 let print_formal_parameter var = 
 	let el = match var.pelipsis with | true -> "..." | false -> "" in
-	(print_list print_vm var.pmodif " ")^" : "^string_of_allTypes var.ptype^el^" : "^(print_declaratorId var.pname)
+	(print_list print_vm var.pmodif " ")^" : "^string_of_types var.ptype^el^" : "^(print_declaratorId var.pname)
 ;;
 
 let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
