@@ -1,9 +1,0 @@
-{
-	while() {
-		synchronized () { ; } 
-	}
-}
-{	
-	do {
-	} while();
-}

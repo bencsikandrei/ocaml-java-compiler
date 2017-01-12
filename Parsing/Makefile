@@ -2,41 +2,38 @@
 # build all files
 OCAML=ocamlbuild 
 YACCFLAGS=-use-menhir -yaccflag -v
-BUILDFOLDER=_build
+MYBUILDFOLDER=_build
 
-BUILD = ./build
+MYBUILD = ./build
+COPYPATH = "./classes"
+COPYPATH_TEST="./classes_testing"
 
 PARSING =  types.mly expr.mly tokens.mly  class_methods.mly class_definition.mly types_params_defin.mly modifiers.mly java_file.mly interface_definition.mly
 
 all: clean main
 
-$(BUILD)/javaParser.cmo: 
-	cd $(BUILD); menhir $(PARSING) --strict  -v --base javaParser
-	cd $(BUILD); rm javaParser.mli
-	cd $(BUILD); ocamlc -c javaParser.ml
+$(MYBUILD)/javaParser.cmo: 
+	cd $(MYBUILD); menhir $(PARSING) --strict  -v --base javaParser
+	cd $(MYBUILD); rm javaParser.mli
+	cd $(MYBUILD); ocamlc -c javaParser.ml
 
-$(BUILD)/javaLexer.cmo: $(BUILD)/javaLexer.mll
-	cd $(BUILD); ocamllex javaLexer.mll
-	cd $(BUILD); ocamlc -c javaLexer.ml
+$(MYBUILD)/javaLexer.cmo: $(MYBUILD)/javaLexer.mll
+	cd $(MYBUILD); ocamllex javaLexer.mll
+	cd $(MYBUILD); ocamlc -c javaLexer.ml
 
-$(BUILD)/definitions.cmo:
-	cd $(BUILD); ocamlc -c definitions.ml
+$(MYBUILD)/definitions.cmo:
+	cd $(MYBUILD); ocamlc -c definitions.ml
 
-main: $(BUILD) $(BUILD)/definitions.cmo $(BUILD)/javaParser.cmo $(BUILD)/javaLexer.cmo $(BUILD)/main.ml
-	cd $(BUILD); ocamlc -c main.ml
-	cd $(BUILD); ocamlc -pp "#load"  definitions.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
+main: $(MYBUILD) $(MYBUILD)/definitions.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml
+	cd $(MYBUILD); ocamlc -c main.ml
+	cd $(MYBUILD); ocamlc -pp "#load"  definitions.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
 
-$(BUILD): 
-	mkdir -p $(BUILD)
-	cp $(COPYPATH)/* $(BUILD)/
-	cp $(COPYPATH_TEST)/main.ml $(BUILD)/
-	cp ./tokens.mly $(BUILD)/
-	cp ./javaLexer.mll $(BUILD)/
+$(MYBUILD): 
+	mkdir -p $(MYBUILD)
+	cp $(COPYPATH)/* $(MYBUILD)/
+	cp $(COPYPATH_TEST)/main.ml $(MYBUILD)/
+	cp ./tokens.mly $(MYBUILD)/
+	cp ./javaLexer.mll $(MYBUILD)/
 
 clean:
-	rm -rf $(EXEC) 
-	
-mrproper: clean
-	rm -rf $(BUILDFOLDER)
-
-.PHONY: all clean mrproper
+	rm -rf $(MYBUILD)

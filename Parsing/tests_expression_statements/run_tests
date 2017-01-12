@@ -1,5 +1,0 @@
-#!/bin/bash
-for filename in ./*.java
-do
-    ./main.byte $filename
-done

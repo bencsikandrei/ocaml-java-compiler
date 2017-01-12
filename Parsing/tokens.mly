@@ -93,7 +93,7 @@
 %token <float> FLOATLIT
 %token <char> CHARLIT 
 %token <bool> BOOLEANLIT
-%token <string> NULLLIT
+%token NULLLIT
 %token ELIPSIS
 
 /* priorities 
