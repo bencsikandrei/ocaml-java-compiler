@@ -1,12 +1,12 @@
 (* the main function *)
 open Lexing
-open Lexer
-open Parser 
+open JavaLexer
+open JavaParser 
 open Expressions
 
 let test_parser lexbuf =
 (* 	try  *)
-		let res = Parser.compilationUnit Lexer.nexttoken lexbuf in
+		let res = Parser.compilationUnit JavaLexer.nexttoken lexbuf in
 		print_endline (Expressions.string_of_stmt res)
 (* 	with
 	| JavaException(s) -> print_endline s 
