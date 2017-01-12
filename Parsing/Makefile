@@ -27,15 +27,23 @@ $(MYBUILD)/definitions.cmo:
 $(MYBUILD)/expressions.cmo:
 	cd $(MYBUILD); ocamlc -c expressions.ml
 
-main: $(MYBUILD) $(MYBUILD)/expressions.cmo $(MYBUILD)/definitions.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml 
+$(MYBUILD)/printing.cmo:
+	cd $(MYBUILD); ocamlc -c printing.ml
+
+$(MYBUILD)/ast.cmo:
+	cd $(MYBUILD); ocamlc -c ast.ml
+
+
+main: $(MYBUILD) $(MYBUILD)/ast.cmo $(MYBUILD)/expressions.cmo $(MYBUILD)/definitions.cmo  $(MYBUILD)/printing.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml 
 	cd $(MYBUILD); ocamlc -c main.ml
-	cd $(MYBUILD); ocamlc -pp "#load"  expressions.cmo definitions.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
+	cd $(MYBUILD); ocamlc -pp "#load"  ast.cmo printing.cmo expressions.cmo definitions.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
 
 $(MYBUILD): 
 	mkdir -p $(MYBUILD)
 	cp $(COPYPATH)/* $(MYBUILD)/
 	cp $(COPYPATH_EXPR)/* $(MYBUILD)/
 	cp $(COPYPATH_TEST)/main.ml $(MYBUILD)/
+	cp ast.ml printing.ml $(MYBUILD)/
 	cp ./tokens.mly $(MYBUILD)/
 	cp ./javaLexer.mll $(MYBUILD)/
 

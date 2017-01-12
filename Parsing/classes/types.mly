@@ -3,53 +3,38 @@
 
 %}
 %%
-%public types:
-	| FLOAT {T_Float}
-	| BOOLEAN {T_Boolean}
-	| BYTE {T_Byte}
-	| CHAR {T_Char}
-	| INT {T_Int}
-	| LONG {T_Long}
-	| SHORT {T_Short}
-	| DOUBLE {T_Double}
-	| id=IDENTIFIER t=type_generic_impl {T_Generic(id,t)}
-	
-type_generic_impl:
-	| LANG t=types RANG {t}
-
-
-/* typeName */
-%public typeName:
-	| pri=primitiveType { Primitive(pri) }
-	| qn=qualifiedName { Qualified(qn) }
-	
-;
-
-%public qualifiedName:
-	| id=IDENTIFIER { id }
-	| qn=qualifiedName DOT id=IDENTIFIER { qn^"."^id }
-
-%public typeSpecifier:
-	tn=typeName { tn }
-	| tn=typeName ds=dims { ArrayType(tn,ds) }
-;
-
-%public dims:
-	DIM { " [ ] " }
-	| ds=dims DIM { ds^" [ ] " }
-;
 
 %public primitiveType:
-	| BOOLEAN { P_Boolean  }
-	| CHAR { P_Char  }
-	| BYTE { P_Byte  }
-	| SHORT { P_Short  }
-	| INT { P_Int  }
-	| LONG { P_Long  }
-	| FLOAT { P_Float  }
-	| DOUBLE { P_Double }
-	| VOID { P_Void }
-;
+	| FLOAT {PT_Float}
+	| BOOLEAN {PT_Boolean}
+	| BYTE {PT_Byte}
+	| CHAR {PT_Char}
+	| INT {PT_Int}
+	| LONG {PT_Long}
+	| SHORT {PT_Short}
+	| DOUBLE {PT_Double}
 
+%public types: /* Names of classes, generics, primitive types*/
+	| pri=primitiveType { T_Primitive pri  }
+	| qn=qualifiedName { T_Qualified qn } 
+
+%public dims: /* brackets can be more than one set */
+	| DIM { 1 }
+	| ds=dims DIM { ds+1 }
+
+%public allTypes:
+	| t=types {AL_Types t}
+	| a=arrayTypes { a}
+
+%public arrayTypes: /* types with dimensions */ 
+	| tn=types ds=dims { AL_Array(tn,ds) } 
+	
+definedType: /* identifier or generic definition*/
+	| id=IDENTIFIER { DT_Id id }
+	| id=IDENTIFIER LANG t=types RANG { DT_Generic(id,t) }
+
+%public qualifiedName: /* name or name.name*/
+	| id=definedType { [id] } 
+	| qn=qualifiedName DOT id=definedType { qn@[id]}
 %%
 
