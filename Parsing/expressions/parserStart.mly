@@ -77,8 +77,8 @@ plainNewAllocationExpression:
 ;
 
 classAllocationExpression:
-	NEW tn=typeName LPAR args=argumentList RPAR { EX_Class_alloc(tn,Some(args)) }
-	| NEW tn=typeName LPAR RPAR { EX_Class_alloc(tn, None) }
+	NEW tn=types LPAR args=argumentList RPAR { EX_Class_alloc(tn,Some(args)) }
+	| NEW tn=types LPAR RPAR { EX_Class_alloc(tn, None) }
 ;
 
 argumentList:
@@ -87,9 +87,9 @@ argumentList:
 ;
 
 arrayAllocationExpression:
-	NEW tn=typeName de=dimExprs d=dims { EX_Array_alloc(tn,Some(de),Some(d)) }
-	| NEW tn=typeName de=dimExprs { EX_Array_alloc(tn,Some(de),None) }
-    | NEW tn=typeName d=dims { EX_Array_alloc(tn,None,Some(d)) }
+	NEW tn=types de=dimExprs d=dims { EX_Array_alloc(tn,Some(de),Some(d)) }
+	| NEW tn=types de=dimExprs { EX_Array_alloc(tn,Some(de),None) }
+    | NEW tn=types d=dims { EX_Array_alloc(tn,None,Some(d)) }
 ;
 
 dimExprs:
@@ -112,7 +112,7 @@ dimExpr:
 	| all=newAllocationExpression { all }
 	| cpri=complexPrimary { cpri }
 ;
-/* end typeName */
+/* end types */
 
 complexPrimary:
 	LPAR ex=expression RPAR { ex }
@@ -153,7 +153,7 @@ methodCall
 methodAccess
 	: cpnp=complexPrimaryNoParenthesis { cpnp }
 	| sn=specialName { Identifier(sn) }
-	| qn=qualifiedName { EX_QualifiedName(qn)) }
+	| qn=qualifiedName { EX_QualifiedName(qn) }
 	;
 
 specialName:

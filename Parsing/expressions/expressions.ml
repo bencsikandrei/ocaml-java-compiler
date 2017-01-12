@@ -1,3 +1,5 @@
+open Ast
+open Printing
 exception JavaException of string
 
 (* arithmetic ops *)
@@ -65,10 +67,6 @@ type literal =
 	| L_Boolean of bool
 	| L_Null
 
-type primaryType =
-	| P_Qualified of definedType list
-	| P_NotJustName of expression
-
 type expression =
 	| Identifier of string
 	| Literal of literal
@@ -91,13 +89,17 @@ type expression =
 	| EX_Array_access of expression * expression
 	| EX_Field_access of expression * expression option
 	| EX_Method_access of expression * expression list
-	| EX_Array_alloc of allTypes * expression list option * string option
+	| EX_Array_alloc of types * expression list option * string option
 	| EX_Plain_array_alloc of expression * expression list
-	| EX_Class_alloc of allTypes * expression list option
-	| EX_New_alloc of string option * expression
+	| EX_Class_alloc of types * expression list option
+	| EX_New_alloc of expression option * expression
 	| EX_Var_decl of expression * expression list option
 	| EX_Primary of primaryType
-	| EX_QualifiedName of defineType list
+	| EX_QualifiedName of definedType list
+
+and primaryType =
+	| P_Qualified of definedType list
+	| P_NotJustName of expression
 
 type catch_header =
 	| Catch_header of types * string
@@ -291,6 +293,11 @@ let string_of_literal x =
  	| L_Int(v) -> string_of_int v
  	| L_Null -> "null"
 
+let rec string_mul i s =
+	match i with
+	| 0 -> s
+	| _ -> (string_mul (i-1) (s^s))
+
 let rec string_of_exp exp =
 	match exp with
 	| Identifier id -> id
@@ -298,7 +305,7 @@ let rec string_of_exp exp =
 	| EX_Empty -> ""
 	| EX_Binop(op, e1, e2) -> (string_of_exp e1)^(string_of_bo op)^(string_of_exp e2)
 	| EX_Compop(op, e1, e2) -> (string_of_exp e1)^(string_of_compop op)^(string_of_exp e2)
-	| EX_Instanceof(op, e1, t) -> (string_of_exp e1)^(string_of_compop op)^ (string_of_allTypes t) (* allows instanceof generics*)
+	| EX_Instanceof(op, e1, t) -> (string_of_exp e1)^(string_of_compop op)^ (string_of_types t) (* allows instanceof generics*)
 	| EX_Bitop(op, e1, e2)-> (string_of_exp e1)^(string_of_bitop op)^(string_of_exp e2)
 	| EX_Logbinop(op, e1, e2) -> (string_of_exp e1)^(string_of_lbo op)^(string_of_exp e2)
 	| EX_Loguop(op, e) -> (string_of_luo op)^(string_of_exp e)
@@ -307,17 +314,17 @@ let rec string_of_exp exp =
 	| EX_Assign(op, e1, e2) -> (string_of_exp e1)^(string_of_assign op)^(string_of_exp e2)
 	| EX_Primitive(p, so) -> (string_of_primitive p)^(str_of_option so)
 	| EX_Cast(e1, e2) -> " ("^(string_of_exp e1)^") "^(string_of_exp e2)
-	| EX_Class(e,i) -> (string_of_exp e)^(String.make i "[]") (* TO CHECK *)
+	| EX_Class(e,i) -> (string_of_exp e)^(string_mul i "[]")
 	| EX_Ternary(e1,e2,e3) -> (string_of_exp e1)^" ? "^(string_of_exp e2)^" : "^(string_of_exp e3)
 	| EX_Case(e) -> "case "^(string_of_exp e)^":"
 	| EX_Default -> "default:"
 	| EX_Array_access(e1,e2) -> (string_of_exp e1)^"["^(string_of_exp e2)^"]"
 	| EX_Field_access(e, eo) -> (string_of_exp e)^"."^(string_of_exp (exp_of_option eo))
 	| EX_Method_access(e,el) -> (string_of_exp e)^"("^(String.concat "," (List.map string_of_exp el))^")"
-	| EX_Array_alloc(t,elo, so) -> "new "^(string_of_allTypes t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(str_of_option so)
+	| EX_Array_alloc(t,elo, so) -> "new "^(string_of_types t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(str_of_option so)
 	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(String.concat "," (List.map string_of_exp el))^"}"
-	| EX_Class_alloc(t,elo) -> "new "^(string_of_allTypes t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
-	| EX_New_alloc(so, e) -> (str_of_option so)^"."^(string_of_exp e) (* dot optional *)
+	| EX_Class_alloc(t,elo) -> "new "^(string_of_types t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
+	| EX_New_alloc(so, e) -> (string_of_exp (exp_of_option so))^"."^(string_of_exp e) (* dot optional *)
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
   
 let rec string_of_stmt =
