@@ -1,0 +1,1 @@
+static void main(int x, char y){}
