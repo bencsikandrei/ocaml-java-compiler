@@ -1,5 +1,5 @@
 %{
-
+open Ast
 %}
 %%
 
@@ -30,7 +30,7 @@
 	
 definedType: /* identifier or generic definition*/
 	| id=IDENTIFIER { DT_Id id }
-	| id=IDENTIFIER LANG t=types RANG { DT_Generic(id,t) }
+	| id=IDENTIFIER LANG t=allTypes RANG { DT_Generic(id,t) }
 
 %public qualifiedName: /* name or name.name*/
 	| id=definedType { [id] } 
