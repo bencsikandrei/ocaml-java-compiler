@@ -9,7 +9,7 @@
 
 %%
 compilationUnit:
-	s=block { s }
+	s=block EOF { s }
 	| error { raise (JavaException "ERROR") }
 ;
 /* block */

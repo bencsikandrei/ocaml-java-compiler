@@ -13,6 +13,8 @@ let test_parser lexbuf =
 
 let test_lexer lexbuf = 
 	let res = JavaLexer.nexttoken lexbuf in
+	if res = EOF then raise End_of_file
+	else 
 	print_string "Reading token in line ";
 	print_int lexbuf.lex_curr_p.pos_lnum;
 	print_string " : ";
@@ -35,12 +37,10 @@ let main () =
 	in
 	let lexbuf = Lexing.from_channel cin in
 	try 	
-		while true do 
-			if lp = "l" then
-				test_lexer lexbuf
-			else 
-				test_parser lexbuf
-    	done
-	with End_of_file -> exit 0
 
+		if lp = "l" then
+			test_lexer lexbuf
+		else 
+			test_parser lexbuf
+	with End_of_file -> exit 0
 let _ = Printexc.print main ()
