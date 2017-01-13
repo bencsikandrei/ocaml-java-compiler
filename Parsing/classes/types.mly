@@ -1,6 +1,5 @@
 %{
-	open Expressions
-
+open Ast
 %}
 %%
 
@@ -24,14 +23,14 @@
 
 %public allTypes:
 	| t=types {AL_Types t}
-	| a=arrayTypes { a}
+	| a=arrayTypes {a}
 
 %public arrayTypes: /* types with dimensions */ 
 	| tn=types ds=dims { AL_Array(tn,ds) } 
 	
 definedType: /* identifier or generic definition*/
 	| id=IDENTIFIER { DT_Id id }
-	| id=IDENTIFIER LANG t=types RANG { DT_Generic(id,t) }
+	| id=IDENTIFIER LANG t=allTypes RANG { DT_Generic(id,t) }
 
 %public qualifiedName: /* name or name.name*/
 	| id=definedType { [id] } 

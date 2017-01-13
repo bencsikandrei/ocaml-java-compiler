@@ -29,8 +29,8 @@ localVariableDeclOrStmt:
 ;
 
 %public localVariableDeclStmt:
-	ts=typeSpecifier vd=variableDeclarators SEMI { ST_var_decl(None,ts,vd) }
-	| FINAL ts=typeSpecifier vd=variableDeclarators SEMI { ST_var_decl(Some("final "),ts,vd) }
+	ts=allTypes vd=variableDeclarators SEMI { ST_var_decl(None,ts,vd) }
+	| FINAL ts=allTypes vd=variableDeclarators SEMI { ST_var_decl(Some("final "),ts,vd) }
 ;
 
 /* variable declarators */
@@ -64,7 +64,7 @@ arrayInitializers:
 /* allocations */
 newAllocationExpression:
 	pall=plainNewAllocationExpression { EX_New_alloc(None, pall) }
-	| qn=qualifiedName DOT pall=plainNewAllocationExpression { EX_New_alloc(Some(qn),pall) }
+	| qn=qualifiedName DOT pall=plainNewAllocationExpression { EX_New_alloc(Some(EX_QualifiedName(qn)),pall) }
 ;
 
 plainNewAllocationExpression:
@@ -77,8 +77,8 @@ plainNewAllocationExpression:
 ;
 
 classAllocationExpression:
-	NEW tn=typeName LPAR args=argumentList RPAR { EX_Class_alloc(tn,Some(args)) }
-	| NEW tn=typeName LPAR RPAR { EX_Class_alloc(tn, None) }
+	NEW tn=types LPAR args=argumentList RPAR { EX_Class_alloc(tn,Some(args)) }
+	| NEW tn=types LPAR RPAR { EX_Class_alloc(tn, None) }
 ;
 
 argumentList:
@@ -87,9 +87,9 @@ argumentList:
 ;
 
 arrayAllocationExpression:
-	NEW tn=typeName de=dimExprs d=dims { EX_Array_alloc(tn,Some(de),Some(d)) }
-	| NEW tn=typeName de=dimExprs { EX_Array_alloc(tn,Some(de),None) }
-    | NEW tn=typeName d=dims { EX_Array_alloc(tn,None,Some(d)) }
+	NEW tn=types de=dimExprs d=dims { EX_Array_alloc(tn,Some(de),Some(d)) }
+	| NEW tn=types de=dimExprs { EX_Array_alloc(tn,Some(de),None) }
+    | NEW tn=types d=dims { EX_Array_alloc(tn,None,Some(d)) }
 ;
 
 dimExprs:
@@ -103,8 +103,8 @@ dimExpr:
 /* end allocations */
 
 %public primaryExpression:
-	qn=qualifiedName { Identifier(qn) }
-	| njs=notJustName { njs }
+	qn=qualifiedName { P_Qualified(qn) }
+	| njs=notJustName { P_NotJustName(njs) }
 ;
 
 %public notJustName:
@@ -112,7 +112,7 @@ dimExpr:
 	| all=newAllocationExpression { all }
 	| cpri=complexPrimary { cpri }
 ;
-/* end typeName */
+/* end types */
 
 complexPrimary:
 	LPAR ex=expression RPAR { ex }
@@ -133,15 +133,15 @@ complexPrimary:
 ;
 
 arrayAccess
-	: qn=qualifiedName LBRAC e=expression RBRAC { EX_Array_access(Identifier(qn),e) }
+	: qn=qualifiedName LBRAC e=expression RBRAC { EX_Array_access(EX_QualifiedName(qn),e) }
 	| cp=complexPrimary LBRAC e=expression RBRAC { EX_Array_access(cp,e) }
 	;
 
 fieldAccess
 	: njn=notJustName DOT id=IDENTIFIER { EX_Field_access(njn, Some(Identifier(id))) }
 	| rpe=realPostfixExpression DOT id=IDENTIFIER { EX_Field_access(rpe, Some(Identifier(id))) }
-    | qn=qualifiedName DOT THIS { EX_Field_access(Identifier(qn), Some(Identifier("this "))) }
-    | qn=qualifiedName DOT CLASS { EX_Field_access(Identifier(qn), Some(Identifier("class "))) }
+    | qn=qualifiedName DOT THIS { EX_Field_access(EX_QualifiedName(qn), Some(Identifier("this "))) }
+    | qn=qualifiedName DOT CLASS { EX_Field_access(EX_QualifiedName(qn), Some(Identifier("class "))) }
     | pt=primitiveType DOT CLASS { EX_Field_access(EX_Primitive(pt, None), Some(Identifier("class "))) }
 	;
 
@@ -153,7 +153,7 @@ methodCall
 methodAccess
 	: cpnp=complexPrimaryNoParenthesis { cpnp }
 	| sn=specialName { Identifier(sn) }
-	| qn=qualifiedName { Identifier(qn) }
+	| qn=qualifiedName { EX_QualifiedName(qn) }
 	;
 
 specialName:

@@ -34,7 +34,7 @@ javaMethod_list:
 		|md=MethodDeclarator 			mb=MethodBody { {jmmodifiers=[];jmtparam=[];jmrtype=RT_Void;jmdeclarator=md;jmthrows=[];jmbody=mb} }
 
 	ResultType:
-		|e=types {RT_Type e}
+		|e=allTypes {RT_Type e}
 		|VOID {RT_Void}
 
 	MethodDeclarator: (*compile error if two methods with the same id and param list *)
@@ -48,11 +48,11 @@ javaMethod_list:
 		|p1=FormalParameter COMM p2=FormalParameters {p1::p2}
 
 	FormalParameter:
-		|m=option(VariableModifiers) t=types v=VariableDeclaratorId 
+		|m=option(VariableModifiers) t=allTypes v=VariableDeclaratorId 
 			{let m=match m with |None -> [] | Some m ->m in {pmodif=m;ptype=t;pname=v;pelipsis=false}}
 
 	LastFormalParameter:
-		|m=option(VariableModifiers) t=types ELIPSIS v=VariableDeclaratorId
+		|m=option(VariableModifiers) t=allTypes ELIPSIS v=VariableDeclaratorId
 			{let m=match m with |None -> [] | Some m ->m in {pmodif=m;ptype=t;pname=v;pelipsis=true}}
 		| ep=FormalParameter {ep}
 
@@ -78,7 +78,7 @@ javaMethod_list:
 		|ClassType {}
 		|TypeVariable {}
 *)		
-		|types {}
+		|allTypes {}
 
 (* Method Body TODO *)
 MethodBody:

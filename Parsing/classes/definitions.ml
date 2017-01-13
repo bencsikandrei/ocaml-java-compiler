@@ -1,4 +1,6 @@
 open Ast
+open Printing
+
 
 type annotation = { aname: string ; aoth: string };; (* TODO *)
 type jexception = { ename: string ; eoth: string };; (* TODO *)
@@ -19,8 +21,6 @@ type variableModifier =
 	|VM_Final
 	|VM_Annot of annotation;;
 
-
-
 type typeParam =
 	| TPL_Ident of string
 	| TPL_Extend of string * string	
@@ -37,7 +37,7 @@ type body={expr:string};;
 
 type formalParameter = {
 	pmodif: variableModifier list; 
-	ptype: types; 
+	ptype: allTypes; 
 	pname: declaratorId;
 	pelipsis: bool;
 };;
@@ -86,7 +86,8 @@ type abstractSyntaxTree =
 	| STR of string
 
 
-(* printers 
+(* printers *)
+
 
 let print_annot a=a.aname;;
 let print_excep a=a.ename;;
@@ -107,17 +108,6 @@ let print_vm var = match var with
 	|VM_Final -> "final"
 	|VM_Annot a -> print_annot a;;
 
-let rec print_types var = match var with
-	| T_Identifier i -> i
-	| T_Float -> "float"
-	| T_Boolean ->  "bool"
-	| T_Byte ->  "byte"
-	| T_Char ->  "char"
-	| T_Int ->  "int"
-	| T_Long ->  "long"
-	| T_Short ->  "short"
-	| T_Double ->  "double"
-	| T_Generic (a,b)->  a^"<"^print_types b^">";;
 
 let print_type_param var = match var with
 	| TPL_Ident s -> s
@@ -125,7 +115,7 @@ let print_type_param var = match var with
 
 
 let print_return_type var = match var with
-	|RT_Type t-> print_types t	
+	|RT_Type t-> string_of_allTypes t	
 	|RT_Void -> "void"
 
 let print_declaratorId var = match var with 
@@ -135,7 +125,7 @@ let print_body var = var.expr;;
 
 let print_formal_parameter var = 
 	let el = match var.pelipsis with | true -> "..." | false -> "" in
-	(print_list print_vm var.pmodif " ")^" : "^print_types var.ptype^el^" : "^(print_declaratorId var.pname)
+	(print_list print_vm var.pmodif " ")^" : "^string_of_allTypes var.ptype^el^" : "^(print_declaratorId var.pname)
 ;;
 
 let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
@@ -148,4 +138,3 @@ let print_java_method var =
 	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
 	"\nBody: "^print_body var.jmbody;;
 
-	*)
