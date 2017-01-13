@@ -8,7 +8,7 @@
 /* expressions */
 %public expression: 
 	ae=assignmentExpression { ae }
-	| error { Identifier(" ERROR -> expression\n") }
+	| error { raise (JavaException "illegal expression") }
 ;
 
 assignmentExpression:
