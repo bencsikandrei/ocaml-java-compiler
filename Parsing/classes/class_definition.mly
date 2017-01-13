@@ -27,7 +27,7 @@ javaClass:
 
 super:
 	| EXTENDS id=IDENTIFIER typ=option(type_params_defin) {
-		match typ with | None -> id | Some typ -> C_Parent(id,typ)
+		match typ with | None -> C_Parent(id,None) | Some typ -> C_Parent(id,Some typ)
 	}
 
 interfaces:
@@ -38,16 +38,16 @@ interface_list:
 	| id=IDENTIFIER COMM l=interface_list { id::l }
 
 class_body:
-	| SEMI { }
+	| SEMI { [IC_Semi] }
 	| LCURL bod=inside_class_l RCURL { bod }
-	| LCURL RCURL { }
+	| LCURL RCURL { [IC_Empty] }
 
 inside_class_l:
 	| i=inside_class { i::[] }
-	| l=inside_class_l i=inside_class { l::i }
+	| i=inside_class l=inside_class_l { i::l }
 
 inside_class:
-	| m=modifiers cma=class_method_or_attribute { match cma with | IC_Method me -> me.jmmodifiers<-m; cma | _ -> cma }
+	| m=modifiers cma=class_method_or_attribute { match cma with | IC_Method me -> me.jmmodifiers<-m; cma |IC_Class c -> c.cmodifiers<-m; cma | _ -> cma }
 	| 			  cma=class_method_or_attribute { cma }
 
 class_method_or_attribute:
@@ -67,7 +67,7 @@ method_or_attribute:
 			let tp = match tp with | None -> [] | Some tp -> tp in
 			let sup = match sup with | None -> C_Object | Some sup -> sup in
 			let interf = match interf with | None -> [] | Some interf -> interf in
-				{cmodifiers=modif;
+				{cmodifiers=[];
 				cidentifier=id;
 				ctparam=tp;
 				cparent=sup;
