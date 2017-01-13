@@ -102,7 +102,7 @@ and primaryType =
 	| P_NotJustName of expression
 
 type catch_header =
-	| Catch_header of types * string
+	| Catch_header of types * expression (* changed from string to expression *)
 
 type enhanced_for =
 	| Enhanced_for of types * string
@@ -158,20 +158,6 @@ let int_of_option v =
 	| Some(v) -> v
 	| _ -> 0
 
-(*
-and switch_block =
-	| Switch_block of case_block list
- 	| Empty
-
-and case_block =
-	| Case_block of label list *statement 
-	
-and label =
-	| Case of expression 
-	(* | Cases of label list *)
-	| Default
-*)
-(* option removed; TODO revise statement *)
 
 (* get arithmetic operations *)
 (*
@@ -280,10 +266,6 @@ let string_of_assign = function
 	| ASS_RShift -> ">>="
 	| ASS_LShift -> "<<="
 	| ASS_LogShift -> ">>>="
-
-let string_of_catch_header ch =
-	match ch with 
-	| Catch_header(t,s) -> (string_of_types t)^" "^s
   
 let string_of_enhanced_for ef =
 	match ef with
@@ -335,7 +317,10 @@ let rec string_of_exp exp =
 	| EX_Primary(pt) -> "PLACEHOLDER ! primary expression -> primaryType"
 	| EX_QualifiedName(ldt) -> "PLACEHOLDER ! qual name expression -> definedType list"
 
-  
+let string_of_catch_header ch =
+	match ch with 
+	| Catch_header(t,s) -> (string_of_types t)^" "^(string_of_exp s)
+
 let rec string_of_stmt =
 	function
 	| ST_empty -> "/* ST_empty */"

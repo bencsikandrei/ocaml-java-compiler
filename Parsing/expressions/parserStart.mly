@@ -50,7 +50,7 @@ declaratorName:
 
 variableInitializer:
 	ex=expression { []@[ex] }
-	| LCURL RCURL { [] } /* AAAAAAAAAH */
+	| LCURL RCURL { [] }
 	| LCURL arri=arrayInitializers RCURL { arri }
 ;
 

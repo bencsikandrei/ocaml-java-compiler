@@ -79,7 +79,7 @@ switchLabels:
 ;
 
 switchLabel:
-	CASE ce=constantExpression COL { EX_Case(ce) } /* Case */
+	CASE ce=constantExpression COL { EX_Case(ce) }
 	| DEFAULT COL { EX_Default }
 ;
 /* end switch blocks */
@@ -90,7 +90,7 @@ jumpStmt:
     | CONTINUE id=IDENTIFIER SEMI { ST_continue(id) }
 	| CONTINUE SEMI { ST_continue("") }
 	| RETURN e=expression SEMI { ST_return(e) }
-	| RETURN SEMI { ST_return(Identifier("")) } /* not an identifier either */ 
+	| RETURN SEMI { ST_return(EX_Empty) } /* changed to empty */ 
 	| THROW e=expression SEMI { ST_throw(e) }
 ;
 
@@ -110,7 +110,7 @@ forInit:
 
 forExpr: 
 	e=expression SEMI { e }
-	| SEMI { Identifier(";") } /* not supposed to be ident */
+	| SEMI { EX_Empty } /* changed to empty */
 ;
 
 forIncr: 
@@ -147,8 +147,8 @@ catch:
 ;
 
 catchHeader: 
-	CATCH LPAR ts=types id=IDENTIFIER RPAR { Catch_header(ts,id) }
-	| CATCH LPAR ts=types RPAR { Catch_header(ts,"") }
+	CATCH LPAR ts=types id=IDENTIFIER RPAR { Catch_header(ts,Identifier(id)) }
+	| CATCH LPAR ts=types RPAR { Catch_header(ts,EX_Empty) }
 ;
 
 finally: 
