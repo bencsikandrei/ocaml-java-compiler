@@ -9,7 +9,7 @@ COPYPATH = "./classes"
 COPYPATH_EXPR = "./expressions"
 COPYPATH_TEST="./classes_testing"
 
-PARSING =  types.mly expr.mly tokens.mly  class_methods.mly class_definition.mly types_params_defin.mly modifiers.mly java_file.mly interface_definition.mly parserStart.mly parserStatements.mly parserOperators.mly parserExpressions.mly
+PARSING =  types.mly tokens.mly  class_methods.mly class_definition.mly types_params_defin.mly modifiers.mly java_file.mly interface_definition.mly parserStart.mly parserStatements.mly parserOperators.mly parserExpressions.mly
 all: clean main
 
 $(MYBUILD)/javaParser.cmo: 

@@ -100,6 +100,6 @@ var_decl_id:
 	| var_decl_id LBRAC RBRAC { }
 
 var_init:
-	| expr { }
+	| expression { }
 
 %%

@@ -1,11 +1,16 @@
 (* the main function *)
 open Lexing
-open Lexer
-open Parser 
+open JavaLexer
+open JavaParser 
+open Expressions
 
 let test_parser lexbuf =
-	let res = Parser.compilationUnit Lexer.nexttoken lexbuf in
-	print_endline res
+(* 	try  *)
+		let res = Parser.compilationUnit JavaLexer.nexttoken lexbuf in
+		print_endline (Expressions.string_of_stmt res)
+(* 	with
+	| JavaException(s) -> print_endline s 
+	| _ -> print_endline "Unknown exception" *)
 
 let test_lexer lexbuf = 
 	let res = Lexer.nexttoken lexbuf in
@@ -14,7 +19,7 @@ let test_lexer lexbuf =
 	print_string " : ";
 	print_string "character ";
 	print_int (lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol);
-	print_string " : ";    	
+	print_string " : ";
 	Lexer.print_token res;
 	print_string "\n"
 

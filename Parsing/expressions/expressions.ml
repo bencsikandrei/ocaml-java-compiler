@@ -80,7 +80,7 @@ type expression =
 	| EX_Unop of unop * expression
 	| EX_Postfix of unop * expression
 	| EX_Assign of assign * expression * expression	
-	| EX_Primitive of primTypes * string option
+	| EX_Primitive of primTypes * int option
 	| EX_Cast of expression * expression 
 	| EX_Class of expression * int 
 	| EX_Ternary of expression * expression * expression
@@ -89,7 +89,7 @@ type expression =
 	| EX_Array_access of expression * expression
 	| EX_Field_access of expression * expression option
 	| EX_Method_access of expression * expression list
-	| EX_Array_alloc of types * expression list option * string option
+	| EX_Array_alloc of types * expression list option * int option
 	| EX_Plain_array_alloc of expression * expression list
 	| EX_Class_alloc of types * expression list option
 	| EX_New_alloc of expression option * expression
@@ -153,6 +153,11 @@ let stms_of_option s =
 	| Some(s) -> s
 	| _ -> ST_empty 
 
+let int_of_option v =
+	match v with
+	| Some(v) -> v
+	| _ -> 0
+
 (*
 and switch_block =
 	| Switch_block of case_block list
@@ -167,8 +172,9 @@ and label =
 	| Default
 *)
 (* option removed; TODO revise statement *)
-(*
+
 (* get arithmetic operations *)
+(*
 let get_bo_int op x y = 
 	match op with
 	| BO_Add -> x + y
@@ -312,7 +318,7 @@ let rec string_of_exp exp =
 	| EX_Unop(op, e) -> (string_of_uo op)^(string_of_exp e)
 	| EX_Postfix(op, e) -> (string_of_exp e)^(string_of_uo op)
 	| EX_Assign(op, e1, e2) -> (string_of_exp e1)^(string_of_assign op)^(string_of_exp e2)
-	| EX_Primitive(p, so) -> (string_of_primitive p)^(str_of_option so)
+	| EX_Primitive(p, so) -> (string_of_primitive p)^(string_of_int (int_of_option so))
 	| EX_Cast(e1, e2) -> " ("^(string_of_exp e1)^") "^(string_of_exp e2)
 	| EX_Class(e,i) -> (string_of_exp e)^(string_mul i "[]")
 	| EX_Ternary(e1,e2,e3) -> (string_of_exp e1)^" ? "^(string_of_exp e2)^" : "^(string_of_exp e3)
@@ -321,11 +327,14 @@ let rec string_of_exp exp =
 	| EX_Array_access(e1,e2) -> (string_of_exp e1)^"["^(string_of_exp e2)^"]"
 	| EX_Field_access(e, eo) -> (string_of_exp e)^"."^(string_of_exp (exp_of_option eo))
 	| EX_Method_access(e,el) -> (string_of_exp e)^"("^(String.concat "," (List.map string_of_exp el))^")"
-	| EX_Array_alloc(t,elo, so) -> "new "^(string_of_types t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(str_of_option so)
+	| EX_Array_alloc(t,elo, io) -> "new "^(string_of_types t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(string_of_int (int_of_option io))
 	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(String.concat "," (List.map string_of_exp el))^"}"
 	| EX_Class_alloc(t,elo) -> "new "^(string_of_types t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
 	| EX_New_alloc(so, e) -> (string_of_exp (exp_of_option so))^"."^(string_of_exp e) (* dot optional *)
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
+	| EX_Primary(pt) -> "PLACEHOLDER ! primary expression -> primaryType"
+	| EX_QualifiedName(ldt) -> "PLACEHOLDER ! qual name expression -> definedType list"
+
   
 let rec string_of_stmt =
 	function
@@ -351,4 +360,4 @@ let rec string_of_stmt =
 	| ST_catches(stl) -> "/* ST_catches */\n"^(String.concat "; " (List.map string_of_stmt stl))
 	| ST_finally(st) -> "/* ST_finally */\nfinally "^(string_of_stmt st)
 	| ST_assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
-	| ST_var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";"
+	| ST_var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 

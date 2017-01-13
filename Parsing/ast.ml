@@ -9,14 +9,16 @@ type primTypes =
 	| PT_Short
 	| PT_Double
 
-type types=
-	| T_Primitive of primTypes
-	| T_Qualified of definedType list
 
-and allTypes =
+
+type allTypes =
 	| AL_Types of types
 	| AL_Array of types*int
 
-and definedType=
+and types=
+	| T_Primitive of primTypes
+	| T_Qualified of definedType list
+
+and definedType =
 	| DT_Id of string
-	| DT_Generic of string*allTypes
+	| DT_Generic of string*types

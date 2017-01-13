@@ -53,6 +53,7 @@ switchBlockStmtGroups:
 	| sbsgs=switchBlockStmtGroups sbsg=switchBlockStmtGroup { sbsgs@[sbsg] } /* concatenate two lists @ */
 ;
 
+(* 
 statementCase:
 	es=emptyStmt { ST_empty }
 	/*
@@ -65,6 +66,7 @@ statementCase:
 	/* | is=iterStmt { is }
 	| gs=guardingStmt { gs } */
 ;
+*)
 
 switchBlockStmtGroup:
 	sls=switchLabels bss=block { ST_case(sls,bss) } /* nonempty_list  case_block */
@@ -134,11 +136,12 @@ guardingStmt:
 ;
 
 /* catch */
+(* 
 catches: 
 	c=catch { c } 
 	| cs=catches c=catch { cs^c }
 ;
-
+*)
 catch: 
 	ch=catchHeader b=block { ST_catch(ch,b) }
 ;

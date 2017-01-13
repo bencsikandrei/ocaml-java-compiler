@@ -37,4 +37,4 @@ and string_of_types var = match var with
 	| T_Qualified v -> print_list string_of_definedType v "-"
 and string_of_definedType var = match var with
 	| DT_Id id -> id
-	| DT_Generic(t,al) -> t^"<"^(string_of_allTypes al)^">"
+	| DT_Generic(t,al) -> t^"<"^(string_of_types al)^">"
