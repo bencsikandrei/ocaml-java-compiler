@@ -1,2 +1,0 @@
-#!/bin/bash
-ocamlbuild -use-menhir -yaccflag -v main.native

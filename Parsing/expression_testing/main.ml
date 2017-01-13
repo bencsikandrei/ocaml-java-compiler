@@ -5,22 +5,21 @@ open JavaParser
 open Expressions
 
 let test_parser lexbuf =
-(* 	try  *)
-		let res = Parser.compilationUnit JavaLexer.nexttoken lexbuf in
+	try 
+		let res = JavaParser.compilationUnit JavaLexer.nexttoken lexbuf in
 		print_endline (Expressions.string_of_stmt res)
-(* 	with
+	with
 	| JavaException(s) -> print_endline s 
-	| _ -> print_endline "Unknown exception" *)
 
 let test_lexer lexbuf = 
-	let res = Lexer.nexttoken lexbuf in
+	let res = JavaLexer.nexttoken lexbuf in
 	print_string "Reading token in line ";
 	print_int lexbuf.lex_curr_p.pos_lnum;
 	print_string " : ";
 	print_string "character ";
 	print_int (lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol);
 	print_string " : ";
-	Lexer.print_token res;
+	JavaLexer.print_token res;
 	print_string "\n"
 
 let main () =
