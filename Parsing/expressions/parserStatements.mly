@@ -5,7 +5,7 @@
 %%
 /* statements */
 %public statement:
-	es=emptyStmt { ST_empty }
+	es=emptyStmt { ST_Empty }
 	| ls=labelStmt { ls }
 	| ass=assertStmt { ass }
 	| exs=expressionStmt SEMI { exs }
@@ -17,35 +17,35 @@
 ;
 
 emptyStmt:
-	SEMI { ST_empty }
+	SEMI { ST_Empty }
 ;
 
 labelStmt:
-	id=IDENTIFIER COL { ST_label(id) }
+	id=IDENTIFIER COL { ST_Label(id) }
 	/* | CASE ce=constantExpression COL { "case "^ce^": " }
 	| DEFAULT COL { "default : " } */
 ;
 
 assertStmt:
-	ASSERT e=expression SEMI { ST_assert(e, None) }
-	| ASSERT e1=expression COL e2=expression SEMI { ST_assert(e1, Some(e2)) }
+	ASSERT e=expression SEMI { ST_Assert(e, None) }
+	| ASSERT e1=expression COL e2=expression SEMI { ST_Assert(e1, Some(e2)) }
 ;
 
 expressionStmt:
-	e=expression { ST_expression(e) }
+	e=expression { ST_Expression(e) }
 ;
 
 selectStmt:
-	IF LPAR e=expression RPAR s=statement %prec DANGLING_ELSE { ST_if(e, s, None) }
-	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { ST_if(e, s1, Some(s2)) }
-	| SWITCH LPAR e=expression RPAR sb=switchBlock { ST_switch(e, sb) }
+	IF LPAR e=expression RPAR s=statement %prec DANGLING_ELSE { ST_If(e, s, None) }
+	| IF LPAR e=expression RPAR s1=statement ELSE s2=statement { ST_If(e, s1, Some(s2)) }
+	| SWITCH LPAR e=expression RPAR sb=switchBlock { ST_Switch(e, sb) }
 ;
 
 /* switch blocks */
 switchBlock:
-	LCURL RCURL { ST_empty } /* Empty */
-	| sbsgs=switchBlockStmtGroups { ST_block(sbsgs) } /* sw_block */
-	| LCURL sbsgs=switchBlockStmtGroups RCURL { ST_block(sbsgs) } /* sw_block */
+	LCURL RCURL { ST_Empty } /* Empty */
+	| sbsgs=switchBlockStmtGroups { ST_Block(sbsgs) } /* sw_block */
+	| LCURL sbsgs=switchBlockStmtGroups RCURL { ST_Block(sbsgs) } /* sw_block */
 ;
 
 switchBlockStmtGroups:
@@ -69,7 +69,7 @@ statementCase:
 *)
 
 switchBlockStmtGroup:
-	sls=switchLabels bss=block { ST_case(sls,bss) } /* nonempty_list  case_block */
+	sls=switchLabels bss=block { ST_Case(sls,bss) } /* nonempty_list  case_block */
 	/* | sls=switchLabels bss=statementCase { ST_empty (* ST_case(sls,bss) *) } */
 ;
 
@@ -85,27 +85,27 @@ switchLabel:
 /* end switch blocks */
 
 jumpStmt: 
-	BREAK id=IDENTIFIER SEMI { ST_break(id) }
-	| BREAK SEMI { ST_break("") }
-    | CONTINUE id=IDENTIFIER SEMI { ST_continue(id) }
-	| CONTINUE SEMI { ST_continue("") }
-	| RETURN e=expression SEMI { ST_return(e) }
-	| RETURN SEMI { ST_return(EX_Empty) } /* changed to empty */ 
-	| THROW e=expression SEMI { ST_throw(e) }
+	BREAK id=IDENTIFIER SEMI { ST_Break(id) }
+	| BREAK SEMI { ST_Break("") }
+    | CONTINUE id=IDENTIFIER SEMI { ST_Continue(id) }
+	| CONTINUE SEMI { ST_Continue("") }
+	| RETURN e=expression SEMI { ST_Return(e) }
+	| RETURN SEMI { ST_Return(EX_Empty) } /* changed to empty */ 
+	| THROW e=expression SEMI { ST_Throw(e) }
 ;
 
 iterStmt: 
-	WHILE LPAR e=expression RPAR s=statement { ST_while(e,s) }
-	| DO s=statement WHILE LPAR e=expression RPAR SEMI { ST_do_while((List.append [] [s]),e) } 
-	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { ST_for(fi,fe,fin, s) }
-	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { ST_for(fi,fe,[],s) } 
-	| FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { ST_efor(fvo,e,s) }
+	WHILE LPAR e=expression RPAR s=statement { ST_While(e,s) }
+	| DO s=statement WHILE LPAR e=expression RPAR SEMI { ST_Do_while((List.append [] [s]),e) } 
+	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { ST_For(fi,fe,fin, s) }
+	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { ST_For(fi,fe,[],s) } 
+	| FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { ST_Efor(fvo,e,s) }
 	/* TODO add a foreach */
 ;
 
 forInit: 
 	lvds=localVariableDeclStmt { []@[lvds] }
-	| SEMI { ST_empty::[] }
+	| SEMI { ST_Empty::[] }
 ;
 
 forExpr: 
@@ -129,10 +129,10 @@ expressionStmts:
 ;
 
 guardingStmt: 
-	SYNCHRONIZED LPAR e=expression RPAR s=statement { ST_synch(e,s) }
-	| TRY b=block f=finally { ST_try(b,[],f) }
-	| TRY b=block c=catch { ST_try(b,[]@[c],ST_empty) }
-	| TRY b=block c=catch f=finally { ST_try(b,[]@[c],f) }
+	SYNCHRONIZED LPAR e=expression RPAR s=statement { ST_Synch(e,s) }
+	| TRY b=block f=finally { ST_Try(b,[],f) }
+	| TRY b=block c=catch { ST_Try(b,[]@[c],ST_Empty) }
+	| TRY b=block c=catch f=finally { ST_Try(b,[]@[c],f) }
 ;
 
 /* catch */
@@ -143,7 +143,7 @@ catches:
 ;
 *)
 catch: 
-	ch=catchHeader b=block { ST_catch(ch,b) }
+	ch=catchHeader b=block { ST_Catch(ch,b) }
 ;
 
 catchHeader: 
@@ -152,7 +152,7 @@ catchHeader:
 ;
 
 finally: 
-	FINALLY b=block { ST_finally(b) }
+	FINALLY b=block { ST_Finally(b) }
 ;
 /* end catch */
 

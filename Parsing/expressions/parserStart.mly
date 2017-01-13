@@ -14,8 +14,8 @@ compilationUnit:
 ;
 /* block */
 %public block:
-	LCURL lvds=localVariableDeclAndStmts RCURL { ST_block(lvds) }
-	| LCURL RCURL { ST_block(List.append [] [ST_empty]) }
+	LCURL lvds=localVariableDeclAndStmts RCURL { ST_Block(lvds) }
+	| LCURL RCURL { ST_Block(List.append [] [ST_Empty]) }
 ;
 
 %public localVariableDeclAndStmts:
@@ -29,8 +29,8 @@ localVariableDeclOrStmt:
 ;
 
 %public localVariableDeclStmt:
-	ts=allTypes vd=variableDeclarators SEMI { ST_var_decl(None,ts,vd) }
-	| FINAL ts=allTypes vd=variableDeclarators SEMI { ST_var_decl(Some("final "),ts,vd) }
+	ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(None,ts,vd) }
+	| FINAL ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(Some("final "),ts,vd) }
 ;
 
 /* variable declarators */

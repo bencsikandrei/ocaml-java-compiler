@@ -116,29 +116,29 @@ and catch_header =
 	| Catch_header of types * expression (* changed from string to expression *)
 
 and statement = 
-	| ST_empty 
-	| ST_block of statement list
-	| ST_label of string
-	| ST_expression of expression
-	| ST_if of expression * statement * statement option
-	| ST_switch of expression * statement
-	| ST_case of expression list * statement
-	| ST_while of expression * statement
-	| ST_for of statement list * expression * statement list * statement
-	| ST_efor of enhanced_for * expression * statement 
-	| ST_do_while of statement list * expression
-	| ST_break of string
-	| ST_continue of string
-	| ST_return of expression
-	| ST_throw of expression
-	| ST_lvar_decl of expression
-	| ST_synch of expression * statement
-	| ST_try of statement * statement list * statement
-	| ST_catch of catch_header * statement
-	| ST_catches of statement list
-	| ST_finally of statement
-	| ST_assert of expression * expression option
-	| ST_var_decl of string option * allTypes * expression list
+	| ST_Empty 
+	| ST_Block of statement list
+	| ST_Label of string
+	| ST_Expression of expression
+	| ST_If of expression * statement * statement option
+	| ST_Switch of expression * statement
+	| ST_Case of expression list * statement
+	| ST_While of expression * statement
+	| ST_For of statement list * expression * statement list * statement
+	| ST_Efor of enhanced_for * expression * statement 
+	| ST_Do_while of statement list * expression
+	| ST_Break of string
+	| ST_Continue of string
+	| ST_Return of expression
+	| ST_Throw of expression
+	| ST_Lvar_decl of expression
+	| ST_Synch of expression * statement
+	| ST_Try of statement * statement list * statement
+	| ST_Catch of catch_header * statement
+	| ST_Catches of statement list
+	| ST_Finally of statement
+	| ST_Assert of expression * expression option
+	| ST_Var_decl of string option * allTypes * expression list
 
 (* extract from option *)
 let str_of_option e =
@@ -159,7 +159,7 @@ let exp_of_option e =
 let stms_of_option s =
 	match s with
 	| Some(s) -> s
-	| _ -> ST_empty 
+	| _ -> ST_Empty 
 
 let int_of_option v =
 	match v with
@@ -340,26 +340,26 @@ let string_of_catch_header ch =
 
 let rec string_of_stmt =
 	function
-	| ST_empty -> "/* ST_empty */"
-	| ST_label x -> "/* ST_label */\n"^x
-	| ST_block(stl) -> (String.concat "/* ST_block */\n" (List.map string_of_stmt stl))
-	| ST_expression e -> "/* ST_expression */\n"^string_of_exp e
-	| ST_if(e, st1, st2) -> "/* ST_if */\nif ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
-	| ST_switch(e, sb) -> "/* ST_switch */\nswitch ("^(string_of_exp e)^") "^(string_of_stmt sb)
-	| ST_while(e, st) ->  "/* ST_while */\nwhile ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
-	| ST_case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(string_of_stmt st) 
-	| ST_for(e1, e2, e3, st) -> "/* ST_for */\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^" "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
-	| ST_efor(ef,e,s) -> "/* ST_efor */\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
-	| ST_do_while(st, e) -> "/* ST_do_while */\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
-	| ST_break(e) -> "/* ST_break */\nbreak "^e
-	| ST_continue(e) -> "/* ST_continue */\ncontinue "^e
-	| ST_return(e) -> "/* ST_return */\nreturn "^(string_of_exp e)
-	| ST_throw(e) -> "/* ST_throw */\nthrow "^(string_of_exp e)
-	| ST_lvar_decl(e) -> "/* ST_lvar_decl */\n"^(string_of_exp e)
-	| ST_synch(e1,e2) -> "/* ST_synch */\nsynchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
-	| ST_try(st1,stl,st2) ->  "/* ST_try */\ntry {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
-	| ST_catch(ch, st) ->  "/* ST_catch */\ncatch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
-	| ST_catches(stl) -> "/* ST_catches */\n"^(String.concat "; " (List.map string_of_stmt stl))
-	| ST_finally(st) -> "/* ST_finally */\nfinally "^(string_of_stmt st)
-	| ST_assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
-	| ST_var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
+	| ST_Empty -> "/* ST_empty */"
+	| ST_Label x -> "/* ST_label */\n"^x
+	| ST_Block(stl) -> (String.concat "/* ST_block */\n" (List.map string_of_stmt stl))
+	| ST_Expression e -> "/* ST_expression */\n"^string_of_exp e
+	| ST_If(e, st1, st2) -> "/* ST_if */\nif ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
+	| ST_Switch(e, sb) -> "/* ST_switch */\nswitch ("^(string_of_exp e)^") "^(string_of_stmt sb)
+	| ST_While(e, st) ->  "/* ST_while */\nwhile ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
+	| ST_Case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(string_of_stmt st) 
+	| ST_For(e1, e2, e3, st) -> "/* ST_for */\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^" "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
+	| ST_Efor(ef,e,s) -> "/* ST_efor */\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
+	| ST_Do_while(st, e) -> "/* ST_do_while */\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
+	| ST_Break(e) -> "/* ST_break */\nbreak "^e
+	| ST_Continue(e) -> "/* ST_continue */\ncontinue "^e
+	| ST_Return(e) -> "/* ST_return */\nreturn "^(string_of_exp e)
+	| ST_Throw(e) -> "/* ST_throw */\nthrow "^(string_of_exp e)
+	| ST_Lvar_decl(e) -> "/* ST_lvar_decl */\n"^(string_of_exp e)
+	| ST_Synch(e1,e2) -> "/* ST_synch */\nsynchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
+	| ST_Try(st1,stl,st2) ->  "/* ST_try */\ntry {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
+	| ST_Catch(ch, st) ->  "/* ST_catch */\ncatch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
+	| ST_Catches(stl) -> "/* ST_catches */\n"^(String.concat "; " (List.map string_of_stmt stl))
+	| ST_Finally(st) -> "/* ST_finally */\nfinally "^(string_of_stmt st)
+	| ST_Assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
+	| ST_Var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
