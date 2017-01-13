@@ -56,11 +56,28 @@ type javaMethod={
 	jmbody: body;
 }
 
+type javaClass={
+	cmodifiers: modifier list;
+	cidentifier: string;
+	ctparam: typeParam list;
+	cparent: parentClass;
+	cinterfaces: string list; (*TODO*)
+	cbody: insideClass;
+}
+
+type parentName={
+	parentId: string;
+	param: typeParam;
+}
+
+type parentClass=
+	| C_Parent of parentName
+	| C_Object
 
 type insideClass=
 	|IC_Method of javaMethod
 	|IC_Attribute
-	|IC_Class
+	|IC_Class of javaClass
 
 (* return types of each defined parser*)
 
