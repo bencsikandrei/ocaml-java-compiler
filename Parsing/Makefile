@@ -42,7 +42,7 @@ $(MYBUILD):
 	mkdir -p $(MYBUILD)
 	cp $(COPYPATH)/* $(MYBUILD)/
 	cp $(COPYPATH_EXPR)/* $(MYBUILD)/
-	cp $(COPYPATH_TEST)/main.ml $(MYBUILD)/
+	cp ./main.ml $(MYBUILD)/
 	cp ast.ml $(MYBUILD)/
 	cp printing.ml $(MYBUILD)/
 	cp ./tokens.mly $(MYBUILD)/
