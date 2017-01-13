@@ -14,6 +14,7 @@
 	| is=iterStmt { is }
 	| gs=guardingStmt { gs }
 	| b=block { b }
+	/* | error { raise (JavaException "ERROR") } */
 ;
 
 emptyStmt:
