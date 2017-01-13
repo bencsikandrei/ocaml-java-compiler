@@ -88,7 +88,7 @@ attribute:
 	| option(modifiers) types variable_decls { } */
 
 variable_decls:
-	| var_decl { }
+	| var_decl {  }
 	| variable_decls COMM var_decl { }
 
 var_decl:

@@ -34,9 +34,9 @@ $(MYBUILD)/ast.cmo:
 	cd $(MYBUILD); ocamlc -c ast.ml
 
 
-main: $(MYBUILD) $(MYBUILD)/ast.cmo $(MYBUILD)/printing.cmo $(MYBUILD)/expressions.cmo $(MYBUILD)/definitions.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml 
+main: $(MYBUILD) $(MYBUILD)/ast.cmo $(MYBUILD)/printing.cmo $(MYBUILD)/definitions.cmo $(MYBUILD)/expressions.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml 
 	cd $(MYBUILD); ocamlc -c main.ml
-	cd $(MYBUILD); ocamlc -pp "#load"   ast.cmo  printing.cmo expressions.cmo definitions.cmo  javaParser.cmo javaLexer.cmo main.cmo -o main
+	cd $(MYBUILD); ocamlc -pp "#load"   ast.cmo  printing.cmo definitions.cmo expressions.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
 
 $(MYBUILD): 
 	mkdir -p $(MYBUILD)

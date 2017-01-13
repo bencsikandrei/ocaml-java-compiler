@@ -61,6 +61,37 @@ arrayInitializers:
 ;
 /* end variable declarators */
 
+/* Field declarations */
+fieldDeclarations:
+	fdo=fieldDeclarationOptSemi { []@[fdo] }
+    | fds=fieldDeclarations fdo=fieldDeclarationOptSemi { fds@[fdo] }
+;
+
+fieldDeclarationOptSemi:
+	fd=fieldDeclaration { EX_Field_decl(fd,0) }
+    | fd=fieldDeclaration sc=semiColons { EX_Field_decl(fd,sc) }
+;
+
+fieldDeclaration:
+	fvd=fieldVariableDeclaration SEMI { fvd } /* did not add the ; */
+	| md=javaMethod { FF_JavaMethod(md) }
+	/*| cd=constructorDeclaration {  } */
+	| STATIC bl=block { FF_Block(Some("static"),bl) }
+    | bl=block { FF_Block(Some(""),bl) }
+    /*| td=typeDeclaration {  }*/
+;
+
+fieldVariableDeclaration:
+	mods=modifiers t=allTypes vds=variableDeclarators { FF_Var_decl(Some(mods),t,vds) }
+	| t=allTypes vds=variableDeclarators { FF_Var_decl(None,t,vds) }
+;
+
+semiColons:
+	SEMI { 1 }
+    | sc=semiColons SEMI { 1+sc }
+;
+/* end field declarations*/
+
 /* allocations */
 newAllocationExpression:
 	pall=plainNewAllocationExpression { EX_New_alloc(None, pall) }
@@ -72,8 +103,8 @@ plainNewAllocationExpression:
     	| call=classAllocationExpression { call }
     	| arrall=arrayAllocationExpression LCURL RCURL { arrall }
     	| call=classAllocationExpression LCURL RCURL { call }
-    	| arrall=arrayAllocationExpression LCURL arri=arrayInitializers RCURL { EX_Plain_array_alloc(arrall,arri) }
-    	(*| call=classAllocationExpression LCURL fdec=fieldDeclarations RCURL { call^"{"^fdec^"}" }*)
+    	| arrall=arrayAllocationExpression LCURL arri=arrayInitializers RCURL { EX_Plain_alloc(arrall,arri) }
+    	| call=classAllocationExpression LCURL fdec=fieldDeclarations RCURL { EX_Plain_alloc(call,fdec) }
 ;
 
 classAllocationExpression:
