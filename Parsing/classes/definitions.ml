@@ -74,11 +74,24 @@ type javaClass={
 	cbody: insideClass list;
 }
 and insideClass=
-	|IC_Method of javaMethod
-	|IC_Attribute (* of modifier list option * allTypes * expression list NEEDS Expressions AST *)
-	|IC_Class of javaClass
-	|IC_Semi
-	|IC_Empty
+	| IC_Method of javaMethod
+	| IC_Attribute (* of modifier list option * allTypes * expression list NEEDS Expressions AST *)
+	| IC_Class of javaClass
+	| IC_Semi
+	| IC_Empty
+	| IC_Interface of javaInterface
+
+and javaInterface={
+	imodifiers: modifier list;
+	iidentifier: string;
+	itparam: typeParam list;
+	iparent: parentName list;
+	ibody: insideInterface list;
+}
+
+and insideInterface=
+	| II_Class of javaClass
+	| II_Interface of javaInterface
 
 
 (* return types of each defined parser*)

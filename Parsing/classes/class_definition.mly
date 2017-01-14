@@ -25,7 +25,7 @@ javaClass:
 				cbody=bod} 
 		}
 
-super:
+%public super:
 	| EXTENDS id=IDENTIFIER typ=option(type_params_defin) {
 		match typ with | None -> C_Parent(id,None) | Some typ -> C_Parent(id,Some typ)
 	}
@@ -49,6 +49,7 @@ inside_class_l:
 inside_class:
 	| m=modifiers cma=class_method_or_attribute { match cma with | IC_Method me -> me.jmmodifiers<-m; cma |IC_Class c -> c.cmodifiers<-m; cma | _ -> cma }
 	| 			  cma=class_method_or_attribute { cma }
+	| i=j_interface { IC_Interface i }
 
 class_method_or_attribute:
 	| m=method_or_attribute { m }
@@ -74,34 +75,4 @@ method_or_attribute:
 				cinterfaces=interf;
 				cbody=bod} 
 		}
-
-
-/* attribute_plain:
-	types variable_decls { }
-
-inside_class:
-	| javaMethod { }
-	| j_class { }
-	| attribute SEMI { } 
-
-attribute:
-	| option(modifiers) types variable_decls { } */
-
-/* these are already declared in parserStart, but fieldVariableDeclaration
- should be used instead of this
-variable_decls:
-	| var_decl {  }
-	| variable_decls COMM var_decl { }
-
-var_decl:
- 	| var_decl_id { }
- 	| var_decl_id ASSIGN var_init { }
-
-var_decl_id:
-	| IDENTIFIER { }
-	| var_decl_id LBRAC RBRAC { }
-
-var_init:
-	| expression { }
-*/
 %%
