@@ -102,17 +102,18 @@ type expression =
 	| EX_Var_decl of expression * expression list option
 	| EX_Primary of primaryType
 	| EX_QualifiedName of definedType list
+	| EX_Field_decl of fieldDeclaration * int (* added this *)
 
 and primaryType =
 	| P_Qualified of definedType list
 	| P_NotJustName of expression
 
 (* equivalent insideClass *)
-(*and fieldDeclaration = (* equivalent to insideClass *)
+and fieldDeclaration = (* equivalent to insideClass *)
 	| FF_JavaMethod of javaMethod (* HAVE TO USE DEFINITIONS HERE*)
 	| FF_Var_decl of modifier list option * allTypes * expression list (* same as above *)
 	| FF_Block of string option * statement
-*)
+
 and catch_header =
 	| Catch_header of types * expression (* changed from string to expression *)
 
@@ -140,6 +141,51 @@ and statement =
 	| ST_Finally of statement
 	| ST_Assert of expression * expression option
 	| ST_Var_decl of string option * allTypes * expression list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(* return types of each defined parser*)
+
+type abstractSyntaxTree = 
+	| JML of javaMethod list
+	| STR of string
+	| STATE of statement
+	| EXPR of expression
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 (* extract from option *)
 let str_of_option e =
@@ -295,6 +341,14 @@ let rec string_mul i s =
 	| 0 -> s
 	| _ -> (string_mul (i-1) (s^s))
 
+let string_of_field field =
+	match field with
+	| _ -> "field TODO"
+(*	| FF_JavaMethod of javaMethod (* HAVE TO USE DEFINITIONS HERE*)
+	| FF_Var_decl of modifier list option * allTypes * expression list (* same as above *)
+	| FF_Block of string option * statement
+*)
+
 let rec string_of_exp exp =
 	match exp with
 	| Identifier id -> id
@@ -326,6 +380,12 @@ let rec string_of_exp exp =
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
 	| EX_Primary(pt) -> "PLACEHOLDER ! primary expression -> primaryType"
 	| EX_QualifiedName(ldt) -> "PLACEHOLDER ! qual name expression -> definedType list"
+	| EX_Field_decl(fd,i) -> (string_of_field fd)^(string_mul i ";") 
+
+and string_of_primaryType pt =
+	match pt with
+	| P_Qualified(dtl) ->  Printing.print_list string_of_definedType dtl ""
+	| P_NotJustName(e) -> string_of_exp e
 
 let string_of_catch_header ch =
 	match ch with 

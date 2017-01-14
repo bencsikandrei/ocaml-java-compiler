@@ -51,3 +51,4 @@ $(MYBUILD):
 
 clean:
 	rm -rf $(MYBUILD)
+	rm -rf main

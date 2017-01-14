@@ -2,6 +2,7 @@ open JavaLexer
 open JavaParser
 open Lexing 
 open Definitions
+open Expressions
 open Array
 open Printing 
 
@@ -14,12 +15,16 @@ let print arg vervose=
 	if vervose then 
 		match arg with
 			| STR s -> print_string (s);
-			| JML j -> print_string (Printing.print_list print_java_method j "\n");;
+			| JML j -> print_string (Printing.print_list print_java_method j "\n");
+			| STATE s -> print_string ( string_of_stmt s );
+			| EXPR e -> print_string (string_of_exp e)
 
 let fakeDict str= match str with 
 	| "file" -> javaFile
 	| "method" -> javaMethods 
 	| "class" -> javaClass
+	| "statement" -> compilationUnit
+	| "expression" -> anExpression
 	| _ -> javaFile;;
 
 let compile mode file vervose =
@@ -32,9 +37,9 @@ let compile mode file vervose =
 				close_in (input_file);
 				print_endline("OK");
 			with 
-					|SyntaxError s -> print_endline (s^" BAD");
+					|SyntaxError s -> print_endline (s^" "^(position lexbuf)^" BAD");
 					|JavaParser.Error -> print_endline ("Parsing error  "^(position lexbuf)^" BAD");
-					|e -> print_endline ("Unexpected error while parsing - "^(Printexc.to_string e));
+					|e -> print_endline ("Unexpected error while parsing - "^(position lexbuf)^" "^(Printexc.to_string e)^" BAD");
 		with	
 				|Sys_error s -> print_endline ("Can't find file ' " ^ file ^ "'");
 				|_ -> print_endline ("Unexpected error with the file");;

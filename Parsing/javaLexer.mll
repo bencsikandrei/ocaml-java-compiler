@@ -131,8 +131,8 @@ rule nexttoken = parse
 	| newline { incr_lineno lexbuf; nexttoken lexbuf }
 	| space+ { nexttoken lexbuf }
 	
-	| comment_one_line { print_endline "comments start";incr_lineno lexbuf; nexttoken lexbuf }
-	| comment_multiple_lines_simple { print_endline "multiline comments start"; 
+	| comment_one_line { (*print_string "comments start ";*)incr_lineno lexbuf; nexttoken lexbuf }
+	| comment_multiple_lines_simple { (*print_string "multiline comments start ";*) 
 										multiline_comment lexbuf;
 										nexttoken lexbuf }
 

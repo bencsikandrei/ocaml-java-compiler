@@ -2,13 +2,18 @@
 	open Expressions
 %}
 
+%start anExpression 
+%type < abstractSyntaxTree > anExpression
 
 %%
+
+anExpression:
+	e=expression EOF {EXPR e}
 
 /* expressions */
 %public expression: 
 	ae=assignmentExpression { ae }
-	| error { raise (JavaException "illegal expression") }
+	/* | error { raise (JavaException "illegal expression") } */
 ;
 
 assignmentExpression:

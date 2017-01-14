@@ -5,12 +5,12 @@
 %}
 /* starting point */
 %start compilationUnit
-%type <Expressions.statement> compilationUnit
+%type <abstractSyntaxTree> compilationUnit
 
 %%
 compilationUnit:
-	s=block EOF { s }
-	| error { raise (JavaException "ERROR") }
+	s=block { STATE s }
+	| EOF { raise End_of_file }
 ;
 /* block */
 %public block:
