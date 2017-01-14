@@ -66,7 +66,7 @@ arrayInitializers:
 	(* | t=allTypes vds=variableDeclarators { IC_Attribute(None,t,vds) } *)
 ;
 
-semiColons:
+%public semiColons:
 	SEMI { 1 }
     | sc=semiColons SEMI { 1+sc }
 ;
