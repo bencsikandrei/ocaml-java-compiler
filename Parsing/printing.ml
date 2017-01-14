@@ -39,99 +39,7 @@ and string_of_definedType var = match var with
 	| DT_Id id -> id
 	| DT_Generic(t,al) -> t^"<"^(string_of_types al)^">"
 
-	(* printers *)
-(* extract from option *)
-let str_of_option e =
-	match e with
-	| Some(ex) -> ex
-	| _ -> ""
-
-let list_of_option l =
-  match l with
-  | Some(x) -> x
-  | _ -> []
-
-let exp_of_option e =
-	match e with
-	| Some(ex) -> ex
-	| _ -> Identifier("")
-
-let stms_of_option s =
-	match s with
-	| Some(s) -> s
-	| _ -> ST_Empty 
-
-let int_of_option v =
-	match v with
-	| Some(v) -> v
-	| _ -> 0
-
-let print_annot a=a.aname;;
-let print_excep a=a.ename;;
-
-let print_modif modifier= match modifier with
-	|M_Annot a -> print_annot a
-	|M_Public -> "public"
-	|M_Protected -> "protected"
-	|M_Private -> "private"
-	|M_Abstract -> "abstract"
-	|M_Static -> "static"
-	|M_Final -> "final"
-	|M_Synchronized -> "synchronized"
-	|M_Native -> "native"
-	|M_Strictfp -> "strictfp";; 
-
-let print_vm var = match var with
-	|VM_Final -> "final"
-	|VM_Annot a -> print_annot a;;
-
-
-let print_type_param var = match var with
-	| TPL_Ident s -> s
-	| TPL_Extend (s1,s2) -> s1^"-ext-"^s2	;;
-
-
-let print_return_type var = match var with
-	|RT_Type t-> string_of_allTypes t	
-	|RT_Void -> "void"
-
-let print_declaratorId var = match var with 
-	|DI_Identifier s -> s
-
-let print_body var = var.expr;;
-
-let print_formal_parameter var = 
-	let el = match var.pelipsis with | true -> "..." | false -> "" in
-	(print_list print_vm var.pmodif " ")^" : "^string_of_allTypes var.ptype^el^" : "^(print_declaratorId var.pname)
-;;
-
-let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
-
-let print_java_method var = 
-	"\nMethod: "^(print_method_declarator var.jmdeclarator)^
-	"\nReturn type: "^(print_return_type var.jmrtype)^
-	"\nModifiers: "^(print_list print_modif var.jmmodifiers " ")^
-	"\nGenerics: "^(print_list print_type_param var.jmtparam " ")^
-	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
-	"\nBody: "^print_body var.jmbody;;
-
-(* added this print for inside class *)
-let rec print_inside_class var = match var with
-	|IC_Method(jm) -> (print_java_method jm)
-	|IC_Attribute -> "IC_Attribute"
-	|IC_Class(jc) -> (print_java_class jc)
-	|IC_Semi -> ";"
-	|IC_Empty -> ""
-	
-and print_java_class var =
-	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
-	"\nParameters: "^(print_list print_type_param var.ctparam " ")^
-	"\nIdentifier: "^var.cidentifier^
-	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
-	"\nBody: "^(print_list print_inside_class var.cbody " ")
-(* end of my add *)
-
-(* get string of operations *)
+(* get string of operators *)
 let string_of_bo = function
 	| BO_Add -> "+"
 	| BO_Minus -> "-"
@@ -183,6 +91,77 @@ let string_of_assign = function
 	| ASS_RShift -> ">>="
 	| ASS_LShift -> "<<="
 	| ASS_LogShift -> ">>>="
+(* end of operators *)
+
+(* extract from option *)
+let str_of_option e =
+	match e with
+	| Some(ex) -> ex
+	| _ -> ""
+
+let list_of_option l =
+  match l with
+  | Some(x) -> x
+  | _ -> []
+
+let exp_of_option e =
+	match e with
+	| Some(ex) -> ex
+	| _ -> Identifier("")
+
+let stms_of_option s =
+	match s with
+	| Some(s) -> s
+	| _ -> ST_Empty 
+
+let int_of_option v =
+	match v with
+	| Some(v) -> v
+	| _ -> 0
+(* end of option *)
+
+let print_annot a=a.aname;;
+let print_excep a=a.ename;;
+
+let print_modif modifier= match modifier with
+	|M_Annot a -> print_annot a
+	|M_Public -> "public"
+	|M_Protected -> "protected"
+	|M_Private -> "private"
+	|M_Abstract -> "abstract"
+	|M_Static -> "static"
+	|M_Final -> "final"
+	|M_Synchronized -> "synchronized"
+	|M_Native -> "native"
+	|M_Strictfp -> "strictfp";; 
+
+let print_vm var = match var with
+	|VM_Final -> "final"
+	|VM_Annot a -> print_annot a;;
+
+let print_type_param var = match var with
+	| TPL_Ident s -> s
+	| TPL_Extend (s1,s2) -> s1^"-ext-"^s2	;;
+
+let print_return_type var = match var with
+	|RT_Type t-> string_of_allTypes t	
+	|RT_Void -> "void"
+
+let print_declaratorId var = match var with 
+	|DI_Identifier s -> s
+
+
+let print_formal_parameter var = 
+	let el = match var.pelipsis with | true -> "..." | false -> "" in
+	(print_list print_vm var.pmodif " ")^" : "^string_of_allTypes var.ptype^el^" : "^(print_declaratorId var.pname)
+;;
+
+let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
+
+
+
+
+(* end of my add *)
   
 let string_of_enhanced_for ef =
 	match ef with
@@ -202,14 +181,6 @@ let rec string_mul i s =
 	match i with
 	| 0 -> s
 	| _ -> (string_mul (i-1) (s^s))
-
-let string_of_field field =
-	match field with
-	| _ -> "field TODO"
-(*	| FF_JavaMethod of javaMethod (* HAVE TO USE DEFINITIONS HERE*)
-	| FF_Var_decl of modifier list option * allTypes * expression list (* same as above *)
-	| FF_Block of string option * statement
-*)
 
 let rec string_of_exp exp =
 	match exp with
@@ -242,12 +213,6 @@ let rec string_of_exp exp =
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
 	| EX_Primary(pt) -> "PLACEHOLDER ! primary expression -> primaryType"
 	| EX_QualifiedName(ldt) -> "PLACEHOLDER ! qual name expression -> definedType list"
-	| EX_Field_decl(fd,i) -> (string_of_field fd)^(string_mul i ";") 
-
-and string_of_primaryType pt =
-	match pt with
-	| P_Qualified(dtl) ->  print_list string_of_definedType dtl ""
-	| P_NotJustName(e) -> string_of_exp e
 
 let string_of_catch_header ch =
 	match ch with 
@@ -278,3 +243,28 @@ let rec string_of_stmt =
 	| ST_Finally(st) -> "/* ST_finally */\nfinally "^(string_of_stmt st)
 	| ST_Assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
 	| ST_Var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
+
+
+
+let print_java_method var = 
+	"\nMethod: "^(print_method_declarator var.jmdeclarator)^
+	"\nReturn type: "^(print_return_type var.jmrtype)^
+	"\nModifiers: "^(print_list print_modif var.jmmodifiers " ")^
+	"\nGenerics: "^(print_list print_type_param var.jmtparam " ")^
+	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
+	"\nBody: "^indent ("\n"^(string_of_stmt var.jmbody));;
+
+(* added this print for inside class *)
+let rec print_inside_class var = match var with
+	|IC_Method(jm) -> (print_java_method jm)
+	|IC_Attribute -> "IC_Attribute"
+	|IC_Class(jc) -> (print_java_class jc)
+	|IC_Semi -> ";"
+	|IC_Empty -> ""
+	
+and print_java_class var =
+	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
+	"\nParameters: "^(print_list print_type_param var.ctparam " ")^
+	"\nIdentifier: "^var.cidentifier^
+	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
+	"\nBody: "^(print_list print_inside_class var.cbody " ")
