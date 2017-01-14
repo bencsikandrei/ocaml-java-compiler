@@ -2,6 +2,8 @@
 	open Expressions
 %}
 
+%start expression 
+%type < Expressions.expression > expression
 
 %%
 
