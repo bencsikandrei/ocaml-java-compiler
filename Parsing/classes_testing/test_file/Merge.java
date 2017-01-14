@@ -4,7 +4,10 @@ import java.util.Scanner;
 
 
 public class Merge {
-
+	int x;
+	Merge() {
+		x = 10;
+	}
     private static void print(Comparable [] a) {
 
         for( Comparable d : a) {

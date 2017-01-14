@@ -12,7 +12,7 @@
 		else
 			c = 1;
 	
-	if(a>b) {
+	if(a<b) {
 		;
 	}
 	
