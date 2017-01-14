@@ -1,8 +1,8 @@
 /* brackets */
-%token LANG RANG LPAR RPAR LBRAC RBRAC LCURL RCURL /* <> () [] {} */ 
+%token LPAR RPAR LBRAC RBRAC LCURL RCURL /* <> () [] {} */ 
 
 /* delimiters */
-%token SEMI COL DOT COMM SQ DQ QM /* ; : . ,  '' "" ? */
+%token SEMI COL DOT COMM QM /* ; : . ,  '' "" ? */
 
 /* math binary operators */
 %token PLUS MINUS DIV MUL MOD  /* + - / * % */
@@ -113,8 +113,6 @@
 */
 %nonassoc DANGLING_ELSE
 %nonassoc ELSE
-%left IDENTIFIER
-%right LANG
 %%
 
 %%

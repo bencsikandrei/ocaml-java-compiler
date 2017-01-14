@@ -60,8 +60,8 @@ equalityExpression:
 
 relationalExpression:
 	sh=shiftExpression { sh }
-	| rel=relationalExpression LANG sh=shiftExpression { EX_Compop(BO_Lt,rel,sh) }
-	| rel=relationalExpression RANG sh=shiftExpression { EX_Compop(BO_Gt,rel,sh) }
+	| rel=relationalExpression LTHAN sh=shiftExpression { EX_Compop(BO_Lt,rel,sh) }
+	| rel=relationalExpression GTHAN sh=shiftExpression { EX_Compop(BO_Gt,rel,sh) }
 	| rel=relationalExpression LETHAN sh=shiftExpression { EX_Compop(BO_Le,rel,sh) }
 	| rel=relationalExpression GETHAN sh=shiftExpression { EX_Compop(BO_Ge,rel,sh) } 
 	| rel=relationalExpression INSTANCEOF ts=types { EX_Instanceof(BO_instanceof,rel,ts) }

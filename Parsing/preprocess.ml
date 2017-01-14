@@ -51,6 +51,7 @@ let rec removeComments str=
 				match c2 with
 				| '/' -> removeLineComment  (String.sub str 2 ((String.length str) -2))
 				| '*' -> removeMultiLineComment (String.sub str 2 ((String.length str) -2))
+				| _ -> (String.make 1 c)^(removeComments tail)
   		else "/"^(removeComments tail)
 		| _ -> (String.make 1 c)^(removeComments tail)
 

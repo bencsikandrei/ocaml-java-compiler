@@ -188,8 +188,8 @@ rule nexttoken = parse
 	| '?' { QM }
 
 	(* brackets *)
-	| "<" { LANG }
-	| ">" { RANG }
+	| "<" { LTHAN }
+	| ">" { GTHAN }
 	| "<|" { LGEN }
 	| ">|" { RGEN }
 	| "]" { RBRAC }
@@ -307,8 +307,6 @@ and multiline_comment = parse
 		| VOID -> print_string "VOID"
 		| VOLATILE -> print_string "VOLATILE"
 		| WHILE -> print_string "WHILE"
-		| LANG -> print_string "LANG"
-		| RANG-> print_string "RANG"
 		| LPAR -> print_string "LPAR"
 		| RPAR -> print_string "RPAR"
 		| LBRAC -> print_string "LBRAC"
@@ -319,8 +317,6 @@ and multiline_comment = parse
 		| COL-> print_string "COL"
 		| DOT -> print_string "DOT"
 		| COMM -> print_string "COMM"
-		| SQ -> print_string "SQ"
-		| DQ  -> print_string "DQ"
 		| QM -> print_string "QM"
 		| MINUS-> print_string "MINUS"
 		| DIV -> print_string "DIV"
