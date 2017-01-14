@@ -110,7 +110,6 @@
 */
 %nonassoc DANGLING_ELSE
 %nonassoc ELSE
-
 %%
 
 %%

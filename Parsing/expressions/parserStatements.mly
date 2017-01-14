@@ -121,7 +121,6 @@ forIncr:
 forVarOpt:
 	/* ts=types id=IDENTIFIER { Enhanced_for(ts,id) } */
 	ms=modifiers ts=types id=IDENTIFIER { Enhanced_for(Some(ms),ts,id) }
-
 ;
 
 expressionStmts:
