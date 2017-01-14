@@ -75,7 +75,7 @@ type javaClass={
 }
 and insideClass=
 	|IC_Method of javaMethod
-	|IC_Attribute
+	|IC_Attribute (* of modifier list option * allTypes * expression list NEEDS Expressions AST *)
 	|IC_Class of javaClass
 	|IC_Semi
 	|IC_Empty
@@ -140,3 +140,18 @@ let print_java_method var =
 	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
 	"\nBody: "^print_body var.jmbody;;
 
+(* added this print for inside class *)
+let rec print_inside_class var = match var with
+	|IC_Method(jm) -> (print_java_method jm)
+	|IC_Attribute -> "IC_Attribute"
+	|IC_Class(jc) -> (print_java_class jc)
+	|IC_Semi -> ";"
+	|IC_Empty -> ""
+	
+and print_java_class var =
+	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
+	"\nParameters: "^(print_list print_type_param var.ctparam " ")^
+	"\nIdentifier: "^var.cidentifier^
+	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
+	"\nBody: "^(print_list print_inside_class var.cbody " ")
+(* end of my add *)

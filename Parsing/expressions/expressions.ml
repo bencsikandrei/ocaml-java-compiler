@@ -95,24 +95,24 @@ type expression =
 	| EX_Field_access of expression * expression option
 	| EX_Method_access of expression * expression list
 	| EX_Array_alloc of types * expression list option * int option
-	| EX_Plain_alloc of expression * expression list
+	| EX_Plain_array_alloc of expression * expression list
+	| EX_Plain_class_alloc of expression * insideClass list
 	| EX_Class_alloc of types * expression list option
 	| EX_New_alloc of expression option * expression
 	| EX_Var_decl of expression * expression list option
 	| EX_Primary of primaryType
 	| EX_QualifiedName of definedType list
-	| EX_Field_decl of fieldDeclaration * int (* added this *)
 
 and primaryType =
 	| P_Qualified of definedType list
 	| P_NotJustName of expression
 
-(* added field *)
-and fieldDeclaration =
+(* equivalent insideClass *)
+(*and fieldDeclaration = (* equivalent to insideClass *)
 	| FF_JavaMethod of javaMethod (* HAVE TO USE DEFINITIONS HERE*)
 	| FF_Var_decl of modifier list option * allTypes * expression list (* same as above *)
 	| FF_Block of string option * statement
-
+*)
 and catch_header =
 	| Catch_header of types * expression (* changed from string to expression *)
 
@@ -295,14 +295,6 @@ let rec string_mul i s =
 	| 0 -> s
 	| _ -> (string_mul (i-1) (s^s))
 
-let string_of_field field =
-	match field with
-	| _ -> "field TODO"
-(*	| FF_JavaMethod of javaMethod (* HAVE TO USE DEFINITIONS HERE*)
-	| FF_Var_decl of modifier list option * allTypes * expression list (* same as above *)
-	| FF_Block of string option * statement
-*)
-
 let rec string_of_exp exp =
 	match exp with
 	| Identifier id -> id
@@ -327,13 +319,13 @@ let rec string_of_exp exp =
 	| EX_Field_access(e, eo) -> (string_of_exp e)^"."^(string_of_exp (exp_of_option eo))
 	| EX_Method_access(e,el) -> (string_of_exp e)^"("^(String.concat "," (List.map string_of_exp el))^")"
 	| EX_Array_alloc(t,elo, io) -> "new "^(string_of_types t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(string_of_int (int_of_option io))
-	| EX_Plain_alloc(e,el) -> (string_of_exp e)^"{"^(String.concat "," (List.map string_of_exp el))^"}"
+	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(String.concat "," (List.map string_of_exp el))^"}"
+	| EX_Plain_array_alloc(e,el) -> "inside class print"
 	| EX_Class_alloc(t,elo) -> "new "^(string_of_types t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
 	| EX_New_alloc(so, e) -> (string_of_exp (exp_of_option so))^"."^(string_of_exp e) (* dot optional *)
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
 	| EX_Primary(pt) -> "PLACEHOLDER ! primary expression -> primaryType"
 	| EX_QualifiedName(ldt) -> "PLACEHOLDER ! qual name expression -> definedType list"
-	| EX_Field_decl(fd,i) -> (string_of_field fd)^(string_mul i ";") 
 
 let string_of_catch_header ch =
 	match ch with 

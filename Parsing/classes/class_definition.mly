@@ -37,7 +37,7 @@ interface_list:
 	| id=IDENTIFIER { id::[] }
 	| id=IDENTIFIER COMM l=interface_list { id::l }
 
-class_body:
+%public class_body:
 	| SEMI { [IC_Semi] }
 	| LCURL bod=inside_class_l RCURL { bod }
 	| LCURL RCURL { [IC_Empty] }
@@ -57,7 +57,7 @@ class_method_or_attribute:
 method_or_attribute:
 	| t=type_params_defin j=javaMethod_plain_return { j.jmtparam<-t;IC_Method j }
 	| VOID j=javaMethod_plain { IC_Method j }
-	| types variable_decls { IC_Attribute }
+	| fvd=fieldVariableDeclaration SEMI { fvd }
 	| t=allTypes j=javaMethod_plain { j.jmrtype<-RT_Type t; IC_Method j }
 
 %public j_class_plain:
@@ -87,6 +87,8 @@ inside_class:
 attribute:
 	| option(modifiers) types variable_decls { } */
 
+/* these are already declared in parserStart, but fieldVariableDeclaration
+ should be used instead of this
 variable_decls:
 	| var_decl {  }
 	| variable_decls COMM var_decl { }
@@ -101,5 +103,5 @@ var_decl_id:
 
 var_init:
 	| expression { }
-
+*/
 %%
