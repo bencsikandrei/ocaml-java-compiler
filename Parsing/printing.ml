@@ -118,6 +118,10 @@ let int_of_option v =
 	| Some(v) -> v
 	| _ -> 0
 (* end of option *)
+let rec string_mul i s =
+	match i with
+	| 0 -> s
+	| _ -> (string_mul (i-1) (s^s))
 
 let print_annot a=a.aname;;
 let print_excep a=a.ename;;
@@ -150,7 +154,7 @@ let print_return_type var = match var with
 
 let print_declaratorId var = match var with 
 	|DI_Identifier s -> s
-
+	|DI_Args(i,d)-> i^(string_mul d "[]")
 
 let print_formal_parameter var = 
 	let el = match var.pelipsis with | true -> "..." | false -> "" in
@@ -175,11 +179,6 @@ let string_of_literal x =
  	| L_Int(v) -> string_of_int v
  	| L_Null -> "null"
  	| L_Long(v) -> string_of_int v
-
-let rec string_mul i s =
-	match i with
-	| 0 -> s
-	| _ -> (string_mul (i-1) (s^s))
 
 let rec string_of_exp exp =
 	match exp with
