@@ -29,15 +29,15 @@ let string_of_primitive var = match var with
 	| PT_Short ->  "short"
 	| PT_Double ->  "double"
 
+let rec string_of_definedType var = match var with
+	| DT_Id id -> id
+	| DT_Generic(t,al) -> t^"<"^(print_list string_of_definedType al " ")^">"
 let rec string_of_allTypes var = match var with
 	| AL_Types a -> string_of_types a
 	| AL_Array (a,dim) -> "["^(string_of_types a)^"]dims="^(string_of_int dim)
 and string_of_types var = match var with
 	| T_Primitive v -> string_of_primitive v
 	| T_Qualified v -> print_list string_of_definedType v "-"
-and string_of_definedType var = match var with
-	| DT_Id id -> id
-	| DT_Generic(t,al) -> t^"<"^(string_of_types al)^">"
 
 (* get string of operators *)
 let string_of_bo = function

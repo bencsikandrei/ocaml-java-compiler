@@ -20,7 +20,7 @@ and types=
 
 and definedType =
 	| DT_Id of string
-	| DT_Generic of string*types
+	| DT_Generic of string * definedType list
 
 (* definitions.ml *)
 type annotation = { aname: string ; aoth: string };; (* TODO *)

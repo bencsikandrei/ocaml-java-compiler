@@ -1,5 +1,5 @@
 public class Dog {
-	int a;
+	int a = 3;
    void bark() {
    		int b = 1;
    }
