@@ -9,7 +9,7 @@
 
 %%
 compilationUnit:
-	s=block { EXPR s }
+	s=block { STATE s }
 	| EOF { raise End_of_file }
 ;
 /* block */

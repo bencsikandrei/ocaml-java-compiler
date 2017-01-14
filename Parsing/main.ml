@@ -16,7 +16,7 @@ let print arg vervose=
 		match arg with
 			| STR s -> print_string (s);
 			| JML j -> print_string (Printing.print_list print_java_method j "\n");
-			| EXPR s -> print_string ( string_of_stmt s );;
+			| STATE s -> print_string ( string_of_stmt s );;
 
 let fakeDict str= match str with 
 	| "file" -> javaFile
