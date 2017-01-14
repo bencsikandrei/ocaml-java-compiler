@@ -10,13 +10,11 @@
 	int i = c % 5;
 	String c = "b";
 	char c1 = 'c';
-	for(int a;(b) a;--a, a++, a--, ++a) {
+	for(a = 1 ;(b) a;--a, a++, a--, ++a) {
 	;
 	}
 	if(!a) { ; }
 
-	a < c;
-	a > c;
 	a <= c;
 	a >= c;
 	if (a < b) {}
