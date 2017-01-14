@@ -190,6 +190,8 @@ rule nexttoken = parse
 	(* brackets *)
 	| "<" { LANG }
 	| ">" { RANG }
+	| "<|" { LGEN }
+	| ">|" { RGEN }
 	| "]" { RBRAC }
 	| "[" { LBRAC }
 	| "(" { LPAR }

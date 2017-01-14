@@ -1,5 +1,4 @@
 open String
-open Char
 open Ast
 let indent var =
 	let size = length var in 
@@ -10,7 +9,7 @@ let indent var =
 				if (String.get var pos)='\n' then 
 					"\n\t"^(iterate (pos+1)) 
 				else 
-					(Char.escaped (String.get var pos))^(iterate (pos+1))
+					(String.make 1 (String.get var pos))^(iterate (pos+1))
 		in
 			"\t"^iterate 0;;
 

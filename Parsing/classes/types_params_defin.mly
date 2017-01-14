@@ -3,7 +3,7 @@
 %}
 %%
 %public type_params_defin:
- 	| LANG t=type_param_l RANG { t }
+ 	| LGEN t=type_param_l RGEN { t }
 
 type_param_l:
 	| t=type_parameter	{t::[]}
