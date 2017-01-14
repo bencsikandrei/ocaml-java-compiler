@@ -1,0 +1,6 @@
+{
+	synchronized(a) {
+			
+	}
+}
+
