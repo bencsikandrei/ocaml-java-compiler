@@ -1,5 +1,8 @@
 // expression statements
 {
+	if( a < 3) {
+		;
+	}
 	char bc = a << 10;
 	char bc = a >> 10;
 	char bc = a >>> 10;
@@ -11,9 +14,7 @@
 	int i = c % 5;
 	String c = "b";
 	char c1 = 'c';
-
-	a < c;
-	a > c;
+	
 	a <= c;
 	a >= c;
 	

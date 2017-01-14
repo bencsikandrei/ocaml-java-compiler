@@ -1,5 +1,5 @@
 %{
-	open Expressions
+	open Ast
 %}
 
 %%
@@ -119,9 +119,9 @@ forIncr:
 ;
 
 forVarOpt:
-	ts=types id=IDENTIFIER { Enhanced_for(ts,id) }
-	/*| ms=modifiers ts=types id=IDENTIFIER { ms^" "^ts^" "^id }
-*/
+	/* ts=types id=IDENTIFIER { Enhanced_for(ts,id) } */
+	ms=modifiers ts=types id=IDENTIFIER { Enhanced_for(Some(ms),ts,id) }
+
 ;
 
 expressionStmts:
@@ -130,7 +130,7 @@ expressionStmts:
 ;
 
 guardingStmt: 
-	SYNCHRONIZED LPAR e=expression RPAR s=statement { ST_Synch(e,s) }
+	modifiers LPAR e=expression RPAR s=statement { ST_Synch(e,s) } 
 	| TRY b=block f=finally { ST_Try(b,[],f) }
 	| TRY b=block c=catch { ST_Try(b,[]@[c],ST_Empty) }
 	| TRY b=block c=catch f=finally { ST_Try(b,[]@[c],f) }

@@ -1,8 +1,7 @@
 open JavaLexer
 open JavaParser
 open Lexing 
-open Definitions
-open Expressions
+open Ast
 open Array
 open Printing 
 

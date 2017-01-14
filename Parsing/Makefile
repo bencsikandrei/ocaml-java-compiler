@@ -21,28 +21,25 @@ $(MYBUILD)/javaLexer.cmo: $(MYBUILD)/javaLexer.mll
 	cd $(MYBUILD); ocamllex javaLexer.mll
 	cd $(MYBUILD); ocamlc -c javaLexer.ml
 
-$(MYBUILD)/definitions.cmo:
-	cd $(MYBUILD); ocamlc -c definitions.ml
-
-$(MYBUILD)/expressions.cmo:
-	cd $(MYBUILD); ocamlc -c expressions.ml
-
 $(MYBUILD)/printing.cmo:
 	cd $(MYBUILD); ocamlc -c printing.ml
 
 $(MYBUILD)/ast.cmo:
 	cd $(MYBUILD); ocamlc -c ast.ml
 
-
-main: $(MYBUILD) $(MYBUILD)/ast.cmo $(MYBUILD)/printing.cmo $(MYBUILD)/definitions.cmo $(MYBUILD)/expressions.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml 
+main: $(MYBUILD) $(MYBUILD)/ast.cmo $(MYBUILD)/printing.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml $(MYBUILD)/main_lexer.ml
 	cd $(MYBUILD); ocamlc -c main.ml
-	cd $(MYBUILD); ocamlc -pp "#load"   ast.cmo  printing.cmo definitions.cmo expressions.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
+	cd $(MYBUILD); ocamlc -c main_lexer.ml
+	cd $(MYBUILD); ocamlc -pp "#load" ast.cmo  printing.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
+	cd $(MYBUILD); ocamlc -pp "#load" ast.cmo  printing.cmo javaParser.cmo javaLexer.cmo main_lexer.cmo -o main_lexer
+	
 
 $(MYBUILD): 
 	mkdir -p $(MYBUILD)
 	cp $(COPYPATH)/* $(MYBUILD)/
 	cp $(COPYPATH_EXPR)/* $(MYBUILD)/
 	cp ./main.ml $(MYBUILD)/
+	cp ./main_lexer.ml $(MYBUILD)/
 	cp ast.ml $(MYBUILD)/
 	cp printing.ml $(MYBUILD)/
 	cp ./tokens.mly $(MYBUILD)/

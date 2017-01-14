@@ -91,6 +91,7 @@
 %token <int> INTLIT
 %token <float> DOUBLELIT
 %token <float> FLOATLIT
+%token <int> LONGLIT
 %token <char> CHARLIT 
 %token <bool> BOOLEANLIT
 %token NULLLIT
@@ -109,8 +110,7 @@
 */
 %nonassoc DANGLING_ELSE
 %nonassoc ELSE
-%left IDENTIFIER
-%right LANG
+
 %%
 
 %%

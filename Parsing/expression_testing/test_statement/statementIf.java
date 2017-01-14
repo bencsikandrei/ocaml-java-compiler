@@ -1,6 +1,6 @@
 {
 	if(!a) { ; }
-	if (a < b) {}
+	if (a == b) { ; }
 	if (a instanceof b) {}
 	
 	if(false) 
@@ -12,7 +12,9 @@
 		else
 			c = 1;
 	
-	
+	if(a<b) {
+		a++;
+	}
 	
 	if (a) {
 		a = 1;

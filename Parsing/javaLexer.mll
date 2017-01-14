@@ -212,7 +212,7 @@ rule nexttoken = parse
 	| float as f { FLOATLIT(float_of_string (String.sub f 0 ((String.length f)-1))) } (* maybe do a function for d and f *)
 	| boolean as b { BOOLEANLIT(bool_of_string b) }
 	| null { NULLLIT } 
-
+	| long as l { LONGLIT(int_of_string (String.sub l 0 ((String.length l)-1))) }
 	
 	(* identifiers without keywords *)
 	| identifier as id { 
@@ -245,6 +245,7 @@ and multiline_comment = parse
 	let print_token = function 
 		| IDENTIFIER(id) -> print_string ( " id : " ^ id )
 		| INTLIT(intlit) -> print_string ( " intlit : " ^ string_of_int intlit )
+		| LONGLIT(lnglit) -> print_string ( " lnglit : " ^ string_of_int lnglit )
 		| DOUBLELIT(doublelit) -> print_string ( " doublelit : " ^ string_of_float doublelit )
 		| FLOATLIT(floatlit) -> print_string ( " floatlit : " ^ string_of_float floatlit )
 		| BOOLEANLIT(boollit) -> print_string ( " boollit : " ^ string_of_bool boollit )
