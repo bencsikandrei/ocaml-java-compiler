@@ -88,5 +88,6 @@ MethodBody:
 
 VariableDeclaratorId:
 	| i=IDENTIFIER {DI_Identifier i}
+	| i=IDENTIFIER d=dims { DI_Args(i,d) }
 
 %%
