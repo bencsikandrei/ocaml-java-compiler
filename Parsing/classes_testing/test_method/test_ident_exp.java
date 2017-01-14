@@ -1,1 +1,5 @@
-public double main (){a/22;2+2;}
+
+	public double main (){
+		b=a/22;
+		c=2+2;
+	}

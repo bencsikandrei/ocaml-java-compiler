@@ -12,8 +12,8 @@
 		else
 			c = 1;
 	
-	if(a<b) {
-		a++;
+	if(a>b) {
+		;
 	}
 	
 	if (a) {

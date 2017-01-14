@@ -8,7 +8,7 @@
 
 %public modifiers:
 	| m=modifier { m::[] }
-	| m=modifier ms=modifiers { m::ms }
+	| ms=modifiers m=modifier { ms@[m] }
 
 modifier:
 	| ABSTRACT {M_Abstract}

@@ -4,3 +4,6 @@
 - annotations before package (7.4.1.1)
 - attributes/variable declarators add array init
 - modifiers: separate? class, method, interface, variable
+- inside interfaces
+- add enums in top of classes
+- insideclass: STATIC block

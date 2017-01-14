@@ -20,7 +20,7 @@ and types=
 
 and definedType =
 	| DT_Id of string
-	| DT_Generic of string*types
+	| DT_Generic of string * definedType list
 
 (* definitions.ml *)
 type annotation = { aname: string ; aoth: string };; (* TODO *)
@@ -40,6 +40,8 @@ type modifier=
 
 type variableModifier =
 	|VM_Final
+	|VM_Volatile
+	|VM_Transient
 	|VM_Annot of annotation;;
 
 type typeParam =
@@ -71,7 +73,6 @@ type methodDeclarator= {
 	mname: string; 
 	mparams: formalParameter list
 }
-
 
 
 (* arithmetic ops *)
@@ -141,7 +142,7 @@ type literal =
 	| L_Null
 
 type enhanced_for =
-	| Enhanced_for of modifier list option * types * string
+	| Enhanced_for of modifier list option * allTypes * string
 
 
 (* Clases and methods *)
@@ -182,7 +183,6 @@ and javaInterface={
 and insideInterface=
 	| II_Class of javaClass
 	| II_Interface of javaInterface
-
 
 (* expressions.ml *)
 and expression =
@@ -248,8 +248,26 @@ and statement =
 	| ST_Assert of expression * expression option
 	| ST_Var_decl of string option * allTypes * expression list
 
+type import={
+	impStatic: bool;
+	impPack: string list;
+	impAll: bool;
+}
+
+type fileContent=
+	| F_Class of javaClass
+	| F_Interface of javaInterface
+
+type javaCompilationFile={
+	fPackage: string list;
+	fImports: import list;
+	fContent: fileContent list;
+}
+
 type abstractSyntaxTree = 
 	| JML of javaMethod list
 	| STR of string
 	| STATE of statement
 	| EXPR of expression
+	| JCLASS of javaClass
+	| JFILE of javaCompilationFile

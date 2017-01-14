@@ -62,7 +62,7 @@ arrayInitializers:
 /* end variable declarators */
 
 %public fieldVariableDeclaration:
-	mods=modifiers t=allTypes vds=variableDeclarators { IC_Attribute(Some(mods),t,vds) }
+	t=allTypes vds=variableDeclarators SEMI { IC_Attribute(None,t,vds) }
 	(* | t=allTypes vds=variableDeclarators { IC_Attribute(None,t,vds) } *)
 ;
 

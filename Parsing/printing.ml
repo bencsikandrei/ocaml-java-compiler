@@ -28,15 +28,15 @@ let string_of_primitive var = match var with
 	| PT_Short ->  "short"
 	| PT_Double ->  "double"
 
+let rec string_of_definedType var = match var with
+	| DT_Id id -> id
+	| DT_Generic(t,al) -> t^"<"^(print_list string_of_definedType al " ")^">"
 let rec string_of_allTypes var = match var with
 	| AL_Types a -> string_of_types a
 	| AL_Array (a,dim) -> "["^(string_of_types a)^"]dims="^(string_of_int dim)
 and string_of_types var = match var with
 	| T_Primitive v -> string_of_primitive v
 	| T_Qualified v -> print_list string_of_definedType v "-"
-and string_of_definedType var = match var with
-	| DT_Id id -> id
-	| DT_Generic(t,al) -> t^"<"^(string_of_types al)^">"
 
 (* get string of operators *)
 let string_of_bo = function
@@ -136,7 +136,9 @@ let print_modif modifier= match modifier with
 
 let print_vm var = match var with
 	|VM_Final -> "final"
-	|VM_Annot a -> print_annot a;;
+	|VM_Annot a -> print_annot a
+	|VM_Transient -> "transient"
+	|VM_Volatile -> "volatile"
 
 let print_type_param var = match var with
 	| TPL_Ident s -> s
@@ -157,14 +159,11 @@ let print_formal_parameter var =
 
 let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
 
-
-
-
 (* end of my add *)
   
 let string_of_enhanced_for ef =
 	match ef with
-	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_types t)^" "^s
+	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
 
 let string_of_literal x =
  	match x with
@@ -211,8 +210,13 @@ let rec string_of_exp exp =
 	| EX_Class_alloc(t,elo) -> "new "^(string_of_types t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
 	| EX_New_alloc(so, e) -> (string_of_exp (exp_of_option so))^"."^(string_of_exp e) (* dot optional *)
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
-	| EX_Primary(pt) -> "PLACEHOLDER ! primary expression -> primaryType"
-	| EX_QualifiedName(ldt) -> "PLACEHOLDER ! qual name expression -> definedType list"
+	| EX_Primary(pt) -> (string_of_primaryType pt)
+	| EX_QualifiedName(ldt) -> (print_list string_of_definedType ldt ".")
+
+and string_of_primaryType var =
+	match var with
+	| P_Qualified(dl) -> (print_list string_of_definedType dl ".")
+	| P_NotJustName(e) -> (string_of_exp e)
 
 let string_of_catch_header ch =
 	match ch with 

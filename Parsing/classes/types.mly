@@ -30,7 +30,7 @@ open Ast
 	
 definedType: /* identifier or generic definition*/
 	| id=IDENTIFIER { DT_Id id }
-	| id=IDENTIFIER LGEN t=types RGEN { DT_Generic(id,t) }
+	| id=IDENTIFIER LGEN t=qualifiedName RGEN { DT_Generic(id,t) }
 
 %public qualifiedName: /* name or name.name*/
 	| id=definedType { [id] } 

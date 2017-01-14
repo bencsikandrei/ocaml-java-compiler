@@ -7,23 +7,41 @@ open Ast
 
 %%
 javaFile:
-	| option(package) option(imports) option(file_content) EOF { STR "" }
+	| f=javaCompFile { JFILE f }
+	
+javaCompFile:
+	| p=option(package) i=option(imports) c=option(file_content_l) EOF { 
+			let p = match p with | None -> [] | Some p -> p in
+			let i = match i with | None -> [] | Some i -> i in
+			let c = match c with | None -> [] | Some c -> c in
+				{fPackage=p; fImports=i; fContent=c;}
+		}
 
 package:
-	| PACKAGE pack_name SEMI { }
+	| PACKAGE p=pack_name SEMI { p }
 
 pack_name:
-	| IDENTIFIER { }
-	| pack_name DOT IDENTIFIER { }
+	| i=IDENTIFIER { i::[] }
+	| i=IDENTIFIER DOT p=pack_name { i::p }
+
+pack_import:
+	| i=IDENTIFIER { i::[] }
+	| i=IDENTIFIER DOT MUL { i::[] }
+	| i=IDENTIFIER DOT p=pack_import { i::p }
 
 imports:
-	| import { }
-	| imports import { }
+	| i=import { i::[] }
+	| i=import l=imports { i::l }
 
 import:
-	| IMPORT option(STATIC) pack_name SEMI { }
-	| IMPORT option(STATIC) pack_name DOT MUL SEMI { }
+	| IMPORT s=option(STATIC) p=pack_import SEMI { 
+		match s with | None -> {impStatic=false; impPack=p; impAll=false}
+					 | Some s -> {impStatic=true; impPack=p; impAll=false} }
+
+file_content_l:
+	| c=file_content { c::[] }
+	| c=file_content l=file_content_l { c::l }
 
 file_content:
-	| j_class { }
-	| j_interface { }
+	| c=j_class { F_Class c }
+	| i=j_interface { F_Interface i }
