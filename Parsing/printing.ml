@@ -38,3 +38,243 @@ and string_of_types var = match var with
 and string_of_definedType var = match var with
 	| DT_Id id -> id
 	| DT_Generic(t,al) -> t^"<"^(string_of_types al)^">"
+
+	(* printers *)
+(* extract from option *)
+let str_of_option e =
+	match e with
+	| Some(ex) -> ex
+	| _ -> ""
+
+let list_of_option l =
+  match l with
+  | Some(x) -> x
+  | _ -> []
+
+let exp_of_option e =
+	match e with
+	| Some(ex) -> ex
+	| _ -> Identifier("")
+
+let stms_of_option s =
+	match s with
+	| Some(s) -> s
+	| _ -> ST_Empty 
+
+let int_of_option v =
+	match v with
+	| Some(v) -> v
+	| _ -> 0
+
+let print_annot a=a.aname;;
+let print_excep a=a.ename;;
+
+let print_modif modifier= match modifier with
+	|M_Annot a -> print_annot a
+	|M_Public -> "public"
+	|M_Protected -> "protected"
+	|M_Private -> "private"
+	|M_Abstract -> "abstract"
+	|M_Static -> "static"
+	|M_Final -> "final"
+	|M_Synchronized -> "synchronized"
+	|M_Native -> "native"
+	|M_Strictfp -> "strictfp";; 
+
+let print_vm var = match var with
+	|VM_Final -> "final"
+	|VM_Annot a -> print_annot a;;
+
+
+let print_type_param var = match var with
+	| TPL_Ident s -> s
+	| TPL_Extend (s1,s2) -> s1^"-ext-"^s2	;;
+
+
+let print_return_type var = match var with
+	|RT_Type t-> string_of_allTypes t	
+	|RT_Void -> "void"
+
+let print_declaratorId var = match var with 
+	|DI_Identifier s -> s
+
+let print_body var = var.expr;;
+
+let print_formal_parameter var = 
+	let el = match var.pelipsis with | true -> "..." | false -> "" in
+	(print_list print_vm var.pmodif " ")^" : "^string_of_allTypes var.ptype^el^" : "^(print_declaratorId var.pname)
+;;
+
+let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
+
+let print_java_method var = 
+	"\nMethod: "^(print_method_declarator var.jmdeclarator)^
+	"\nReturn type: "^(print_return_type var.jmrtype)^
+	"\nModifiers: "^(print_list print_modif var.jmmodifiers " ")^
+	"\nGenerics: "^(print_list print_type_param var.jmtparam " ")^
+	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
+	"\nBody: "^print_body var.jmbody;;
+
+(* added this print for inside class *)
+let rec print_inside_class var = match var with
+	|IC_Method(jm) -> (print_java_method jm)
+	|IC_Attribute -> "IC_Attribute"
+	|IC_Class(jc) -> (print_java_class jc)
+	|IC_Semi -> ";"
+	|IC_Empty -> ""
+	
+and print_java_class var =
+	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
+	"\nParameters: "^(print_list print_type_param var.ctparam " ")^
+	"\nIdentifier: "^var.cidentifier^
+	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
+	"\nBody: "^(print_list print_inside_class var.cbody " ")
+(* end of my add *)
+
+(* get string of operations *)
+let string_of_bo = function
+	| BO_Add -> "+"
+	| BO_Minus -> "-"
+	| BO_Mul -> "*"
+	| BO_Div -> "/"
+	| BO_Mod -> "%"
+
+let string_of_uo = function
+	| UO_Plus -> "+"
+	| UO_Minus -> "-"
+	| UO_Increment -> "++"
+	| UO_Decrement -> "--"
+
+let string_of_lbo = function
+	| LBO_Or -> "||"
+	| LBO_And -> "&&"
+
+let string_of_luo = function
+	| LUO_Not -> "!"
+	| UO_BNot -> "~"
+
+let string_of_compop = function
+	| BO_Gt -> ">"
+	| BO_Lt -> "<"
+	| BO_Ge -> ">="
+	| BO_Le  -> "<="
+	| BO_Neq -> "!="
+	| BO_Eq -> "==" 
+	| BO_instanceof -> "instanceof"
+
+let string_of_bitop = function
+	| SO_Lshift -> "<<"
+	| SO_Rshift -> ">>"
+	| SO_Logshift-> ">>>"
+	| SO_And -> "&"
+	| SO_Or -> "|"
+	| SO_Xor -> "^"
+
+let string_of_assign = function
+	| ASS_Equal -> "="
+	| ASS_Plus -> "+="
+	| ASS_Minus -> "-="
+	| ASS_Mul -> "*="
+	| ASS_Div -> "/="
+	| ASS_Mod -> "%="
+	| ASS_Xor -> "^="
+	| ASS_And -> "&="
+	| ASS_Or -> "|="
+	| ASS_RShift -> ">>="
+	| ASS_LShift -> "<<="
+	| ASS_LogShift -> ">>>="
+  
+let string_of_enhanced_for ef =
+	match ef with
+	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_types t)^" "^s
+
+let string_of_literal x =
+ 	match x with
+	| L_Str(v)-> v
+	| L_Float(v) ->  string_of_float v
+	| L_Double(v) -> string_of_float v
+	| L_Char(v) -> (String.make 1 v)
+	| L_Boolean(v) -> string_of_bool v
+ 	| L_Int(v) -> string_of_int v
+ 	| L_Null -> "null"
+
+let rec string_mul i s =
+	match i with
+	| 0 -> s
+	| _ -> (string_mul (i-1) (s^s))
+
+let string_of_field field =
+	match field with
+	| _ -> "field TODO"
+(*	| FF_JavaMethod of javaMethod (* HAVE TO USE DEFINITIONS HERE*)
+	| FF_Var_decl of modifier list option * allTypes * expression list (* same as above *)
+	| FF_Block of string option * statement
+*)
+
+let rec string_of_exp exp =
+	match exp with
+	| Identifier id -> id
+	| Literal lit -> string_of_literal lit
+	| EX_Empty -> ""
+	| EX_Binop(op, e1, e2) -> (string_of_exp e1)^(string_of_bo op)^(string_of_exp e2)
+	| EX_Compop(op, e1, e2) -> (string_of_exp e1)^(string_of_compop op)^(string_of_exp e2)
+	| EX_Instanceof(op, e1, t) -> (string_of_exp e1)^(string_of_compop op)^ (string_of_types t) (* allows instanceof generics*)
+	| EX_Bitop(op, e1, e2)-> (string_of_exp e1)^(string_of_bitop op)^(string_of_exp e2)
+	| EX_Logbinop(op, e1, e2) -> (string_of_exp e1)^(string_of_lbo op)^(string_of_exp e2)
+	| EX_Loguop(op, e) -> (string_of_luo op)^(string_of_exp e)
+	| EX_Unop(op, e) -> (string_of_uo op)^(string_of_exp e)
+	| EX_Postfix(op, e) -> (string_of_exp e)^(string_of_uo op)
+	| EX_Assign(op, e1, e2) -> (string_of_exp e1)^(string_of_assign op)^(string_of_exp e2)
+	| EX_Primitive(p, so) -> (string_of_primitive p)^(string_of_int (int_of_option so))
+	| EX_Cast(e1, e2) -> " ("^(string_of_exp e1)^") "^(string_of_exp e2)
+	| EX_Class(e,i) -> (string_of_exp e)^(string_mul i "[]")
+	| EX_Ternary(e1,e2,e3) -> (string_of_exp e1)^" ? "^(string_of_exp e2)^" : "^(string_of_exp e3)
+	| EX_Case(e) -> "case "^(string_of_exp e)^":"
+	| EX_Default -> "default:"
+	| EX_Array_access(e1,e2) -> (string_of_exp e1)^"["^(string_of_exp e2)^"]"
+	| EX_Field_access(e, eo) -> (string_of_exp e)^"."^(string_of_exp (exp_of_option eo))
+	| EX_Method_access(e,el) -> (string_of_exp e)^"("^(String.concat "," (List.map string_of_exp el))^")"
+	| EX_Array_alloc(t,elo, io) -> "new "^(string_of_types t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(string_of_int (int_of_option io))
+	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(String.concat "," (List.map string_of_exp el))^"}"
+	| EX_Plain_array_alloc(e,el) -> "inside class print"
+	| EX_Class_alloc(t,elo) -> "new "^(string_of_types t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
+	| EX_New_alloc(so, e) -> (string_of_exp (exp_of_option so))^"."^(string_of_exp e) (* dot optional *)
+	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
+	| EX_Primary(pt) -> "PLACEHOLDER ! primary expression -> primaryType"
+	| EX_QualifiedName(ldt) -> "PLACEHOLDER ! qual name expression -> definedType list"
+	| EX_Field_decl(fd,i) -> (string_of_field fd)^(string_mul i ";") 
+
+and string_of_primaryType pt =
+	match pt with
+	| P_Qualified(dtl) ->  print_list string_of_definedType dtl ""
+	| P_NotJustName(e) -> string_of_exp e
+
+let string_of_catch_header ch =
+	match ch with 
+	| Catch_header(t,s) -> (string_of_types t)^" "^(string_of_exp s)
+
+let rec string_of_stmt =
+	function
+	| ST_Empty -> "/* ST_empty */"
+	| ST_Label x -> "/* ST_label */\n"^x
+	| ST_Block(stl) -> (String.concat "/* ST_block */\n" (List.map string_of_stmt stl))
+	| ST_Expression e -> "/* ST_expression */\n"^string_of_exp e
+	| ST_If(e, st1, st2) -> "/* ST_if */\nif ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
+	| ST_Switch(e, sb) -> "/* ST_switch */\nswitch ("^(string_of_exp e)^") "^(string_of_stmt sb)
+	| ST_While(e, st) ->  "/* ST_while */\nwhile ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
+	| ST_Case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(string_of_stmt st) 
+	| ST_For(e1, e2, e3, st) -> "/* ST_for */\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^" "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
+	| ST_Efor(ef,e,s) -> "/* ST_efor */\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
+	| ST_Do_while(st, e) -> "/* ST_do_while */\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
+	| ST_Break(e) -> "/* ST_break */\nbreak "^e
+	| ST_Continue(e) -> "/* ST_continue */\ncontinue "^e
+	| ST_Return(e) -> "/* ST_return */\nreturn "^(string_of_exp e)
+	| ST_Throw(e) -> "/* ST_throw */\nthrow "^(string_of_exp e)
+	| ST_Lvar_decl(e) -> "/* ST_lvar_decl */\n"^(string_of_exp e)
+	| ST_Synch(e1,e2) -> "/* ST_synch */\nsynchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
+	| ST_Try(st1,stl,st2) ->  "/* ST_try */\ntry {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
+	| ST_Catch(ch, st) ->  "/* ST_catch */\ncatch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
+	| ST_Catches(stl) -> "/* ST_catches */\n"^(String.concat "; " (List.map string_of_stmt stl))
+	| ST_Finally(st) -> "/* ST_finally */\nfinally "^(string_of_stmt st)
+	| ST_Assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
+	| ST_Var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 

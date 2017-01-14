@@ -1,6 +1,5 @@
 %{
-open Definitions
-open Expressions
+open Ast
 %}
 
 %start javaMethods
@@ -83,7 +82,7 @@ javaMethod_list:
 
 (* Method Body TODO *)
 MethodBody:
-	|b=block {{expr=(Expressions.string_of_stmt b)}}
+	|b=block {{expr="TO DO"}}
 	|SEMI {{expr=";"}}
 
 

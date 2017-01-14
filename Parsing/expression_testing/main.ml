@@ -1,13 +1,14 @@
 (* the main function *)
 open Lexing
 open JavaLexer
-open JavaParser 
-open Expressions
+open JavaParser
+open Ast
+open Printing
 
 let test_parser lexbuf =
 	try 
 		let res = JavaParser.compilationUnit JavaLexer.nexttoken lexbuf in
-		print_endline (Expressions.string_of_stmt res)
+		print_endline (string_of_stmt res)
 	with
 	| JavaException(s) -> print_endline s 
 	| End_of_file -> exit 0

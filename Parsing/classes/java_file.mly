@@ -1,5 +1,5 @@
 %{
-open Definitions
+open Ast
 %}
 
 %start javaFile

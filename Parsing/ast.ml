@@ -1,13 +1,4 @@
-open Printing
 exception JavaException of string
-
-type abstractSyntaxTree = 
-	| JML of javaMethod list
-	| STR of string
-	| STATE of statement
-	| EXPR of expression
-
-
 
 type primTypes =
 	| PT_Float
@@ -259,3 +250,9 @@ and statement =
 	| ST_Finally of statement
 	| ST_Assert of expression * expression option
 	| ST_Var_decl of string option * allTypes * expression list
+
+type abstractSyntaxTree = 
+	| JML of javaMethod list
+	| STR of string
+	| STATE of statement
+	| EXPR of expression

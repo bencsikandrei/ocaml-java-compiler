@@ -1,7 +1,7 @@
 %{
 	open Printf
 	open Lexing
-	open Expressions
+	open Ast
 %}
 /* starting point */
 %start compilationUnit
