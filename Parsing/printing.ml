@@ -1,5 +1,4 @@
 open String
-open Char
 open Ast
 let indent var =
 	let size = length var in 
@@ -10,7 +9,7 @@ let indent var =
 				if (String.get var pos)='\n' then 
 					"\n\t"^(iterate (pos+1)) 
 				else 
-					(Char.escaped (String.get var pos))^(iterate (pos+1))
+					(String.make 1 (String.get var pos))^(iterate (pos+1))
 		in
 			"\t"^iterate 0;;
 
@@ -119,6 +118,10 @@ let int_of_option v =
 	| Some(v) -> v
 	| _ -> 0
 (* end of option *)
+let rec string_mul i s =
+	match i with
+	| 0 -> s
+	| _ -> (string_mul (i-1) (s^s))
 
 let print_annot a=a.aname;;
 let print_excep a=a.ename;;
@@ -137,7 +140,9 @@ let print_modif modifier= match modifier with
 
 let print_vm var = match var with
 	|VM_Final -> "final"
-	|VM_Annot a -> print_annot a;;
+	|VM_Annot a -> print_annot a
+	|VM_Transient -> "transient"
+	|VM_Volatile -> "volatile"
 
 let print_type_param var = match var with
 	| TPL_Ident s -> s
@@ -149,7 +154,7 @@ let print_return_type var = match var with
 
 let print_declaratorId var = match var with 
 	|DI_Identifier s -> s
-
+	|DI_Args(i,d)-> i^(string_mul d "[]")
 
 let print_formal_parameter var = 
 	let el = match var.pelipsis with | true -> "..." | false -> "" in
@@ -162,7 +167,7 @@ let print_method_declarator var = var.mname^"\n"^(indent (print_list print_forma
   
 let string_of_enhanced_for ef =
 	match ef with
-	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_types t)^" "^s
+	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
 
 let string_of_literal x =
  	match x with
@@ -174,11 +179,6 @@ let string_of_literal x =
  	| L_Int(v) -> string_of_int v
  	| L_Null -> "null"
  	| L_Long(v) -> string_of_int v
-
-let rec string_mul i s =
-	match i with
-	| 0 -> s
-	| _ -> (string_mul (i-1) (s^s))
 
 let rec string_of_exp exp =
 	match exp with

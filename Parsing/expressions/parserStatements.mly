@@ -23,8 +23,6 @@ emptyStmt:
 
 labelStmt:
 	id=IDENTIFIER COL { ST_Label(id) }
-	/* | CASE ce=constantExpression COL { "case "^ce^": " }
-	| DEFAULT COL { "default : " } */
 ;
 
 assertStmt:
@@ -44,34 +42,18 @@ selectStmt:
 
 /* switch blocks */
 switchBlock:
-	LCURL RCURL { ST_Empty } /* Empty */
-	| sbsgs=switchBlockStmtGroups { ST_Block(sbsgs) } /* sw_block */
-	| LCURL sbsgs=switchBlockStmtGroups RCURL { ST_Block(sbsgs) } /* sw_block */
+	LCURL RCURL { ST_Empty }
+	| sbsgs=switchBlockStmtGroups { ST_Block(sbsgs) } 
+	| LCURL sbsgs=switchBlockStmtGroups RCURL { ST_Block(sbsgs) }
 ;
 
 switchBlockStmtGroups:
 	sbsg=switchBlockStmtGroup { []@[sbsg] }
-	| sbsgs=switchBlockStmtGroups sbsg=switchBlockStmtGroup { sbsgs@[sbsg] } /* concatenate two lists @ */
+	| sbsgs=switchBlockStmtGroups sbsg=switchBlockStmtGroup { sbsgs@[sbsg] }
 ;
-
-(* 
-statementCase:
-	es=emptyStmt { ST_empty }
-	/*
-	| ls=labelStmt { ls }
-	| ass=assertStmt { ass }
-	| exs=expressionStmt SEMI { exs }
- 	| ss=selectStmt { ss }
- 	*/
-	| js=jumpStmt { js }
-	/* | is=iterStmt { is }
-	| gs=guardingStmt { gs } */
-;
-*)
 
 switchBlockStmtGroup:
-	sls=switchLabels bss=block { ST_Case(sls,bss) } /* nonempty_list  case_block */
-	/* | sls=switchLabels bss=statementCase { ST_empty (* ST_case(sls,bss) *) } */
+	sls=switchLabels bss=block { ST_Case(sls,bss) }
 ;
 
 switchLabels:
@@ -91,7 +73,7 @@ jumpStmt:
     | CONTINUE id=IDENTIFIER SEMI { ST_Continue(id) }
 	| CONTINUE SEMI { ST_Continue("") }
 	| RETURN e=expression SEMI { ST_Return(e) }
-	| RETURN SEMI { ST_Return(EX_Empty) } /* changed to empty */ 
+	| RETURN SEMI { ST_Return(EX_Empty) } 
 	| THROW e=expression SEMI { ST_Throw(e) }
 ;
 
@@ -99,9 +81,8 @@ iterStmt:
 	WHILE LPAR e=expression RPAR s=statement { ST_While(e,s) }
 	| DO s=statement WHILE LPAR e=expression RPAR SEMI { ST_Do_while((List.append [] [s]),e) } 
 	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { ST_For(fi,fe,fin, s) }
-	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { ST_For(fi,fe,[],s) } 
-	| FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { ST_Efor(fvo,e,s) }
-	/* TODO add a foreach */
+	| FOR LPAR fi=forInit fe=forExpr 			 RPAR s=statement { ST_For(fi,fe,[],s) } 
+	| FOR LPAR fvo=forVarOpt COL e=expression 	 RPAR s=statement { ST_Efor(fvo,e,s) }
 ;
 
 forInit: 
@@ -111,7 +92,7 @@ forInit:
 
 forExpr: 
 	e=expression SEMI { e }
-	| SEMI { EX_Empty } /* changed to empty */
+	| SEMI { EX_Empty }
 ;
 
 forIncr: 
@@ -119,8 +100,8 @@ forIncr:
 ;
 
 forVarOpt:
-	/* ts=types id=IDENTIFIER { Enhanced_for(ts,id) } */
-	ms=modifiers ts=types id=IDENTIFIER { Enhanced_for(Some(ms),ts,id) }
+	ms=modifiers ts=allTypes id=IDENTIFIER { Enhanced_for(Some(ms),ts,id) }
+	| ts=allTypes id=IDENTIFIER { Enhanced_for(None,ts,id) }
 ;
 
 expressionStmts:
@@ -131,17 +112,16 @@ expressionStmts:
 guardingStmt: 
 	modifiers LPAR e=expression RPAR s=statement { ST_Synch(e,s) } 
 	| TRY b=block f=finally { ST_Try(b,[],f) }
-	| TRY b=block c=catch { ST_Try(b,[]@[c],ST_Empty) }
-	| TRY b=block c=catch f=finally { ST_Try(b,[]@[c],f) }
+	| TRY b=block c=catches { ST_Try(b,c,ST_Empty) }
+	| TRY b=block c=catches f=finally { ST_Try(b,c,f) }
 ;
 
 /* catch */
-(* 
 catches: 
-	c=catch { c } 
-	| cs=catches c=catch { cs^c }
+	c=catch { [c] } 
+	| cs=catches c=catch { cs@[c] }
 ;
-*)
+
 catch: 
 	ch=catchHeader b=block { ST_Catch(ch,b) }
 ;

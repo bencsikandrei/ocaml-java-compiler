@@ -85,6 +85,9 @@
 %token VOLATILE
 %token WHILE
 
+%token LGEN
+%token RGEN
+
 /* identifiers and literals */
 %token <string> IDENTIFIER
 %token <string> STRLIT

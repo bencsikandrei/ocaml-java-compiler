@@ -81,15 +81,13 @@ javaMethod_list:
 		|allTypes {}
 
 MethodBody:
-	|LCURL b=block RCURL { b }
-	|LCURL RCURL { ST_Empty }
-	|SEMI { ST_Empty }
-
+	| b=block { b }
+	| SEMI { ST_Empty }
 
 (* aux TODO *)
 
-
 VariableDeclaratorId:
-	|i=IDENTIFIER {DI_Identifier i}
+	| i=IDENTIFIER {DI_Identifier i}
+	| i=IDENTIFIER d=dims { DI_Args(i,d) }
 
 %%
