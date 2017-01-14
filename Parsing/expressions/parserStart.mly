@@ -9,8 +9,9 @@
 
 %%
 compilationUnit:
-	s=block EOF { s }
-	| error { raise (JavaException "ERROR") }
+	s=block { s }
+	| EOF { raise End_of_file }
+	/* | error { raise (JavaException "ERROR") } */
 ;
 /* block */
 %public block:
