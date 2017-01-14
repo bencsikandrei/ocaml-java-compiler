@@ -1,5 +1,8 @@
 // expression statements
 {
+	if( a < 3) {
+		;
+	}
 	char bc = a << 10;
 	char bc = a >> 10;
 	char bc = a >>> 10;

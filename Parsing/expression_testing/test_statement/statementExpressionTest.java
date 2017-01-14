@@ -10,20 +10,20 @@
 	int i = c % 5;
 	String c = "b";
 	char c1 = 'c';
-	for(a = 1 ;(b) a;--a, a++, a--, ++a) {
+	for(int a = 1 ;(b) a;--a, a++, a--, ++a) {
 	;
 	}
 	if(!a) { ; }
 
 	a <= c;
 	a >= c;
-	if (a < b) {}
+	if (a == b) {;}
 	if (a instanceof b) {}
 	a == b;
 	for (; a!= b; ) {
 		int c = a&b^c|d;
 		a&&b||c;
-		int a = (b<c) ? 3 : a+1;
+		int a = (b<3) ? 3 : a+1;
 	}
 	++a;
 	--a;
