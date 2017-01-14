@@ -7,13 +7,14 @@ open Ast
 
 %%
 javaFile:
+	| f=javaCompFile { JFILE f }
+	
+javaCompFile:
 	| p=option(package) i=option(imports) c=option(file_content_l) EOF { 
 			let p = match p with | None -> [] | Some p -> p in
 			let i = match i with | None -> [] | Some i -> i in
 			let c = match c with | None -> [] | Some c -> c in
-				{fPackage=p;
-				fImports=i;
-				fContent=c;}
+				{fPackage=p; fImports=i; fContent=c;}
 		}
 
 package:
@@ -41,4 +42,4 @@ file_content_l:
 
 file_content:
 	| c=j_class { F_Class c }
-	| i=j_interface { F_Interfaces i }
+	| i=j_interface { F_Interface i }

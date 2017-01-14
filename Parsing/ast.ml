@@ -73,7 +73,6 @@ type methodDeclarator= {
 }
 
 
-
 (* arithmetic ops *)
 type binop =
 	| BO_Add
@@ -183,7 +182,6 @@ and insideInterface=
 	| II_Class of javaClass
 	| II_Interface of javaInterface
 
-
 (* expressions.ml *)
 and expression =
 	| Identifier of string
@@ -248,8 +246,26 @@ and statement =
 	| ST_Assert of expression * expression option
 	| ST_Var_decl of string option * allTypes * expression list
 
+type import={
+	impStatic: bool;
+	impPack: string list;
+	impAll: bool;
+}
+
+type fileContent=
+	| F_Class of javaClass
+	| F_Interface of javaInterface
+
+type javaCompilationFile={
+	fPackage: string list;
+	fImports: import list;
+	fContent: fileContent list;
+}
+
 type abstractSyntaxTree = 
 	| JML of javaMethod list
 	| STR of string
 	| STATE of statement
 	| EXPR of expression
+	| JCLASS of javaClass
+	| JFILE of javaCompilationFile
