@@ -1,7 +1,6 @@
 open Ast
 open Printing
 
-
 type annotation = { aname: string ; aoth: string };; (* TODO *)
 type jexception = { ename: string ; eoth: string };; (* TODO *)
 
@@ -81,11 +80,7 @@ and insideClass=
 	|IC_Empty
 
 
-(* return types of each defined parser*)
 
-type abstractSyntaxTree = 
-	| JML of javaMethod list
-	| STR of string
 
 
 (* printers *)

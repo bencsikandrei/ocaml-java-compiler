@@ -141,6 +141,14 @@ and statement =
 	| ST_Assert of expression * expression option
 	| ST_Var_decl of string option * allTypes * expression list
 
+(* return types of each defined parser*)
+
+type abstractSyntaxTree = 
+	| JML of javaMethod list
+	| STR of string
+	| EXPR of statement
+
+
 (* extract from option *)
 let str_of_option e =
 	match e with

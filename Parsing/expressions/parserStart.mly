@@ -5,11 +5,11 @@
 %}
 /* starting point */
 %start compilationUnit
-%type <Expressions.statement> compilationUnit
+%type <abstractSyntaxTree> compilationUnit
 
 %%
 compilationUnit:
-	s=block EOF { s }
+	s=block EOF { EXPR s }
 	| error { raise (JavaException "ERROR") }
 ;
 /* block */
