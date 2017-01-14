@@ -158,9 +158,6 @@ let print_formal_parameter var =
 
 let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
 
-
-
-
 (* end of my add *)
   
 let string_of_enhanced_for ef =
@@ -212,8 +209,13 @@ let rec string_of_exp exp =
 	| EX_Class_alloc(t,elo) -> "new "^(string_of_types t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
 	| EX_New_alloc(so, e) -> (string_of_exp (exp_of_option so))^"."^(string_of_exp e) (* dot optional *)
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
-	| EX_Primary(pt) -> "PLACEHOLDER ! primary expression -> primaryType"
-	| EX_QualifiedName(ldt) -> "PLACEHOLDER ! qual name expression -> definedType list"
+	| EX_Primary(pt) -> (string_of_primaryType pt)
+	| EX_QualifiedName(ldt) -> (print_list string_of_definedType ldt ".")
+
+and string_of_primaryType var =
+	match var with
+	| P_Qualified(dl) -> (print_list string_of_definedType dl ".")
+	| P_NotJustName(e) -> (string_of_exp e)
 
 let string_of_catch_header ch =
 	match ch with 
