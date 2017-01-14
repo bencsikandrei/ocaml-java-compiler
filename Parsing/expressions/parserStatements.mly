@@ -44,34 +44,18 @@ selectStmt:
 
 /* switch blocks */
 switchBlock:
-	LCURL RCURL { ST_Empty } /* Empty */
-	| sbsgs=switchBlockStmtGroups { ST_Block(sbsgs) } /* sw_block */
-	| LCURL sbsgs=switchBlockStmtGroups RCURL { ST_Block(sbsgs) } /* sw_block */
+	LCURL RCURL { ST_Empty }
+	| sbsgs=switchBlockStmtGroups { ST_Block(sbsgs) } 
+	| LCURL sbsgs=switchBlockStmtGroups RCURL { ST_Block(sbsgs) }
 ;
 
 switchBlockStmtGroups:
 	sbsg=switchBlockStmtGroup { []@[sbsg] }
-	| sbsgs=switchBlockStmtGroups sbsg=switchBlockStmtGroup { sbsgs@[sbsg] } /* concatenate two lists @ */
+	| sbsgs=switchBlockStmtGroups sbsg=switchBlockStmtGroup { sbsgs@[sbsg] }
 ;
-
-(* 
-statementCase:
-	es=emptyStmt { ST_empty }
-	/*
-	| ls=labelStmt { ls }
-	| ass=assertStmt { ass }
-	| exs=expressionStmt SEMI { exs }
- 	| ss=selectStmt { ss }
- 	*/
-	| js=jumpStmt { js }
-	/* | is=iterStmt { is }
-	| gs=guardingStmt { gs } */
-;
-*)
 
 switchBlockStmtGroup:
-	sls=switchLabels bss=block { ST_Case(sls,bss) } /* nonempty_list  case_block */
-	/* | sls=switchLabels bss=statementCase { ST_empty (* ST_case(sls,bss) *) } */
+	sls=switchLabels bss=block { ST_Case(sls,bss) }
 ;
 
 switchLabels:
@@ -91,7 +75,7 @@ jumpStmt:
     | CONTINUE id=IDENTIFIER SEMI { ST_Continue(id) }
 	| CONTINUE SEMI { ST_Continue("") }
 	| RETURN e=expression SEMI { ST_Return(e) }
-	| RETURN SEMI { ST_Return(EX_Empty) } /* changed to empty */ 
+	| RETURN SEMI { ST_Return(EX_Empty) } 
 	| THROW e=expression SEMI { ST_Throw(e) }
 ;
 
@@ -101,7 +85,6 @@ iterStmt:
 	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { ST_For(fi,fe,fin, s) }
 	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { ST_For(fi,fe,[],s) } 
 	| FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { ST_Efor(fvo,e,s) }
-	/* TODO add a foreach */
 ;
 
 forInit: 
@@ -111,7 +94,7 @@ forInit:
 
 forExpr: 
 	e=expression SEMI { e }
-	| SEMI { EX_Empty } /* changed to empty */
+	| SEMI { EX_Empty }
 ;
 
 forIncr: 
@@ -119,8 +102,8 @@ forIncr:
 ;
 
 forVarOpt:
-	/* ts=types id=IDENTIFIER { Enhanced_for(ts,id) } */
 	ms=modifiers ts=types id=IDENTIFIER { Enhanced_for(Some(ms),ts,id) }
+	| ts=types id=IDENTIFIER { Enhanced_for(None,ts,id) }
 ;
 
 expressionStmts:
