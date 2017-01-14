@@ -176,6 +176,7 @@ let string_of_literal x =
 	| L_Boolean(v) -> string_of_bool v
  	| L_Int(v) -> string_of_int v
  	| L_Null -> "null"
+ 	| L_Long(v) -> string_of_int v
 
 let rec string_mul i s =
 	match i with
@@ -207,7 +208,7 @@ let rec string_of_exp exp =
 	| EX_Method_access(e,el) -> (string_of_exp e)^"("^(String.concat "," (List.map string_of_exp el))^")"
 	| EX_Array_alloc(t,elo, io) -> "new "^(string_of_types t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(string_of_int (int_of_option io))
 	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(String.concat "," (List.map string_of_exp el))^"}"
-	| EX_Plain_array_alloc(e,el) -> "inside class print"
+	| EX_Plain_class_alloc(e,el) -> "inside class print"
 	| EX_Class_alloc(t,elo) -> "new "^(string_of_types t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
 	| EX_New_alloc(so, e) -> (string_of_exp (exp_of_option so))^"."^(string_of_exp e) (* dot optional *)
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
@@ -244,8 +245,7 @@ let rec string_of_stmt =
 	| ST_Assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
 	| ST_Var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
 
-
-
+(*  *)
 let print_java_method var = 
 	"\nMethod: "^(print_method_declarator var.jmdeclarator)^
 	"\nReturn type: "^(print_return_type var.jmrtype)^
@@ -254,13 +254,13 @@ let print_java_method var =
 	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
 	"\nBody: "^indent ("\n"^(string_of_stmt var.jmbody));;
 
-(* added this print for inside class *)
 let rec print_inside_class var = match var with
 	|IC_Method(jm) -> (print_java_method jm)
-	|IC_Attribute -> "IC_Attribute"
+	|IC_Attribute(mlo,alt,el) -> (print_list print_modif (list_of_option mlo) " ")^" "^(string_of_allTypes alt)^" "^(print_list string_of_exp el " ")
 	|IC_Class(jc) -> (print_java_class jc)
 	|IC_Semi -> ";"
 	|IC_Empty -> ""
+	|IC_Interface(inter) -> "IC_Interface"
 	
 and print_java_class var =
 	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
