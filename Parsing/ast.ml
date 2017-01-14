@@ -55,6 +55,7 @@ type resultType=
 
 type declaratorId = 
 	|DI_Identifier of string
+	|DI_Args of string * int
 
 type parentName = string*(typeParam list option)
 
