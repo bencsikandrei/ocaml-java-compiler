@@ -83,7 +83,7 @@ plainNewAllocationExpression:
     	| arrall=arrayAllocationExpression LCURL RCURL { arrall }
     	| call=classAllocationExpression LCURL RCURL { call }
     	| arrall=arrayAllocationExpression LCURL arri=arrayInitializers RCURL { EX_Plain_array_alloc(arrall,arri) }
-    	| call=classAllocationExpression LCURL fdec=class_body RCURL { EX_Plain_class_alloc(call,fdec) }
+    	| call=classAllocationExpression LCURL fdec=inside_class_l RCURL { EX_Plain_class_alloc(call,fdec) }
 ;
 
 classAllocationExpression:

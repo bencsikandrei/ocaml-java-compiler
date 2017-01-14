@@ -42,7 +42,7 @@ interface_list:
 	| LCURL bod=inside_class_l RCURL { bod }
 	| LCURL RCURL { [IC_Empty] }
 
-inside_class_l:
+%public inside_class_l:
 	| i=inside_class { i::[] }
 	| i=inside_class l=inside_class_l { i::l }
 
