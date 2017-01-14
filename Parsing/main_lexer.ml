@@ -20,15 +20,17 @@ let test_lexer lexbuf =
 		print_string "\n"
 
 let main () =
-	let cin =
-		if Array.length Sys.argv > 1
-			then open_in Sys.argv.(1)
-		else stdin
-	in
-	let lexbuf = Lexing.from_channel cin in
 	try 
-		while (true) do
-			test_lexer lexbuf
-		done
-	with End_of_file -> exit 0
+		let cin =
+			if Array.length Sys.argv > 1
+				then open_in Sys.argv.(1)
+			else stdin
+		in
+		let lexbuf = Lexing.from_channel cin in
+		try 
+			while (true) do
+				test_lexer lexbuf
+			done
+		with End_of_file -> exit 0
+	with Sys_error(x) -> print_endline(x);exit 0
 let _ = Printexc.print main ()

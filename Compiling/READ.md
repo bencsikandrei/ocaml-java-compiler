@@ -31,7 +31,19 @@ The wildcard match specifies the part of the compiler being tested and is used
 by the script
 
 To add your own classes to auto-testing, you just need to add that .java file to:
+	
 	./classes_testing/test_file
+
+## One file at a time testing
+
+If by change you want to test a file yourself, you can use..
+For the parser:
+
+	python parser.py --file Myclass.java [--mode (file|method|class|expression|statement)] [-v|--verbose]
+
+For the lexer:
+	
+	python parser.py --file Myclass.java
 
 ## History
 
