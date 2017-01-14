@@ -61,26 +61,6 @@ arrayInitializers:
 ;
 /* end variable declarators */
 
-/* Field declarations */
-(*fieldDeclarations: /* inside_class_l equivalent */
-	fdo=fieldDeclarationOptSemi { []@[fdo] }
-    | fds=fieldDeclarations fdo=fieldDeclarationOptSemi { fds@[fdo] }
-;
-
-fieldDeclarationOptSemi:
-	fd=fieldDeclaration { EX_Field_decl(fd,0) }
-    | fd=fieldDeclaration sc=semiColons { EX_Field_decl(fd,sc) }
-;
-
-fieldDeclaration: /* inside_class equivalent */
-	fvd=fieldVariableDeclaration SEMI { fvd } /* did not add the ; */
-	| md=javaMethod { FF_JavaMethod(md) }
-	/*| cd=constructorDeclaration {  } */
-	| STATIC bl=block { FF_Block(Some("static"),bl) }
-    | bl=block { FF_Block(Some(""),bl) }
-    /*| td=typeDeclaration {  }*/
-;*)
-
 %public fieldVariableDeclaration:
 	mods=modifiers t=allTypes vds=variableDeclarators { IC_Attribute } /* (Some(mods),t,vds) */
 	(* | t=allTypes vds=variableDeclarators { IC_Attribute } /*(None,t,vds)*/ *)
@@ -90,7 +70,6 @@ semiColons:
 	SEMI { 1 }
     | sc=semiColons SEMI { 1+sc }
 ;
-/* end field declarations*/
 
 /* allocations */
 newAllocationExpression:
@@ -133,6 +112,33 @@ dimExpr:
 ;
 /* end allocations */
 
+/* start access */
+arrayAccess: 
+	qn=qualifiedName LBRAC e=expression RBRAC { EX_Array_access(EX_QualifiedName(qn),e) }
+	| cp=complexPrimary LBRAC e=expression RBRAC { EX_Array_access(cp,e) }
+;
+
+fieldAccess:
+ 	njn=notJustName DOT id=IDENTIFIER { EX_Field_access(njn, Some(Identifier(id))) }
+	| rpe=realPostfixExpression DOT id=IDENTIFIER { EX_Field_access(rpe, Some(Identifier(id))) }
+    | qn=qualifiedName DOT THIS { EX_Field_access(EX_QualifiedName(qn), Some(Identifier("this "))) }
+    | qn=qualifiedName DOT CLASS { EX_Field_access(EX_QualifiedName(qn), Some(Identifier("class "))) }
+    | pt=primitiveType DOT CLASS { EX_Field_access(EX_Primitive(pt, None), Some(Identifier("class "))) }
+;
+
+methodCall: 
+	ma=methodAccess LPAR al=argumentList RPAR { EX_Method_access(ma,al)}
+	| ma=methodAccess LPAR RPAR { EX_Method_access(ma, []) }
+;
+
+methodAccess:
+	cpnp=complexPrimaryNoParenthesis { cpnp }
+	| sn=specialName { Identifier(sn) }
+	| qn=qualifiedName { EX_QualifiedName(qn) }
+;
+/* end access */
+
+/* start basic components */
 %public primaryExpression:
 	qn=qualifiedName { P_Qualified(qn) }
 	| njs=notJustName { P_NotJustName(njs) }
@@ -143,7 +149,6 @@ dimExpr:
 	| all=newAllocationExpression { all }
 	| cpri=complexPrimary { cpri }
 ;
-/* end types */
 
 complexPrimary:
 	LPAR ex=expression RPAR { ex }
@@ -163,35 +168,12 @@ complexPrimary:
 	| mc=methodCall { mc }
 ;
 
-arrayAccess
-	: qn=qualifiedName LBRAC e=expression RBRAC { EX_Array_access(EX_QualifiedName(qn),e) }
-	| cp=complexPrimary LBRAC e=expression RBRAC { EX_Array_access(cp,e) }
-	;
-
-fieldAccess
-	: njn=notJustName DOT id=IDENTIFIER { EX_Field_access(njn, Some(Identifier(id))) }
-	| rpe=realPostfixExpression DOT id=IDENTIFIER { EX_Field_access(rpe, Some(Identifier(id))) }
-    | qn=qualifiedName DOT THIS { EX_Field_access(EX_QualifiedName(qn), Some(Identifier("this "))) }
-    | qn=qualifiedName DOT CLASS { EX_Field_access(EX_QualifiedName(qn), Some(Identifier("class "))) }
-    | pt=primitiveType DOT CLASS { EX_Field_access(EX_Primitive(pt, None), Some(Identifier("class "))) }
-	;
-
-methodCall
-	: ma=methodAccess LPAR al=argumentList RPAR { EX_Method_access(ma,al)}
-	| ma=methodAccess LPAR RPAR { EX_Method_access(ma, []) }
-	;
-
-methodAccess
-	: cpnp=complexPrimaryNoParenthesis { cpnp }
-	| sn=specialName { Identifier(sn) }
-	| qn=qualifiedName { EX_QualifiedName(qn) }
-	;
-
 specialName:
 	THIS { "this" }
 	| SUPER { "super" }
 	/* | NULLLIT { "null" } */
 ;
+/* end basic components */
 
 %%
 let parse_error s = 
