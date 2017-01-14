@@ -69,7 +69,8 @@ and removeMultiLineComment str=
 		let tail = String.sub str 1 ((String.length str) -1) in	
 		match c with 
 		|'*' -> if (String.length tail > 1) then let c2=String.get tail 0 in if(c2='/') then removeComments (String.sub str 2 ((String.length str) -2)) else removeMultiLineComment tail else  ""
-		| _ -> removeMultiLineComment tail;;
+		| '\n' -> "\n"^(removeMultiLineComment tail)
+		| _ -> " "^removeMultiLineComment tail;;
 
 
 let read_lines name =

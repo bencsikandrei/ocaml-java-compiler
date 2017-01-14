@@ -256,17 +256,49 @@ let print_java_method var =
 	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
 	"\nBody: "^indent ("\n"^(string_of_stmt var.jmbody));;
 
+let print_parent var = match var with
+	| C_Parent(p,g) -> ( p^"<"^(print_list print_type_param (list_of_option g) ",")^">")
+	| C_Object -> ""
+
 let rec print_inside_class var = match var with
-	|IC_Method(jm) -> (print_java_method jm)
-	|IC_Attribute(mlo,alt,el) -> (print_list print_modif (list_of_option mlo) " ")^" "^(string_of_allTypes alt)^" "^(print_list string_of_exp el " ")
-	|IC_Class(jc) -> (print_java_class jc)
-	|IC_Semi -> ";"
-	|IC_Empty -> ""
-	|IC_Interface(inter) -> "IC_Interface"
+	| IC_Method(jm) -> (print_java_method jm)
+	| IC_Attribute(mlo,alt,el) -> (print_list print_modif (list_of_option mlo) " ")^" "^(string_of_allTypes alt)^" "^(print_list string_of_exp el " ")
+	| IC_Class(jc) -> (print_java_class jc)
+	| IC_Semi -> ";"
+	| IC_Empty -> ""
+	| IC_Interface(inter) -> (print_interface inter)
 	
 and print_java_class var =
 	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
-	"\nParameters: "^(print_list print_type_param var.ctparam " ")^
 	"\nIdentifier: "^var.cidentifier^
+	"\nType Parameters: "^(print_list print_type_param var.ctparam " ")^
+	"\nParent: "^(print_parent var.cparent)^
 	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
 	"\nBody: "^(print_list print_inside_class var.cbody " ")
+
+and print_fcontent var = match var with
+	| F_Class(c) -> print_java_class c
+	| F_Interface(i) -> print_interface i
+
+and print_inside_interface var = match var with
+	| II_Class(c) -> print_java_class c
+	| II_Interface(i) -> print_interface i
+
+and print_parent_name (a,b) = a^"<"^(print_list print_type_param (list_of_option b) ",")^">"
+
+and print_interface var =
+	"\nModifiers: "^(print_list print_modif var.imodifiers " ")^
+	"\nIdentifier: "^var.iidentifier^
+	"\nType Parameters: "^(print_list print_type_param var.itparam " ")^
+	"\nParents: "^(print_list print_parent_name var.iparent ", ")^
+	"\nBody: "^(print_list print_inside_interface var.ibody " ")
+
+let print_import var =
+	"\nStatic: "^(string_of_bool var.impStatic)^
+	"\nImport: "^(String.concat ", " var.impPack)^
+	"\nAll: "^(string_of_bool var.impAll)
+
+let prit_java_file var =
+	"\nPackage: "^(String.concat ", " var.fPackage)^
+	"\nImports: "^(print_list print_import var.fImports " ")^
+	"\nFile Content: "^(print_list print_fcontent var.fContent " ")
