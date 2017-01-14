@@ -58,7 +58,7 @@ class_method_or_attribute:
 method_or_attribute:
 	| t=type_params_defin j=javaMethod_plain_return { j.jmtparam<-t;IC_Method j }
 	| VOID j=javaMethod_plain { IC_Method j }
-	| fvd=fieldVariableDeclaration SEMI { fvd }
+	| fvd=fieldVariableDeclaration { fvd }
 	| t=allTypes j=javaMethod_plain { j.jmrtype<-RT_Type t; IC_Method j }
 
 %public j_class_plain:

@@ -137,16 +137,14 @@ type literal =
 	| L_Double of float
 	| L_Char of char
 	| L_Boolean of bool
+	| L_Long of int
 	| L_Null
 
 type enhanced_for =
 	| Enhanced_for of modifier list option * types * string
 
 
-
 (* Clases and methods *)
-
-
 type javaMethod={
 	mutable jmmodifiers: modifier list;
 	mutable jmtparam: typeParam list; 	
@@ -156,7 +154,6 @@ type javaMethod={
 	jmbody: statement;
 }
 
-
 and javaClass={
 	mutable cmodifiers: modifier list;
 	cidentifier: string;
@@ -165,9 +162,10 @@ and javaClass={
 	cinterfaces: string list; (*TODO*)
 	cbody: insideClass list;
 }
+
 and insideClass=
 	| IC_Method of javaMethod
-	| IC_Attribute (* of modifier list option * allTypes * expression list NEEDS Expressions AST *)
+	| IC_Attribute of modifier list option * allTypes * expression list
 	| IC_Class of javaClass
 	| IC_Semi
 	| IC_Empty
@@ -185,9 +183,8 @@ and insideInterface=
 	| II_Class of javaClass
 	| II_Interface of javaInterface
 
+
 (* expressions.ml *)
-
-
 and expression =
 	| Identifier of string
 	| Literal of literal
@@ -218,20 +215,13 @@ and expression =
 	| EX_Var_decl of expression * expression list option
 	| EX_Primary of primaryType
 	| EX_QualifiedName of definedType list
-	| EX_Field_decl of fieldDeclaration * int (* added this *)
 
 and primaryType =
 	| P_Qualified of definedType list
 	| P_NotJustName of expression
 
-(* equivalent insideClass *)
-and fieldDeclaration = (* equivalent to insideClass *)
-	| FF_JavaMethod of javaMethod (* HAVE TO USE DEFINITIONS HERE*)
-	| FF_Var_decl of modifier list option * allTypes * expression list (* same as above *)
-	| FF_Block of string option * statement
-
 and catch_header =
-	| Catch_header of types * expression (* changed from string to expression *)
+	| Catch_header of types * expression
 
 and statement = 
 	| ST_Empty 
