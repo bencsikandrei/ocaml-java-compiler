@@ -3,7 +3,8 @@ open JavaParser
 open Lexing 
 open Ast
 open Array
-open Printing 
+open Printing
+open Preprocess 
 
 let position lexbuf=
 	let pos=lexeme_start_p lexbuf in 
@@ -30,6 +31,11 @@ let compile mode file vervose =
 		print_string ("File "^file^" is being treated! ");
 		try
 		let input_file = open_in file in
+		let tmp_file = open_out "./build/tmp" in 
+		output_string tmp_file (preprocess input_file );
+		close_out tmp_file;
+		let input_file = open_in "./build/tmp" in
+
 		let lexbuf = Lexing.from_channel input_file in
 			try
 				print( (fakeDict mode) nexttoken lexbuf ) vervose;

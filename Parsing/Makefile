@@ -27,10 +27,13 @@ $(MYBUILD)/printing.cmo:
 $(MYBUILD)/ast.cmo:
 	cd $(MYBUILD); ocamlc -c ast.ml
 
-main: $(MYBUILD) $(MYBUILD)/ast.cmo $(MYBUILD)/printing.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml $(MYBUILD)/main_lexer.ml
+$(MYBUILD)/preprocess.cmo:
+	cd $(MYBUILD); ocamlc -c preprocess.ml	
+
+main: $(MYBUILD) $(MYBUILD)/preprocess.cmo $(MYBUILD)/ast.cmo $(MYBUILD)/printing.cmo $(MYBUILD)/javaParser.cmo $(MYBUILD)/javaLexer.cmo $(MYBUILD)/main.ml $(MYBUILD)/main_lexer.ml
 	cd $(MYBUILD); ocamlc -c main.ml
 	cd $(MYBUILD); ocamlc -c main_lexer.ml
-	cd $(MYBUILD); ocamlc -pp "#load" ast.cmo  printing.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
+	cd $(MYBUILD); ocamlc -pp "#load" preprocess.cmo ast.cmo  printing.cmo javaParser.cmo javaLexer.cmo main.cmo -o main
 	cd $(MYBUILD); ocamlc -pp "#load" ast.cmo  printing.cmo javaParser.cmo javaLexer.cmo main_lexer.cmo -o main_lexer
 	
 
@@ -44,6 +47,7 @@ $(MYBUILD):
 	cp printing.ml $(MYBUILD)/
 	cp ./tokens.mly $(MYBUILD)/
 	cp ./javaLexer.mll $(MYBUILD)/
+	cp ./preprocess.ml $(MYBUILD)/
 
 
 clean:
