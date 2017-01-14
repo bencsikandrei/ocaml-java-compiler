@@ -32,7 +32,13 @@ and check str =
 		let c = String.make 1 (String.get str 0) in
 		let tail = String.sub str 1 ((String.length str) -1) in
 		match c with
-		| "<" -> let (be,en)=(check_gen tail "") in be ^ (check en)
+		| "<" -> if (String.length tail > 1) then 
+					let c2=String.get tail 0 in 
+					match c2 with 
+						|'<' -> "<<"^(String.sub str 2 ((String.length str) -2))
+						| _ -> let (be,en)=(check_gen tail "") in be ^ (check en)
+				else 
+					let (be,en)=(check_gen tail "") in be ^ (check en)
 		| _  -> c^(check tail)
 
 
