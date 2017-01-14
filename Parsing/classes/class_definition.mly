@@ -7,7 +7,7 @@
 
 %%
 javaClass:
-	| c=j_class EOF { STR "" } /* for testing */
+	| c=j_class EOF { JCLASS c } /* for testing */
 
 %public j_class:
 	| modif=option(modifiers) CLASS id=IDENTIFIER 
@@ -49,7 +49,7 @@ inside_class_l:
 inside_class:
 	| m=modifiers cma=class_method_or_attribute { match cma with | IC_Method me -> me.jmmodifiers<-m; cma |IC_Class c -> c.cmodifiers<-m; cma | _ -> cma }
 	| 			  cma=class_method_or_attribute { cma }
-	| i=j_interface { IC_Interface i }
+	/*| i=j_interface { IC_Interface i }*/
 
 class_method_or_attribute:
 	| m=method_or_attribute { m }
