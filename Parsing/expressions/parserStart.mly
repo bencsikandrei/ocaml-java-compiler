@@ -159,6 +159,7 @@ complexPrimary:
 	stlit=STRLIT { Literal(L_Str stlit) }
 	| blit=BOOLEANLIT { Literal(L_Boolean blit) }
 	| ilit=INTLIT { Literal(L_Int ilit) }
+	| llit=LONGLIT { Literal(L_Long llit) }
 	| clit=CHARLIT { Literal(L_Char clit) }
 	| dlit=DOUBLELIT { Literal(L_Double dlit) }
 	| flit=FLOATLIT { Literal(L_Float flit) }
