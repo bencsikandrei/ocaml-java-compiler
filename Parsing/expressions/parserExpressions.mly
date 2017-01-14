@@ -2,10 +2,13 @@
 	open Expressions
 %}
 
-%start expression 
-%type < Expressions.expression > expression
+%start anExpression 
+%type < abstractSyntaxTree > anExpression
 
 %%
+
+anExpression:
+	e=expression EOF {EXPR e}
 
 /* expressions */
 %public expression: 

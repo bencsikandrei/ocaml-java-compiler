@@ -171,6 +171,7 @@ type abstractSyntaxTree =
 	| JML of javaMethod list
 	| STR of string
 	| STATE of statement
+	| EXPR of expression
 
 
 

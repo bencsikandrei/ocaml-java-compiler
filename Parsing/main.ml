@@ -16,13 +16,15 @@ let print arg vervose=
 		match arg with
 			| STR s -> print_string (s);
 			| JML j -> print_string (Printing.print_list print_java_method j "\n");
-			| STATE s -> print_string ( string_of_stmt s );;
+			| STATE s -> print_string ( string_of_stmt s );
+			| EXPR e -> print_string (string_of_exp e)
 
 let fakeDict str= match str with 
 	| "file" -> javaFile
 	| "method" -> javaMethods 
 	| "class" -> javaClass
 	| "statement" -> compilationUnit
+	| "expression" -> anExpression
 	| _ -> javaFile;;
 
 let compile mode file vervose =
