@@ -1,6 +1,6 @@
 {
 	/* simple whiles */
-	while(a<b) {
+	while(a>b) {
 		a++;b--;
 	}
 	
@@ -26,7 +26,7 @@
 	do {
 		myclass.callMethod();
 		this.something();
-	} while (i < 4);
+	} while (i >= 4);
 	// return buf.reverse().toString();
 	
 }

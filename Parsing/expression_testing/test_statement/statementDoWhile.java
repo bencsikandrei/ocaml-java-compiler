@@ -8,7 +8,7 @@
 	do {
 		myclass.callMethod();
 		this.something();
-	} while (i < 4);
+	} while (i > 4);
 	// return buf.reverse().toString();
 	
 }

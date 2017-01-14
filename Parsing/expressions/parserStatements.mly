@@ -83,9 +83,11 @@ iterStmt:
 	WHILE LPAR e=expression RPAR s=statement { ST_While(e,s) }
 	| DO s=statement WHILE LPAR e=expression RPAR SEMI { ST_Do_while((List.append [] [s]),e) } 
 	| FOR LPAR fi=forInit fe=forExpr fin=forIncr RPAR s=statement { ST_For(fi,fe,fin, s) }
-	| FOR LPAR fi=forInit fe=forExpr RPAR s=statement { ST_For(fi,fe,[],s) } 
-	| FOR LPAR fvo=forVarOpt COL e=expression RPAR s=statement { ST_Efor(fvo,e,s) }
+	| FOR LPAR fi=forInit fe=forExpr 			 RPAR s=statement { ST_For(fi,fe,[],s) } 
+	| FOR LPAR fvo=forVarOpt COL e=expression 	 RPAR s=statement { ST_Efor(fvo,e,s) }
 ;
+
+
 
 forInit: 
 	lvds=localVariableDeclStmt { []@[lvds] }
@@ -102,8 +104,8 @@ forIncr:
 ;
 
 forVarOpt:
-	ms=modifiers ts=types id=IDENTIFIER { Enhanced_for(Some(ms),ts,id) }
-	| ts=types id=IDENTIFIER { Enhanced_for(None,ts,id) }
+	ms=modifiers ts=allTypes id=IDENTIFIER { Enhanced_for(Some(ms),ts,id) }
+	| ts=allTypes id=IDENTIFIER { Enhanced_for(None,ts,id) }
 ;
 
 expressionStmts:

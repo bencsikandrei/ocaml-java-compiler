@@ -137,7 +137,9 @@ let print_modif modifier= match modifier with
 
 let print_vm var = match var with
 	|VM_Final -> "final"
-	|VM_Annot a -> print_annot a;;
+	|VM_Annot a -> print_annot a
+	|VM_Transient -> "transient"
+	|VM_Volatile -> "volatile"
 
 let print_type_param var = match var with
 	| TPL_Ident s -> s
@@ -162,7 +164,7 @@ let print_method_declarator var = var.mname^"\n"^(indent (print_list print_forma
   
 let string_of_enhanced_for ef =
 	match ef with
-	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_types t)^" "^s
+	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
 
 let string_of_literal x =
  	match x with

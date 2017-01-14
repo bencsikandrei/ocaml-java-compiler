@@ -40,6 +40,8 @@ type modifier=
 
 type variableModifier =
 	|VM_Final
+	|VM_Volatile
+	|VM_Transient
 	|VM_Annot of annotation;;
 
 type typeParam =
@@ -140,7 +142,7 @@ type literal =
 	| L_Null
 
 type enhanced_for =
-	| Enhanced_for of modifier list option * types * string
+	| Enhanced_for of modifier list option * allTypes * string
 
 
 (* Clases and methods *)
