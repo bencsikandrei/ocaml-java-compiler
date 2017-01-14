@@ -23,8 +23,6 @@ emptyStmt:
 
 labelStmt:
 	id=IDENTIFIER COL { ST_Label(id) }
-	/* | CASE ce=constantExpression COL { "case "^ce^": " }
-	| DEFAULT COL { "default : " } */
 ;
 
 assertStmt:
@@ -87,8 +85,6 @@ iterStmt:
 	| FOR LPAR fvo=forVarOpt COL e=expression 	 RPAR s=statement { ST_Efor(fvo,e,s) }
 ;
 
-
-
 forInit: 
 	lvds=localVariableDeclStmt { []@[lvds] }
 	| SEMI { ST_Empty::[] }
@@ -116,17 +112,16 @@ expressionStmts:
 guardingStmt: 
 	modifiers LPAR e=expression RPAR s=statement { ST_Synch(e,s) } 
 	| TRY b=block f=finally { ST_Try(b,[],f) }
-	| TRY b=block c=catch { ST_Try(b,[]@[c],ST_Empty) }
-	| TRY b=block c=catch f=finally { ST_Try(b,[]@[c],f) }
+	| TRY b=block c=catches { ST_Try(b,c,ST_Empty) }
+	| TRY b=block c=catches f=finally { ST_Try(b,c,f) }
 ;
 
 /* catch */
-(* 
 catches: 
-	c=catch { c } 
-	| cs=catches c=catch { cs^c }
+	c=catch { [c] } 
+	| cs=catches c=catch { cs@[c] }
 ;
-*)
+
 catch: 
 	ch=catchHeader b=block { ST_Catch(ch,b) }
 ;
