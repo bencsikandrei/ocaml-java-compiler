@@ -70,7 +70,7 @@ type literal =
 	| L_Null
 
 type enhanced_for =
-	| Enhanced_for of types * string
+	| Enhanced_for of modifier list option * types * string
 
 type expression =
 	| Identifier of string
@@ -324,7 +324,7 @@ let string_of_assign = function
   
 let string_of_enhanced_for ef =
 	match ef with
-	| Enhanced_for(t,s) -> (string_of_types t)^" "^s
+	| Enhanced_for(ml,t,s) -> (Printing.print_list print_modif (list_of_option ml) " ")^(string_of_types t)^" "^s
 
 let string_of_literal x =
  	match x with

@@ -30,7 +30,7 @@ localVariableDeclOrStmt:
 
 %public localVariableDeclStmt:
 	ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(None,ts,vd) }
-	| FINAL ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(Some("final "),ts,vd) }
+	/* | FINAL ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(Some("final "),ts,vd) } */
 ;
 
 /* variable declarators */
@@ -83,7 +83,7 @@ fieldDeclaration: /* inside_class equivalent */
 
 %public fieldVariableDeclaration:
 	mods=modifiers t=allTypes vds=variableDeclarators { IC_Attribute } /* (Some(mods),t,vds) */
-	| t=allTypes vds=variableDeclarators { IC_Attribute } /*(None,t,vds)*/ 
+	(* | t=allTypes vds=variableDeclarators { IC_Attribute } /*(None,t,vds)*/ *)
 ;
 
 semiColons:
