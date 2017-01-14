@@ -54,7 +54,11 @@ type resultType=
 type declaratorId = 
 	|DI_Identifier of string
 
-type body={expr:string};;
+type parentName = string*(typeParam list option)
+
+type parentClass=
+	| C_Parent of parentName
+	| C_Object
 
 type formalParameter = {
 	pmodif: variableModifier list; 
@@ -68,51 +72,8 @@ type methodDeclarator= {
 	mparams: formalParameter list
 }
 
-type javaMethod={
-	mutable jmmodifiers: modifier list;
-	mutable jmtparam: typeParam list; 	
-	mutable jmrtype: resultType;
-	jmdeclarator: methodDeclarator;
-	jmthrows: jexception list;
-	jmbody: body;
-}
-
-type parentName = string*(typeParam list option)
-
-type parentClass=
-	| C_Parent of parentName
-	| C_Object
 
 
-type javaClass={
-	mutable cmodifiers: modifier list;
-	cidentifier: string;
-	ctparam: typeParam list;
-	cparent: parentClass;
-	cinterfaces: string list; (*TODO*)
-	cbody: insideClass list;
-}
-and insideClass=
-	| IC_Method of javaMethod
-	| IC_Attribute (* of modifier list option * allTypes * expression list NEEDS Expressions AST *)
-	| IC_Class of javaClass
-	| IC_Semi
-	| IC_Empty
-	| IC_Interface of javaInterface
-
-and javaInterface={
-	imodifiers: modifier list;
-	iidentifier: string;
-	itparam: typeParam list;
-	iparent: parentName list;
-	ibody: insideInterface list;
-}
-
-and insideInterface=
-	| II_Class of javaClass
-	| II_Interface of javaInterface
-
-(* expressions.ml *)
 (* arithmetic ops *)
 type binop =
 	| BO_Add
@@ -181,7 +142,53 @@ type literal =
 type enhanced_for =
 	| Enhanced_for of modifier list option * types * string
 
-type expression =
+
+
+(* Clases and methods *)
+
+
+type javaMethod={
+	mutable jmmodifiers: modifier list;
+	mutable jmtparam: typeParam list; 	
+	mutable jmrtype: resultType;
+	jmdeclarator: methodDeclarator;
+	jmthrows: jexception list;
+	jmbody: statement;
+}
+
+
+and javaClass={
+	mutable cmodifiers: modifier list;
+	cidentifier: string;
+	ctparam: typeParam list;
+	cparent: parentClass;
+	cinterfaces: string list; (*TODO*)
+	cbody: insideClass list;
+}
+and insideClass=
+	| IC_Method of javaMethod
+	| IC_Attribute (* of modifier list option * allTypes * expression list NEEDS Expressions AST *)
+	| IC_Class of javaClass
+	| IC_Semi
+	| IC_Empty
+	| IC_Interface of javaInterface
+
+and javaInterface={
+	imodifiers: modifier list;
+	iidentifier: string;
+	itparam: typeParam list;
+	iparent: parentName list;
+	ibody: insideInterface list;
+}
+
+and insideInterface=
+	| II_Class of javaClass
+	| II_Interface of javaInterface
+
+(* expressions.ml *)
+
+
+and expression =
 	| Identifier of string
 	| Literal of literal
 	| EX_Empty

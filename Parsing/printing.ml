@@ -98,7 +98,6 @@ let print_return_type var = match var with
 let print_declaratorId var = match var with 
 	|DI_Identifier s -> s
 
-let print_body var = var.expr;;
 
 let print_formal_parameter var = 
 	let el = match var.pelipsis with | true -> "..." | false -> "" in
@@ -107,28 +106,9 @@ let print_formal_parameter var =
 
 let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
 
-let print_java_method var = 
-	"\nMethod: "^(print_method_declarator var.jmdeclarator)^
-	"\nReturn type: "^(print_return_type var.jmrtype)^
-	"\nModifiers: "^(print_list print_modif var.jmmodifiers " ")^
-	"\nGenerics: "^(print_list print_type_param var.jmtparam " ")^
-	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
-	"\nBody: "^print_body var.jmbody;;
 
-(* added this print for inside class *)
-let rec print_inside_class var = match var with
-	|IC_Method(jm) -> (print_java_method jm)
-	|IC_Attribute -> "IC_Attribute"
-	|IC_Class(jc) -> (print_java_class jc)
-	|IC_Semi -> ";"
-	|IC_Empty -> ""
-	
-and print_java_class var =
-	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
-	"\nParameters: "^(print_list print_type_param var.ctparam " ")^
-	"\nIdentifier: "^var.cidentifier^
-	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
-	"\nBody: "^(print_list print_inside_class var.cbody " ")
+
+
 (* end of my add *)
 
 (* get string of operations *)
@@ -278,3 +258,28 @@ let rec string_of_stmt =
 	| ST_Finally(st) -> "/* ST_finally */\nfinally "^(string_of_stmt st)
 	| ST_Assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
 	| ST_Var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
+
+
+
+let print_java_method var = 
+	"\nMethod: "^(print_method_declarator var.jmdeclarator)^
+	"\nReturn type: "^(print_return_type var.jmrtype)^
+	"\nModifiers: "^(print_list print_modif var.jmmodifiers " ")^
+	"\nGenerics: "^(print_list print_type_param var.jmtparam " ")^
+	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
+	"\nBody: "^indent ("\n"^(string_of_stmt var.jmbody));;
+
+(* added this print for inside class *)
+let rec print_inside_class var = match var with
+	|IC_Method(jm) -> (print_java_method jm)
+	|IC_Attribute -> "IC_Attribute"
+	|IC_Class(jc) -> (print_java_class jc)
+	|IC_Semi -> ";"
+	|IC_Empty -> ""
+	
+and print_java_class var =
+	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
+	"\nParameters: "^(print_list print_type_param var.ctparam " ")^
+	"\nIdentifier: "^var.cidentifier^
+	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
+	"\nBody: "^(print_list print_inside_class var.cbody " ")
