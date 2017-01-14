@@ -10,19 +10,21 @@ let test_parser lexbuf =
 		print_endline (Expressions.string_of_stmt res)
 	with
 	| JavaException(s) -> print_endline s 
-
+	| End_of_file -> exit 0
+	
 let test_lexer lexbuf = 
 	let res = JavaLexer.nexttoken lexbuf in
-	if res = EOF then raise End_of_file
-	else 
-	print_string "Reading token in line ";
-	print_int lexbuf.lex_curr_p.pos_lnum;
-	print_string " : ";
-	print_string "character ";
-	print_int (lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol);
-	print_string " : ";
-	JavaLexer.print_token res;
-	print_string "\n"
+	if (res = EOF) 
+		then raise End_of_file
+	else
+		print_string "Reading token in line ";
+		print_int lexbuf.lex_curr_p.pos_lnum;
+		print_string " : ";
+		print_string "character ";
+		print_int (lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol);
+		print_string " : ";
+		JavaLexer.print_token res;
+		print_string "\n"
 
 let main () =
 	let lp = 
@@ -36,11 +38,12 @@ let main () =
 		else stdin
 	in
 	let lexbuf = Lexing.from_channel cin in
-	try 	
-
+	try 
+		while (true) do
 		if lp = "l" then
 			test_lexer lexbuf
 		else 
 			test_parser lexbuf
+		done
 	with End_of_file -> exit 0
 let _ = Printexc.print main ()
