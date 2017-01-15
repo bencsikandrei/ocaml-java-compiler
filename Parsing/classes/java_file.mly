@@ -45,5 +45,5 @@ file_content_l:
 file_content:
 	| c=j_class_plain option(semiColons) { F_Class c }
 	| i=j_interface option(semiColons) { F_Interface i }
-	| m=modifiers c=j_class_plain { c.cmodifiers <- m ;F_Class  c }
-	| m=modifiers i=j_interface {let i = match i with |JI_IN i-> i.imodifiers<-m; JI_IN i | JI_AN i -> i.iaModifiers <- m; JI_AN i in F_Interface i }
+	| m=modifiers c=j_class_plain option(semiColons) { c.cmodifiers <- m ;F_Class  c }
+	| m=modifiers i=j_interface option(semiColons) {let i = match i with |JI_IN i-> i.imodifiers<-m; JI_IN i | JI_AN i -> i.iaModifiers <- m; JI_AN i in F_Interface i }
