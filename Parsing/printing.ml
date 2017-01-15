@@ -169,7 +169,7 @@ let string_of_exception e=
   
 let string_of_enhanced_for ef =
 	match ef with
-	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
+	| Enhanced_for(ml,t,s) -> (print_list print_vm (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
 
 let string_of_literal x =
  	match x with
@@ -225,30 +225,47 @@ let string_of_catch_header ch =
 
 let rec string_of_stmt =
 	function
-	| ST_Empty -> "/* ST_empty */"
-	| ST_Label x -> "\n"^x
-	| ST_Block(stl) -> (String.concat "\n" (List.map string_of_stmt stl))
-	| ST_Expression e -> "\n"^string_of_exp e
-	| ST_If(e, st1, st2) -> "\nif ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
-	| ST_Switch(e, sb) -> "\nswitch ("^(string_of_exp e)^") "^(string_of_stmt sb)
-	| ST_While(e, st) ->  "\nwhile ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
+	| ST_Empty -> ""
+	| ST_Label x -> "\n"^x^": "
+	| ST_Block(stl) -> "\nSTART Block:\n"^
+						(String.concat "\n" (List.map string_of_stmt stl))^
+						"\nEND Block\n"
+	| ST_Expression e -> (string_of_exp e)
+	| ST_If(e, st1, st2) -> "if ("^(string_of_exp e)^") "^
+							(string_of_stmt st1)^
+							(else_or_noelse st2)^
+							" fi"
+	| ST_Switch(e, sb) -> "switch ("^(string_of_exp e)^") "^(string_of_stmt sb)
+	| ST_While(e, st) ->  "while ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
 	| ST_Case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(print_list string_of_stmt st ";") 
-	| ST_For(e1, e2, e3, st) -> "\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^" "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
-	| ST_Efor(ef,e,s) -> "\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
-	| ST_Do_while(st, e) -> "\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
-	| ST_Break(e) -> "\nbreak "^e
-	| ST_Continue(e) -> "\ncontinue "^e
-	| ST_Return(e) -> "\nreturn "^(string_of_exp e)
-	| ST_Throw(e) -> "\nthrow "^(string_of_exp e)
-	| ST_Lvar_decl(e) -> "\n"^(string_of_exp e)
-	| ST_Synch(e1,e2) -> "\nsynchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
-	| ST_Try(st1,stl,st2) ->  "\ntry {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
-	| ST_Catch(ch, st) ->  "\ncatch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
-	| ST_Catches(stl) -> "\n"^(String.concat "; " (List.map string_of_stmt stl))
-	| ST_Finally(st) -> "\nfinally "^(string_of_stmt st)
-	| ST_Assert(e1,e2) -> "\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
-	| ST_Var_decl(so,t, e) -> "\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
+	| ST_For(e1, e2, e3, st) -> "for ("^
+								(String.concat "; " (List.map string_of_stmt e1))^
+								" "^
+								(string_of_exp e2)^
+								"; "^
+								(String.concat "; " (List.map string_of_stmt e3))^
+								")\n"
+								^(string_of_stmt st)
+	| ST_Efor(ef,e,s) -> "for("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
+	| ST_Do_while(st, e) -> "do {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
+	| ST_Break(e) -> "break "^e
+	| ST_Continue(e) -> "continue "^e
+	| ST_Return(e) -> "return "^(string_of_exp e)
+	| ST_Throw(e) -> "throw "^(string_of_exp e)
+	| ST_Lvar_decl(e) -> ""^(string_of_exp e)
+	| ST_Synch(e1,e2) -> "synchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
+	| ST_Try(st1,stl,st2) ->  "try {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
+	| ST_Catch(ch, st) ->  "catch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
+	| ST_Catches(stl) -> ""^(String.concat "; " (List.map string_of_stmt stl))
+	| ST_Finally(st) -> "finally "^(string_of_stmt st)
+	| ST_Assert(e1,e2) -> "assert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
+	| ST_Var_decl(so,t, e) -> (str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
 
+and else_or_noelse st =
+	let stri = (string_of_stmt (stms_of_option st)) in
+	match stri with
+	| "" -> ""
+	| _ -> " else "^stri
 (*  *)
 let print_java_method var = 
 	"\nMethod: "^(print_method_declarator var.jmdeclarator)^
@@ -264,7 +281,7 @@ let print_parent var = match var with
 
 let rec print_inside_class var = match var with
 	| IC_Method(jm) -> (print_java_method jm)
-	| IC_Attribute(mlo,alt,el) -> (print_list print_modif (list_of_option mlo) " ")^" "^(string_of_allTypes alt)^" "^(print_list string_of_exp el " ")
+	| IC_Attribute(alt,el) -> (string_of_allTypes alt)^" "^(print_list string_of_exp el " ")
 	| IC_Class(jc) -> (print_java_class jc)
 	| IC_Semi -> ";"
 	| IC_Empty -> ""
@@ -277,7 +294,7 @@ and print_java_class var =
 	"\nType Parameters: "^(print_list print_type_param var.ctparam " ")^
 	"\nParent: "^(print_parent var.cparent)^
 	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
-	"\nBody: "^(print_list print_inside_class var.cbody " ")
+	"\nBody: "^(print_list print_inside_class var.cbody " ")^" -----------------\n"
 
 and print_fcontent var = match var with
 	| F_Class(c) -> print_java_class c
@@ -286,6 +303,7 @@ and print_fcontent var = match var with
 and print_inside_interface var = match var with
 	| II_Class(c) -> print_java_class c
 	| II_Interface(i) -> print_interface i
+	| II_Method(m) -> print_java_method m
 
 and print_parent_name (a,b) = a^"<"^(print_list print_type_param (list_of_option b) ",")^">"
 
@@ -304,4 +322,4 @@ let print_import var =
 let prit_java_file var =
 	"\nPackage: "^(String.concat ", " var.fPackage)^
 	"\nImports: "^(print_list print_import var.fImports " ")^
-	"\nFile Content: "^(print_list print_fcontent var.fContent " ")
+	"\nFile Content: "^(print_list print_fcontent var.fContent " ")^"\n\n"
