@@ -300,7 +300,6 @@ and print_inside_class var = match var with
 	| IC_Empty -> ""
 	| IC_Interface(inter) -> (print_interface inter)
 	| IC_Static(b) -> (string_of_stmt b)
-	| IC_InterfaceAnoot b -> string_of_annotationTypeDeclaration b
 
 and string_of_annotationTypeDeclaration a = "Annot: "^a.iaName^"\n\tmodifs:\n"^(indent (print_list print_modif a.iaModifiers "\n"))^"\n\tbody:\n"^(indent (print_list string_of_annotationTypeElementDeclaration a.ibody "\n"))
 
@@ -330,12 +329,16 @@ and print_inside_interface var = match var with
 	| II_Method(m) -> print_java_method m
 	| II_Field(st) -> string_of_stmt st
 
-and print_interface var =
+and print_interface_norm var =
 	"\nModifiers: "^(print_list print_modif var.imodifiers " ")^
 	"\nIdentifier: "^var.iidentifier^
 	"\nType Parameters: "^(print_list print_type_param var.itparam " ")^
 	"\nParents: "^(print_list print_parent_name var.iparent ", ")^
 	"\nBody: "^(print_list print_inside_interface var.ibody " ")
+
+and print_interface var = match var with
+	|JI_IN var -> print_interface_norm var
+	|JI_AN var -> string_of_annotationTypeDeclaration var
 
 and print_parent var = match var with
 	| C_Parent(p,g) -> ( p^"<"^(print_list print_type_param (list_of_option g) ",")^">")
