@@ -225,6 +225,7 @@ and annotationTED = {
 
 
 
+
 and javaInterfaceStruct={
 	mutable imodifiers: modifier list;
 	iidentifier: string;
@@ -314,6 +315,8 @@ and statement =
 	| ST_Finally of statement
 	| ST_Assert of expression * expression option
 	| ST_Var_decl of string option * allTypes * expression list
+	| ST_Local_class of javaClass
+	| ST_Local_interface of javaInterface
 
 type import={
 	impStatic: bool;

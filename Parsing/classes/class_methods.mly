@@ -62,7 +62,7 @@ VariableModifiers:
 
 VariableModifier:
 	|FINAL {VM_Final}
-	|a=Annotation {VM_Annot a} /* If an annotation a on a formal parameter corresponds to an annotation type T, and T has a (meta-)annotation m that corresponds to annotation.Target , then m must have an element whose value is annotation.ElementType.PARAMETER , or a compile-time error occurs */
+(*	|a=Annotation {VM_Annot a} /* If an annotation a on a formal parameter corresponds to an annotation type T, and T has a (meta-)annotation m that corresponds to annotation.Target , then m must have an element whose value is annotation.ElementType.PARAMETER , or a compile-time error occurs */*)
 
 /* throws */
 
@@ -77,8 +77,19 @@ ExceptionType: /* TODO check section 4.3 */
 	|q=qualifiedName { q }
 
 MethodBody:
-	| b=block { b }
+	| LCURL ib=InsideBodyList RCURL { ST_Block ib }
+	| LCURL RCURL { ST_Empty }
 	| SEMI { ST_Empty }
+
+InsideBodyList:
+	ib=InsideBody { [ib] }
+	| ib=InsideBody ibs=InsideBodyList { [ib]@ibs }
+
+InsideBody:
+	| st=statement { st }
+	| lvd=localVariableDeclStmt { lvd }
+	| c=j_class { ST_Local_class c }
+	| i=j_interface { ST_Local_interface i }
 
 %public NotImplMethod:
 	|mm=modifiers 	tp=type_params_defin 	rt=ResultType md=MethodDeclarator th=Throws SEMI option(semiColons) { {jmmodifiers=mm;jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=ST_Empty} }
