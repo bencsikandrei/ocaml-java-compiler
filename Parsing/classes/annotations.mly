@@ -5,10 +5,8 @@
 %%
 
 %public AnnotationTypeDeclarations:
-	|ANOT i=IDENTIFIER b=AnnotationTypeBody { {iaModifiers=[]; iaName=i; ibody=b} }
+	|ANOT INTERFACE i=IDENTIFIER b=AnnotationTypeBody { {iaModifiers=[]; iaName=i; ibody=b} }
 
-AnnotationTypeDeclaration:
-	|m=option(modifiers) ANOT i=IDENTIFIER b=AnnotationTypeBody { let m = match m with | Some m -> m | None ->[] in   {iaModifiers=m; iaName=i; ibody=b} }
 
 AnnotationTypeBody:
 	| LCURL RCURL { [] }
@@ -50,7 +48,8 @@ ElementValue:
 	| e= ElementValueArrayInitializer {EV_Array e} 
 
 ElementValueArrayInitializer:
-	LCURL e=option(ElementValues) option(COMM) RCURL { match e with | Some e -> e | None -> [] }
+	| LCURL RCURL { [] }
+	| LCURL e=ElementValues option(COMM) RCURL { e }
 
 ElementValues:
 	| e=ElementValue {e::[]}

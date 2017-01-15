@@ -7,12 +7,12 @@
 
 %%
 javaClass:
-	| c=j_class EOF { JCLASS c } /* for testing */
+	| c=j_class option(semiColons) EOF { JCLASS c } /* for testing */
 
 %public j_class:
 	| modif=option(modifiers) CLASS id=IDENTIFIER 
 		tp=option(type_params_defin) sup=option(super) 
-		interf=option(interfaces) bod=class_body option(semiColons) { 
+		interf=option(interfaces) bod=class_body { 
 			let modif = match modif with | None -> [] | Some m -> m in
 			let tp = match tp with | None -> [] | Some tp -> tp in
 			let sup = match sup with | None -> C_Object | Some sup -> sup in
@@ -107,7 +107,8 @@ method_or_attribute:
 	| j=javaMethod_plain { IC_Constructor j }
 	| fvd=fieldVariableDeclaration { fvd }
 	| t=allTypes j=javaMethod_plain { j.jmrtype<-RT_Type t; IC_Method j }
-	| i=j_interface { IC_Interface i }
+	| i=j_interface_plain { IC_Interface (JI_IN i) }
+
 
 
 %public j_class_plain:

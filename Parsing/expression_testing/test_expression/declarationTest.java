@@ -1,1 +1,1 @@
-final MyClass cl = new MyClass();
+cl = MyClass()

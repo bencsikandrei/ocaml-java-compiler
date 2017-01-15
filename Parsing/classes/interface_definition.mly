@@ -3,9 +3,10 @@
 %}
 %%
 %public j_interface:
-	| i=interface_plain { JI_IN i }
+	| i=j_interface_plain { JI_IN i }
 	| i=AnnotationTypeDeclarations {JI_AN i }
 
+/*
 normal_interface:
 	| modif=option(modifiers) INTERFACE 
 		id=IDENTIFIER tp=option(type_params_defin) 
@@ -19,8 +20,9 @@ normal_interface:
 				iparent=sup;
 				ibody=bod} 
 		}
+*/
 
-interface_plain:
+%public j_interface_plain:
 	| INTERFACE id=IDENTIFIER tp=option(type_params_defin) 
 		sup=option(super_int) bod=interf_body { 
 			let tp = match tp with | None -> [] | Some tp -> tp in
@@ -50,9 +52,35 @@ interf_member_decls:
 	| l=interf_member_decls d=interf_member_decl { l@[d] }
 
 interf_member_decl:
-	(*| modif=modifiers lvd=localVariableDeclStmt { II_Field(lvd) } /* default public static final attributes that must be initialized */*)
-	| nim=NotImplMethod { II_Method nim }
-	| c=j_class { II_Class c }
-	| i=j_interface { II_Interface i }
+	/*| modif=modifiers lvd=localVariableDeclStmt { II_Field(lvd) }  default public static final attributes that must be initialized */
+	| modifs=modifiers t=tmp {
+		let tmp var= match var with
+			|JI_IN a-> a.imodifiers<-modifs;
+			|JI_AN a-> a.iaModifiers<-modifs;
+		in
+
+		match t with 
+		| II_Class a -> a.cmodifiers<-modifs; t
+	 	| II_Method a -> a.jmmodifiers<-modifs; t
+		| II_Interface a ->  tmp a; t
+		| _ -> t
+		
+	
+	 }
+	| t=tmp {t}
+
+tmp:
+	| t=type_params_defin m=tmp2 { 
+		match m with 
+		| II_Class a -> a.ctparam<-t;m
+	 	| II_Method a -> a.jmtparam<-t;m
+	 	| _ ->m
+	 }
+	| m=tmp2 {m}
+	| i=j_interface { II_Interface  i }
+
+tmp2:
+	| nim=NotImplMethod_plain { II_Method nim } 
+	| c=j_class_plain { II_Class c }
 
 %%
