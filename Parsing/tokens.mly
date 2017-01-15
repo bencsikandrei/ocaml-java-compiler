@@ -88,6 +88,8 @@
 %token LGEN
 %token RGEN
 
+%token ANOTINT
+
 /* identifiers and literals */
 %token <string> IDENTIFIER
 %token <string> STRLIT

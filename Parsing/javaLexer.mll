@@ -85,6 +85,8 @@ let escape = ('\\'letter)
 let newline = ('\n' | '\r' | "\r\n")
 let others = ['+''-''*''/''=''"'':''('')''{''}''['']''!''&''|'';''.'',''<''>']
 
+let anotInt = '@'space*"interface"
+
 (* arrays.. *)
 let dim = '[' (space|newline)* ']'
 
@@ -144,6 +146,7 @@ rule nexttoken = parse
 		} (* TODO now gets a string *) 
 
 	(* binary operators *)
+	| anotInt {ANOTINT}
 	| '+' { PLUS } 
 	| '-' { MINUS }
 	| '/' { DIV } 
