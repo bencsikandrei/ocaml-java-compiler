@@ -4,7 +4,10 @@
 
 %%
 
-%public AnnotationTypeDeclaration:
+%public AnnotationTypeDeclarations:
+	|ANOT i=IDENTIFIER b=AnnotationTypeBody { {iaModifiers=[]; iaName=i; ibody=b} }
+
+AnnotationTypeDeclaration:
 	|m=option(modifiers) ANOT i=IDENTIFIER b=AnnotationTypeBody { let m = match m with | Some m -> m | None ->[] in   {iaModifiers=m; iaName=i; ibody=b} }
 
 AnnotationTypeBody:
@@ -16,30 +19,23 @@ AnnotationTypeElementDeclarations:
 	| e=AnnotationTypeElementDeclaration es=AnnotationTypeElementDeclarations {e::es}
 
 AnnotationTypeElementDeclaration:
-	| m=option(modifiers) t=allTypes i=IDENTIFIER d=option(DefaultValue) SEMI { let m = match m with | Some m ->m | None [] in ATED_Basic {atedModifs=m;  atedType=t;atedName=i; default=d } }
-	| modifiers fieldVariableDeclaration {ATED_Declar}(* TODO *)
-	| e=j_class {ATED_Class e}
-	| e=j_interface { ATED_Inter e}
-	| e=AnnotationTypeDeclaration {ATED_Annot e}
-	| SEMI {ATED_None}
+	| modifiers t=tmp {t}
+	| t=tmp {t}
+	| SEMI {ATED_None} 
 
- DefaultValue:
-	| DEFAULT e=ElementValue {e}
+tmp:
+	| t=allTypes i=IDENTIFIER DEFAULT e=ElementValue SEMI  { ATED_Basic {atedModifs=[];  atedType=t;atedName=i; default=Some e } }
+	| t=allTypes i=IDENTIFIER SEMI  { ATED_Basic {atedModifs=[];  atedType=t;atedName=i; default=None } }
+/*	| t=allTypes vds=variableDeclarators SEMI {  } TODO */
+	| e=j_class_plain {ATED_Class e}
+	| e=j_interface { ATED_Inter e}
 
 
 %public Annotation:
-	| a=NormalAnnotation {a}
-	| a=MarkerAnnotation {a}
-	| a=SingleElementAnnotation {a}
- 
-NormalAnnotation:
-	| ANOT q=qualifiedName LPAR e=option(ElementValuePairs) RPAR { let e=match e with | Some e -> e|None ->[] in {aName=q;aElemPairs=e}  }
-
-MarkerAnnotation:
-	| ANOT q=qualifiedName {  {aName=q;aElemPairs=[]} }
-
-SingleElementAnnotation:
-	| ANOT q=qualifiedName LPAR e=ElementValue RPAR {   {aName=q;aElemPairs=[{evpId="value" ; evpValue=e}] } }
+	/*| ANOT q=qualifiedName LPAR e=ElementValuePairs RPAR {  {aName= T_Qualified q;aElemPairs=e}  }*/
+	| ANOT q=qualifiedName LPAR e=ElementValue RPAR {   {aName= T_Qualified q;aElemPairs=[{evpId="value" ; evpValue=e}] } }
+	| ANOT q=qualifiedName LPAR RPAR { {aName= T_Qualified q;aElemPairs=[]}  }
+	| ANOT q=qualifiedName {  {aName=T_Qualified q;aElemPairs=[]} }
 
 ElementValuePairs:
 	| e=ElementValuePair {e::[]}
@@ -51,10 +47,10 @@ ElementValuePair:
 ElementValue:
 	| c=conditionalExpression {EV_Ex c}
 	| a=Annotation {EV_Annot a}
-	| e= ElementValueArrayInitializer {EV_array e} 
+	| e= ElementValueArrayInitializer {EV_Array e} 
 
 ElementValueArrayInitializer:
-	LCURL e=option(ElementValues) option(COMM) RCURL {match e with | Some e -> e | None [] }
+	LCURL e=option(ElementValues) option(COMM) RCURL { match e with | Some e -> e | None -> [] }
 
 ElementValues:
 	| e=ElementValue {e::[]}

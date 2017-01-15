@@ -52,7 +52,7 @@ inside_class:
 	| STATIC b=block { IC_Static(b) }
 /*	| m=modifiers 	c=constructor { c.constrmodifiers<-m; IC_Constructor c }
 	| 				c=constructor { IC_Constructor c } */
-	/*| i=j_interface { IC_Interface i }*/
+	
 
 class_method_or_attribute:
 	| m=method_or_attribute { m }
@@ -64,6 +64,8 @@ method_or_attribute:
 	| j=javaMethod_plain { IC_Constructor j }
 	| fvd=fieldVariableDeclaration { fvd }
 	| t=allTypes j=javaMethod_plain { j.jmrtype<-RT_Type t; IC_Method j }
+	| i=j_interface { IC_Interface i }
+
 
 %public j_class_plain:
 	| CLASS id=IDENTIFIER 
@@ -79,7 +81,7 @@ method_or_attribute:
 				cinterfaces=interf;
 				cbody=bod} 
 		}
-(*
+/*
 constructor:
  	| tp=option(type_params_defin) m=MethodDeclarator t=option(Throws) b=block option(semiColons) {
 			let tp = match tp with | None -> [] | Some tp -> tp in
@@ -90,5 +92,5 @@ constructor:
 				constrthrows=t;
 				constrbody=b} 
 		}
- 	/*this IDENTIFIER must be the simple name of the class*/ *)
+ 	/*this IDENTIFIER must be the simple name of the class*/ 
 %%
