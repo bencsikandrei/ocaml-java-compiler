@@ -5,6 +5,20 @@ import java.util.*;
 import org.hibernate.*;
 import org.hibernate.criterion.*;
 
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.Query;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.util.List;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
+import java.util.LinkedHashSet;
+
 public class Main {
   
   
@@ -42,14 +56,6 @@ public class Main {
 
 /////////////////////////////////////////////////////////////////////////
 
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.Query;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import java.util.List;
 
 public class SimpleEventDao {
     Log log = LogFactory.getLog(SimpleEventDao.class);
@@ -187,30 +193,6 @@ public class DataAccessLayerException extends RuntimeException {
 
 
 /////////////////////////////////////////////////////////////////////////
-
-<?xml version="1.0"?>
-<!DOCTYPE hibernate-mapping PUBLIC
-        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
-<hibernate-mapping >
-    <class name="Event" table="events">
-        <id name="id" column="uid" type="long">
-            <generator class="increment"/>
-        </id>
-        <property name="name" type="string"/>
-        <property name="startDate" column="start_date" type="date"/>
-        <property name="duration" type="integer"/>
-    </class>
-</hibernate-mapping>
-
-
-
-
-/////////////////////////////////////////////////////////////////////////
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Set;
-import java.util.LinkedHashSet;
 
 public class Event implements Serializable {
     private Long id;
