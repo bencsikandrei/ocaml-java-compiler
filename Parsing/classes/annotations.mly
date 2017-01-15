@@ -25,11 +25,11 @@ AnnotationTypeElementDeclaration:
 		in 
 		let match_class var m = 
 		match var with
-			| JavClass c -> c.ctparam<-m
-			| JavEnum e -> e. <-m
+			| JavClass c -> c.cmodifiers<-m
+			| JavEnum e -> e.emodifiers<-m in
 		match t with 
-		| ATED_Basic b -> b.atedModifs<-b;t
-		| Ated_Inter i -> match_inter i m;t
+		| ATED_Basic b -> b.atedModifs<-m;t
+		| ATED_Inter i -> match_inter i m;t
 		| ATED_Class c -> match_class c m;t
 		| ATED_Declar d -> d.attrmodifiers<-m;t
 		| ATED_None -> t
@@ -42,8 +42,8 @@ tmp:
 	| t=allTypes i=IDENTIFIER DEFAULT e=ElementValue SEMI  { ATED_Basic {atedModifs=[];  atedType=t;atedName=i; default=Some e } }
 	| t=allTypes i=IDENTIFIER SEMI  { ATED_Basic {atedModifs=[];  atedType=t;atedName=i; default=None } }
 	| t=fieldVariableDeclaration { ATED_Declar t } 
-	| t=type_params_defin e=j_class_plain {e.ctparam<-t;ATED_Class e}
-	| e=j_class_plain {e}
+	| t=type_params_defin ce=j_class_plain { match ce with | JavClass c -> c.ctparam<-t; ATED_Class ce | JavEnum e -> ATED_Class ce}
+	| e=j_class_plain {ATED_Class e}
 	| e=j_interface { ATED_Inter e}
 
 

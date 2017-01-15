@@ -289,9 +289,12 @@ and print_java_method var =
 	"\nThrows: "^(print_list string_of_exception var.jmthrows " ")^
 	"\nBody: "^indent ("\n"^(string_of_stmt var.jmbody))
 
+and string_of_attribute a=
+	(string_of_allTypes a.atype)^" "^(print_list string_of_exp a.adeclarator " ")^" modifs: "^(print_list print_modif a.attrmodifiers " ")
+
 and print_inside_class var = match var with
 	| IC_Method(jm) -> (print_java_method jm)
-	| IC_Attribute  a -> (string_of_allTypes a.atype)^" "^(print_list string_of_exp a.adeclarator " ")^" modifs: "^(print_list print_modif a.attrmodifiers " ")
+	| IC_Attribute  a -> string_of_attribute a 
 	| IC_Class(jc) -> (print_java_class jc)
 	| IC_Semi -> ";"
 	| IC_Empty -> ""
@@ -303,9 +306,8 @@ and string_of_annotationTypeDeclaration a = "Annot: "^a.iaName^"\n\tmodifs:\n"^(
 and string_of_annotationTypeElementDeclaration a= match a with
 	|ATED_Class e -> print_java_class e
 	|ATED_Inter e -> print_interface e
-	|ATED_Annot e -> string_of_annotationTypeDeclaration e
 	|ATED_None -> ""
-	|ATED_Declar (* TODO *) ->""
+	|ATED_Declar e -> string_of_attribute e
 	|ATED_Basic e -> string_of_annotationTED e
 
 and string_of_annotationTED e = 
