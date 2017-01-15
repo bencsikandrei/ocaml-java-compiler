@@ -52,10 +52,35 @@ interf_member_decls:
 	| l=interf_member_decls d=interf_member_decl { l@[d] }
 
 interf_member_decl:
-	(*| modif=modifiers lvd=localVariableDeclStmt { II_Field(lvd) } /* default public static final attributes that must be initialized */*)
-	/* TODO add modif and type params*/
+	/*| modif=modifiers lvd=localVariableDeclStmt { II_Field(lvd) }  default public static final attributes that must be initialized */
+	| modifs=modifiers t=tmp {
+		let tmp var= match var with
+			|JI_IN a-> a.imodifiers<-modifs;
+			|JI_AN a-> a.iaModifiers<-modifs;
+		in
+
+		match t with 
+		| II_Class a -> a.cmodifiers<-modifs; t
+	 	| II_Method a -> a.jmmodifiers<-modifs; t
+		| II_Interface a ->  tmp a; t
+		| _ -> t
+		
+	
+	 }
+	| t=tmp {t}
+
+tmp:
+	| t=type_params_defin m=tmp2 { 
+		match m with 
+		| II_Class a -> a.ctparam<-t;m
+	 	| II_Method a -> a.jmtparam<-t;m
+	 	| _ ->m
+	 }
+	| m=tmp2 {m}
+	| i=j_interface { II_Interface  i }
+
+tmp2:
 	| nim=NotImplMethod_plain { II_Method nim } 
 	| c=j_class_plain { II_Class c }
-	| i=j_interface { II_Interface i }
 
 %%

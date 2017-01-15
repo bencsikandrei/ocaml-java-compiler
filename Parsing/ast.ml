@@ -174,7 +174,7 @@ and javaMethod={
 and javaClass={
 	mutable cmodifiers: modifier list;
 	cidentifier: string;
-	ctparam: typeParam list;
+	mutable ctparam: typeParam list;
 	cparent: parentClass;
 	cinterfaces: string list;
 	cbody: insideClass list;
@@ -236,7 +236,7 @@ and javaInterfaceStruct={
 
 and javaInterface=
 	| JI_IN of javaInterfaceStruct
-	| JI_AN   of annotationTypeDeclaration
+	| JI_AN of annotationTypeDeclaration
 
 and insideInterface=
 	| II_Class of javaClass
