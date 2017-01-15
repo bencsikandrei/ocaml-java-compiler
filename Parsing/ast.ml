@@ -205,7 +205,7 @@ and insideClass=
 and annotationTypeDeclaration = {
 	mutable iaModifiers: modifier list;
 	iaName:string;
-	ibody:annotationTypeElementDeclaration list;
+	aibody:annotationTypeElementDeclaration list;
 		
 }
 

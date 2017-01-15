@@ -302,7 +302,7 @@ and print_inside_class var = match var with
 	| IC_Static(b) -> (string_of_stmt b)
 	| IC_Constructor(c) -> (print_java_method c)
 
-and string_of_annotationTypeDeclaration a = "Annot: "^a.iaName^"\n\tmodifs:\n"^(indent (print_list print_modif a.iaModifiers "\n"))^"\n\tbody:\n"^(indent (print_list string_of_annotationTypeElementDeclaration a.ibody "\n"))
+and string_of_annotationTypeDeclaration a = "Annot: "^a.iaName^"\n\tmodifs:\n"^(indent (print_list print_modif a.iaModifiers "\n"))^"\n\tbody:\n"^(indent (print_list string_of_annotationTypeElementDeclaration a.aibody "\n"))
 
 and string_of_annotationTypeElementDeclaration a= match a with
 	|ATED_Class e -> print_java_class e
@@ -313,7 +313,7 @@ and string_of_annotationTypeElementDeclaration a= match a with
 
 and string_of_annotationTED e = 
 	let i = match e.default with | Some e -> string_of_elemValue e | None -> "" in
-	"Name: "^e.atedName^":"^(string_of_allTypes e.atedType)^" default: "^"\n\tmodifs:\n"^(indent (print_list print_modif e.atedModifs "\n"))
+	"Name: "^e.atedName^":"^(string_of_allTypes e.atedType)^" default: "^i^"\n\tmodifs:\n"^(indent (print_list print_modif e.atedModifs "\n"))
 
 and print_java_class var =
 	match var with

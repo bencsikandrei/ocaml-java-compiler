@@ -5,7 +5,7 @@
 %%
 
 %public AnnotationTypeDeclarations:
-	|ANOTINT i=IDENTIFIER b=AnnotationTypeBody { {iaModifiers=[]; iaName=i; ibody=b} }
+	|ANOTINT i=IDENTIFIER b=AnnotationTypeBody { {iaModifiers=[]; iaName=i; aibody=b} }
 
 
 AnnotationTypeBody:
