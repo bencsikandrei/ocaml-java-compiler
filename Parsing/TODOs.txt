@@ -1,11 +1,13 @@
 - ";" can be multiples and with spaces 						DONE
-- constructor (8.8)
+- constructor (8.8)											DONE
 - annotations before package (7.4.1.1)
-- attributes/variable declarators add array init 			DONE??
-- modifiers: separate? class, method, interface, variable
+- attributes/variable declarators add array init 			DONE
 - inside interfaces
 - add enums in top of classes
 - insideclass: STATIC block 								DONE
 - class_methods line 76-98
 - interface_definition line 7 -> /*| annotation_decl { }*/ 
+- classes inside methods
+- class body inside enum constants
+-? modifiers: separate? class, method, interface, variable
 -? in tree types (insideClass), interfaces are strings and not a type: "cinterfaces: string list;"

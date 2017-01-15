@@ -24,6 +24,35 @@ javaClass:
 				cinterfaces=interf;
 				cbody=bod} 
 		}
+	| modif=option(modifiers) ENUM id=IDENTIFIER
+		interf=option(interfaces) LCURL bod=enum_body RCURL option(semiColons) { 
+			let modif = match modif with | None -> [] | Some m -> m in
+			let tp = match tp with | None -> [] | Some tp -> tp in
+			let interf = match interf with | None -> [] | Some interf -> interf in
+				{emodifiers=modif;
+				eidentifier=id;
+				einterfaces=interf;
+				ebody=bod} 
+		}
+
+enum_body:
+	| c=option(EnumConstants) d=option(EnumBodyDeclarations) { (c,d) }
+
+EnumConstants:
+	| c=EnumConstant { c }
+	| c=EnumConstant COMM l=EnumConstants { c::l }
+
+EnumConstant:
+	| a=option(Annotation) id=IDENTIFIER arg=option(args) /*option(class_body)*/ { 
+		{ecAnotation=a;ecIdentifier=id;ecArguments=arg}
+	}
+
+args:
+	| LPAR arg=option(argumentList) RPAR { arg }
+
+EnumBodyDeclarations:
+	| semis i=option(inside_class_l) { i }
+
 
 %public super:
 	| EXTENDS id=IDENTIFIER typ=option(type_params_defin) {

@@ -180,6 +180,19 @@ and javaClass={
 	cbody: insideClass list;
 }
 
+and javaEnum={
+	emodifiers: modifier list;
+	eidentifier: string;
+	einterfaces: string list;
+	ebody: (enumConstant list) * (insideClass list);
+}
+
+and enumConstant={
+	ecAnotation: annotation option;
+	ecIdentifier: string;
+	ecArguments: string option;
+}
+
 and insideClass=
 	| IC_Method of javaMethod
 	| IC_Attribute of allTypes * expression list
