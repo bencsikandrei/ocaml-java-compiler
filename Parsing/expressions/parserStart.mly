@@ -34,7 +34,7 @@ localVariableDeclOrStmt:
 ;
 
 /* variable declarators */
-variableDeclarators: 
+%public variableDeclarators: 
  	vd=variableDeclarator { []@[vd] }
 	| vds=variableDeclarators COMM vd=variableDeclarator { vds@[vd] }
 ;

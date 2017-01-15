@@ -6,14 +6,6 @@ open Array
 open Printing
 open Preprocess 
 
-let verbose = ref false
-let bad_test = ref false
-let filename = ref ".java"
-let modes = ref "file"
-
-let set_mode m = modes := m
-let set_file f = filename := f
-
 let position lexbuf=
 	let pos=lexeme_start_p lexbuf in 
 	let error=Lexing.lexeme lexbuf in
@@ -37,12 +29,7 @@ let fakeDict str= match str with
 	| "expression" -> anExpression
 	| _ -> javaFile;;
 
-let ok_nok bad =
-	match bad with
-	| true -> " OK "
-	| false -> " BAD "
-
-let compile mode file vervose bad =
+let compile mode file vervose =
 		print_string ("File "^file^" is being treated! ");
 		try
 		let input_file = open_in file in
@@ -57,28 +44,17 @@ let compile mode file vervose bad =
 				close_in (input_file);
 				print_endline("OK");
 			with 
-				|SyntaxError s -> print_endline (s^" "^(position lexbuf)^(ok_nok !bad_test));
-				|JavaParser.Error -> print_endline ("Parsing error  "^(position lexbuf)^(ok_nok !bad_test));
-				|e -> print_endline ("Unexpected error while parsing - "^(position lexbuf)^" "^(Printexc.to_string e)^(ok_nok !bad_test));
+					|SyntaxError s -> print_endline (s^" "^(position lexbuf)^" BAD");
+					|JavaParser.Error -> print_endline ("Parsing error  "^(position lexbuf)^" BAD");
+					|e -> print_endline ("Unexpected error while parsing - "^(position lexbuf)^" "^(Printexc.to_string e)^" BAD");
 		with	
 				|Sys_error s -> print_endline ("Can't find file ' " ^ file ^ "'");
 				|_ -> print_endline ("Unexpected error with the file");;
 
-let main =
-	let speclist = [("-v", Arg.Set verbose, "Enables verbose mode");
-	("-f", Arg.String (set_file), "File name to be parsed");
-	("-m", Arg.String (set_mode), "Which parser to use: file, method, class, statement, expression; default: file");
-	("-b", Arg.Set bad_test, "Test expected to fail");
-	]
-	in let usage_msg = "miniJavaCompiler. Options available:"
-	in Arg.parse speclist print_endline usage_msg;
-	print_endline ("Verbose mode: " ^ string_of_bool !verbose);
-	print_endline ("Parser to be used: " ^ !modes);
-	print_endline ("Bad test expected: " ^ string_of_bool !bad_test);
-	try 
-		compile !modes !filename !verbose !bad_test
-	with
-		| _  -> print_endline("Usage: main <parser> <file> [-v] [-b]");;
-
-let () = 
-	main
+try 
+	if length Sys.argv=3 then
+		compile Sys.argv.(1) Sys.argv.(2) false
+	else if length Sys.argv=4 then
+		compile Sys.argv.(1) Sys.argv.(2) true
+with
+	| _  -> print_endline("Usage: main <parser> <file>");;

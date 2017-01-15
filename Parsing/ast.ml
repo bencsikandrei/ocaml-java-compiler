@@ -200,7 +200,6 @@ and insideClass=
 	| IC_Semi
 	| IC_Empty
 	| IC_Interface of javaInterface
-	| IC_InterfaceAnoot of annotationTypeDeclaration
 	| IC_Static of statement
 	| IC_Constructor of javaMethod
 
@@ -239,16 +238,17 @@ and annotationTED = {
 
 
 
-
-
-
-and javaInterface={
-	imodifiers: modifier list;
+and javaInterfaceStruct={
+	mutable imodifiers: modifier list;
 	iidentifier: string;
 	itparam: typeParam list;
 	iparent: parentName list;
 	ibody: insideInterface list;
 }
+
+and javaInterface=
+	| JI_IN of javaInterfaceStruct
+	| JI_AN   of annotationTypeDeclaration
 
 and insideInterface=
 	| II_Class of javaClass
