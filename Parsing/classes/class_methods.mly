@@ -67,18 +67,14 @@ javaMethod_list:
 (* throws *)
 
 	Throws:
-		THROWS ExceptionTypeList {[]}
+		THROWS e=ExceptionTypeList {e}
 
 	ExceptionTypeList:
-		|ExceptionType {}
-		|ExceptionTypeList COMM ExceptionType {}
+		|e=ExceptionType {e::[]}
+		|e=ExceptionType COMM el=ExceptionTypeList{e::el}
 
 	ExceptionType: (* TODO check section 4.3 *)
-(* 
-		|ClassType {}
-		|TypeVariable {}
-*)		
-		|allTypes {}
+		|q=qualifiedName {q}
 
 MethodBody:
 	| b=block { b }

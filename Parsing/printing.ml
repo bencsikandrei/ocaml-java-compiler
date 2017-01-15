@@ -124,7 +124,6 @@ let rec string_mul i s =
 	| _ -> (string_mul (i-1) (s^s))
 
 let print_annot a=a.aname;;
-let print_excep a=a.ename;;
 
 let print_modif modifier= match modifier with
 	|M_Annot a -> print_annot a
@@ -162,6 +161,9 @@ let print_formal_parameter var =
 ;;
 
 let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
+
+let string_of_exception e=
+	print_list string_of_definedType e "."
 
 (* end of my add *)
   
@@ -253,7 +255,7 @@ let print_java_method var =
 	"\nReturn type: "^(print_return_type var.jmrtype)^
 	"\nModifiers: "^(print_list print_modif var.jmmodifiers " ")^
 	"\nGenerics: "^(print_list print_type_param var.jmtparam " ")^
-	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
+	"\nThrows: "^(print_list string_of_exception var.jmthrows " ")^
 	"\nBody: "^indent ("\n"^(string_of_stmt var.jmbody));;
 
 let print_parent var = match var with
