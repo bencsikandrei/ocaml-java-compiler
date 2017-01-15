@@ -244,19 +244,19 @@ let rec string_of_stmt =
 								(String.concat "; " (List.map string_of_stmt e3))^
 								")\n"
 								^(string_of_stmt st)
-	| ST_Efor(ef,e,s) -> "\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
-	| ST_Do_while(st, e) -> "\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
-	| ST_Break(e) -> "\nbreak "^e
-	| ST_Continue(e) -> "\ncontinue "^e
-	| ST_Return(e) -> "\nreturn "^(string_of_exp e)
-	| ST_Throw(e) -> "\nthrow "^(string_of_exp e)
-	| ST_Lvar_decl(e) -> "\n"^(string_of_exp e)
-	| ST_Synch(e1,e2) -> "\nsynchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
-	| ST_Try(st1,stl,st2) ->  "\ntry {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
-	| ST_Catch(ch, st) ->  "\ncatch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
-	| ST_Catches(stl) -> "\n"^(String.concat "; " (List.map string_of_stmt stl))
-	| ST_Finally(st) -> "\nfinally "^(string_of_stmt st)
-	| ST_Assert(e1,e2) -> "\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
+	| ST_Efor(ef,e,s) -> "for("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
+	| ST_Do_while(st, e) -> "do {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
+	| ST_Break(e) -> "break "^e
+	| ST_Continue(e) -> "continue "^e
+	| ST_Return(e) -> "return "^(string_of_exp e)
+	| ST_Throw(e) -> "throw "^(string_of_exp e)
+	| ST_Lvar_decl(e) -> ""^(string_of_exp e)
+	| ST_Synch(e1,e2) -> "synchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
+	| ST_Try(st1,stl,st2) ->  "try {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
+	| ST_Catch(ch, st) ->  "catch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
+	| ST_Catches(stl) -> ""^(String.concat "; " (List.map string_of_stmt stl))
+	| ST_Finally(st) -> "finally "^(string_of_stmt st)
+	| ST_Assert(e1,e2) -> "assert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
 	| ST_Var_decl(so,t, e) -> (str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
 
 and else_or_noelse st =
