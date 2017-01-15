@@ -50,8 +50,8 @@ inside_class:
 	| m=modifiers cma=class_method_or_attribute { match cma with | IC_Method me -> me.jmmodifiers<-m; cma |IC_Class c -> c.cmodifiers<-m; cma | _ -> cma }
 	| 			  cma=class_method_or_attribute { cma }
 	| STATIC b=block { IC_Static(b) }
-	| m=modifiers 	c=constructor { c.constrmodifiers<-m; IC_Constructor c }
-	| 				c=constructor { IC_Constructor c }
+/*	| m=modifiers 	c=constructor { c.constrmodifiers<-m; IC_Constructor c }
+	| 				c=constructor { IC_Constructor c } */
 	/*| i=j_interface { IC_Interface i }*/
 
 class_method_or_attribute:
@@ -61,6 +61,7 @@ class_method_or_attribute:
 method_or_attribute:
 	| t=type_params_defin j=javaMethod_plain_return { j.jmtparam<-t;IC_Method j }
 	| VOID j=javaMethod_plain { IC_Method j }
+	| j=javaMethod_plain { IC_Constructor j }
 	| fvd=fieldVariableDeclaration { fvd }
 	| t=allTypes j=javaMethod_plain { j.jmrtype<-RT_Type t; IC_Method j }
 
@@ -78,7 +79,7 @@ method_or_attribute:
 				cinterfaces=interf;
 				cbody=bod} 
 		}
-
+(*
 constructor:
  	| tp=option(type_params_defin) m=MethodDeclarator t=option(Throws) b=block option(semiColons) {
 			let tp = match tp with | None -> [] | Some tp -> tp in
@@ -89,5 +90,5 @@ constructor:
 				constrthrows=t;
 				constrbody=b} 
 		}
- 	/*this IDENTIFIER must be the simple name of the class*/
+ 	/*this IDENTIFIER must be the simple name of the class*/ *)
 %%
