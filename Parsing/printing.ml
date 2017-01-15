@@ -181,7 +181,7 @@ and string_of_exception e=
   
 and string_of_enhanced_for ef =
 	match ef with
-	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
+	| Enhanced_for(ml,t,s) -> (print_list print_vm (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
 
 and string_of_literal x =
  	match x with
