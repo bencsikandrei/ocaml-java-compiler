@@ -24,7 +24,8 @@ compilationUnit:
 ;
 
 localVariableDeclOrStmt:
-	lvd=localVariableDeclStmt { lvd } 
+	modifiers lvd=localVariableDeclStmt { lvd } 
+	| lvd=localVariableDeclStmt { lvd } 
 	| stmt=statement { stmt }
 ;
 
