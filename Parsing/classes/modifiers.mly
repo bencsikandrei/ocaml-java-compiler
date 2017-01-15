@@ -15,7 +15,7 @@ modifier:
 	| PUBLIC {M_Public }
 	| PRIVATE {M_Private }
 	| PROTECTED {M_Protected }
-	| a=Annotation {M_Annot a}
+/*	| a=Annotation {M_Annot a} */
 	| STATIC {M_Static }
 	| FINAL {M_Final }
 	| STRICTFP {M_Strictfp }
@@ -30,8 +30,5 @@ variableModifier:
 	| VOLATILE{VM_Volatile}
 	| TRANSIENT{VM_Transient}
 	| FINAL {VM_Final}
-
-%public Annotation: (* TODO *)
-	|ANOT i=IDENTIFIER{  { aname=i ; aoth="" } }
 
 %%
