@@ -1,0 +1,6 @@
+class Vampire{
+
+	public Vampire() {
+
+	}
+}

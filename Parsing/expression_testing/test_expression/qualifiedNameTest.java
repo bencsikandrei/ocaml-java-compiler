@@ -1,0 +1,1 @@
+myPackage.myClass.myAttr < 10

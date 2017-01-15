@@ -37,7 +37,7 @@ ResultType:
 	|e=allTypes {RT_Type e}
 	|VOID {RT_Void}
 
-MethodDeclarator: /*compile error if two methods with the same id and param list */
+%public MethodDeclarator: /*compile error if two methods with the same id and param list */
 	|i=IDENTIFIER LPAR RPAR {{mname=i;mparams=[]}}
 	|i=IDENTIFIER LPAR p=FormalParameters RPAR {{mname=i;mparams=p}}
 
@@ -62,20 +62,19 @@ VariableModifiers:
 
 VariableModifier:
 	|FINAL {VM_Final}
-	|a=Annotation {VM_Annot a} /* If an annotation a on a formal parameter corresponds to an annotation type T, and T has a (meta-)annotation m that corresponds to annotation.Target , then m must have an element whose value is annotation.ElementType.PARAMETER , or a compile-time error occurs */
+/*	|a=Annotation {VM_Annot a} /* If an annotation a on a formal parameter corresponds to an annotation type T, and T has a (meta-)annotation m that corresponds to annotation.Target , then m must have an element whose value is annotation.ElementType.PARAMETER , or a compile-time error occurs */
 
 /* throws */
 
+%public Throws:
+	THROWS e=ExceptionTypeList { e }
 
-	Throws:
-		THROWS e=ExceptionTypeList {e}
+ExceptionTypeList:
+	|e=ExceptionType { e::[] }
+	|e=ExceptionType COMM el=ExceptionTypeList{ e::el }
 
-	ExceptionTypeList:
-		|e=ExceptionType {e::[]}
-		|e=ExceptionType COMM el=ExceptionTypeList{e::el}
-
-	ExceptionType: (* TODO check section 4.3 *)
-		|q=qualifiedName {q}
+ExceptionType: /* TODO check section 4.3 */
+	|q=qualifiedName { q }
 
 MethodBody:
 	| b=block { b }
