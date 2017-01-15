@@ -174,7 +174,7 @@ and insideClass=
 	| IC_Empty
 	| IC_Interface of javaInterface
 	| IC_Static of statement
-	| IC_Constructor of constructor
+	| IC_Constructor of javaMethod
 
 and javaInterface={
 	imodifiers: modifier list;
