@@ -8,3 +8,4 @@
 - insideclass: STATIC block 								DONE
 - class_methods line 76-98
 - interface_definition line 7 -> /*| annotation_decl { }*/ 
+-? in tree types (insideClass), interfaces are strings and not a type: "cinterfaces: string list;"

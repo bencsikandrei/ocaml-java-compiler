@@ -161,7 +161,7 @@ and javaClass={
 	cidentifier: string;
 	ctparam: typeParam list;
 	cparent: parentClass;
-	cinterfaces: string list; (*TODO*)
+	cinterfaces: string list;
 	cbody: insideClass list;
 }
 
@@ -173,6 +173,7 @@ and insideClass=
 	| IC_Empty
 	| IC_Interface of javaInterface
 	| IC_Static of statement
+	| IC_Constructor of constructor
 
 and javaInterface={
 	imodifiers: modifier list;
@@ -186,6 +187,14 @@ and insideInterface=
 	| II_Class of javaClass
 	| II_Interface of javaInterface
 	| II_Method of javaMethod
+
+and constructor={
+	constrmodifiers: modifier list;
+	constrtparam: typeParam list; 	
+	constrdeclarator: methodDeclarator;
+	constrthrows: jexception list;
+	constrbody: statement;
+}
 
 (* expressions.ml *)
 and expression =

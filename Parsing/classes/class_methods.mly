@@ -37,7 +37,7 @@ ResultType:
 	|e=allTypes {RT_Type e}
 	|VOID {RT_Void}
 
-MethodDeclarator: /*compile error if two methods with the same id and param list */
+%public MethodDeclarator: /*compile error if two methods with the same id and param list */
 	|i=IDENTIFIER LPAR RPAR {{mname=i;mparams=[]}}
 	|i=IDENTIFIER LPAR p=FormalParameters RPAR {{mname=i;mparams=p}}
 
@@ -66,7 +66,7 @@ VariableModifier:
 
 /* throws */
 
-Throws:
+%public Throws:
 	THROWS ExceptionTypeList {[]}
 
 ExceptionTypeList:

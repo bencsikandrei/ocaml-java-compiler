@@ -76,4 +76,18 @@ method_or_attribute:
 				cinterfaces=interf;
 				cbody=bod} 
 		}
+
+constructor:
+ 	| modif=option(modifiers) tp=option(type_params_defin) 
+ 		m=MethodDeclarator t=option(Throws) b=block option(semiColons) {
+ 			let modif = match modif with | None -> [] | Some m -> m in
+			let tp = match tp with | None -> [] | Some tp -> tp in
+			let t = match t with | None -> [] | Some t -> t in
+				{constrmodifiers=modif;
+				constrdeclarator=m;
+				constrtparam=tp;
+				constrthrows=t;
+				cbody=b} 
+		}
+ 	/*this IDENTIFIER must be the simple name of the class*/
 %%
