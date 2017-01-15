@@ -43,7 +43,7 @@ selectStmt:
 /* switch blocks */
 switchBlock:
 	LCURL RCURL { ST_Empty }
-	| sbsgs=switchBlockStmtGroups { ST_Block(sbsgs) } 
+	/* | sbsgs=switchBlockStmtGroups { ST_Block(sbsgs) } */
 	| LCURL sbsgs=switchBlockStmtGroups RCURL { ST_Block(sbsgs) }
 ;
 
@@ -53,7 +53,7 @@ switchBlockStmtGroups:
 ;
 
 switchBlockStmtGroup:
-	sls=switchLabels bss=block { ST_Case(sls,bss) }
+	sls=switchLabels bss=localVariableDeclAndStmts { ST_Case(sls,bss) }
 ;
 
 switchLabels:

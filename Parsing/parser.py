@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #__author__ = "	Javier Alejandro ATADIA Florencia ALVAREZ Paulina ALVAREZ Andrei-Florin BENCSIK"
 #__copyright__ = "Copyright 2017, IMT Atlantique"
 #__version__ = "0.0.5"
@@ -30,11 +31,13 @@ def main():
 
 	if args.file and args.mode:
  		file_name = args.file
+ 		print "Mode is " + args.mode
 		os.system("./build/main " + args.mode + " " + file_name + verbosity)
  		
  	elif args.file:
  		file_name = args.file
-		os.system("./build/main " + "file" + " " + file_name + verbosity)
+ 		print "Mode is FILE"
+ 		os.system("./build/main " + "file" + " " + file_name + verbosity)
 
 	else:
 		os.system("python " + sys.argv[0] + " --help")

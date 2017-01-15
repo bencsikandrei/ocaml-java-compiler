@@ -224,28 +224,28 @@ let string_of_catch_header ch =
 let rec string_of_stmt =
 	function
 	| ST_Empty -> "/* ST_empty */"
-	| ST_Label x -> "/* ST_label */\n"^x
-	| ST_Block(stl) -> (String.concat "/* ST_block */\n" (List.map string_of_stmt stl))
-	| ST_Expression e -> "/* ST_expression */\n"^string_of_exp e
-	| ST_If(e, st1, st2) -> "/* ST_if */\nif ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
-	| ST_Switch(e, sb) -> "/* ST_switch */\nswitch ("^(string_of_exp e)^") "^(string_of_stmt sb)
-	| ST_While(e, st) ->  "/* ST_while */\nwhile ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
-	| ST_Case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(string_of_stmt st) 
-	| ST_For(e1, e2, e3, st) -> "/* ST_for */\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^" "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
-	| ST_Efor(ef,e,s) -> "/* ST_efor */\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
-	| ST_Do_while(st, e) -> "/* ST_do_while */\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
-	| ST_Break(e) -> "/* ST_break */\nbreak "^e
-	| ST_Continue(e) -> "/* ST_continue */\ncontinue "^e
-	| ST_Return(e) -> "/* ST_return */\nreturn "^(string_of_exp e)
-	| ST_Throw(e) -> "/* ST_throw */\nthrow "^(string_of_exp e)
-	| ST_Lvar_decl(e) -> "/* ST_lvar_decl */\n"^(string_of_exp e)
-	| ST_Synch(e1,e2) -> "/* ST_synch */\nsynchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
-	| ST_Try(st1,stl,st2) ->  "/* ST_try */\ntry {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
-	| ST_Catch(ch, st) ->  "/* ST_catch */\ncatch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
-	| ST_Catches(stl) -> "/* ST_catches */\n"^(String.concat "; " (List.map string_of_stmt stl))
-	| ST_Finally(st) -> "/* ST_finally */\nfinally "^(string_of_stmt st)
-	| ST_Assert(e1,e2) -> "/* ST_assert */\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
-	| ST_Var_decl(so,t, e) -> "/* ST_var_decl */\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
+	| ST_Label x -> "\n"^x
+	| ST_Block(stl) -> (String.concat "\n" (List.map string_of_stmt stl))
+	| ST_Expression e -> "\n"^string_of_exp e
+	| ST_If(e, st1, st2) -> "\nif ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
+	| ST_Switch(e, sb) -> "\nswitch ("^(string_of_exp e)^") "^(string_of_stmt sb)
+	| ST_While(e, st) ->  "\nwhile ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
+	| ST_Case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(print_list string_of_stmt st ";") 
+	| ST_For(e1, e2, e3, st) -> "\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^" "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
+	| ST_Efor(ef,e,s) -> "\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
+	| ST_Do_while(st, e) -> "\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
+	| ST_Break(e) -> "\nbreak "^e
+	| ST_Continue(e) -> "\ncontinue "^e
+	| ST_Return(e) -> "\nreturn "^(string_of_exp e)
+	| ST_Throw(e) -> "\nthrow "^(string_of_exp e)
+	| ST_Lvar_decl(e) -> "\n"^(string_of_exp e)
+	| ST_Synch(e1,e2) -> "\nsynchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
+	| ST_Try(st1,stl,st2) ->  "\ntry {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
+	| ST_Catch(ch, st) ->  "\ncatch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
+	| ST_Catches(stl) -> "\n"^(String.concat "; " (List.map string_of_stmt stl))
+	| ST_Finally(st) -> "\nfinally "^(string_of_stmt st)
+	| ST_Assert(e1,e2) -> "\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
+	| ST_Var_decl(so,t, e) -> "\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
 
 (*  *)
 let print_java_method var = 

@@ -231,7 +231,7 @@ and statement =
 	| ST_Expression of expression
 	| ST_If of expression * statement * statement option
 	| ST_Switch of expression * statement
-	| ST_Case of expression list * statement
+	| ST_Case of expression list * statement list
 	| ST_While of expression * statement
 	| ST_For of statement list * expression * statement list * statement
 	| ST_Efor of enhanced_for * expression * statement 
