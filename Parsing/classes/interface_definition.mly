@@ -53,7 +53,8 @@ interf_member_decls:
 
 interf_member_decl:
 	(*| modif=modifiers lvd=localVariableDeclStmt { II_Field(lvd) } /* default public static final attributes that must be initialized */*)
-	| nim=NotImplMethod { II_Method nim }
+	/* TODO add modif and type params*/
+	| nim=NotImplMethod_plain { II_Method nim } 
 	| c=j_class_plain { II_Class c }
 	| i=j_interface { II_Interface i }
 
