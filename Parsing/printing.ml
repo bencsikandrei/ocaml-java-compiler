@@ -167,7 +167,7 @@ let print_method_declarator var = var.mname^"\n"^(indent (print_list print_forma
   
 let string_of_enhanced_for ef =
 	match ef with
-	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
+	| Enhanced_for(ml,t,s) -> (print_list print_vm (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
 
 let string_of_literal x =
  	match x with
@@ -284,6 +284,7 @@ and print_fcontent var = match var with
 and print_inside_interface var = match var with
 	| II_Class(c) -> print_java_class c
 	| II_Interface(i) -> print_interface i
+	| II_Method(m) -> print_java_method m
 
 and print_parent_name (a,b) = a^"<"^(print_list print_type_param (list_of_option b) ",")^">"
 

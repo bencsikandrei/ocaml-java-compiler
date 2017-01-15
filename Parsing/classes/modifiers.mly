@@ -22,6 +22,15 @@ modifier:
 	| SYNCHRONIZED {M_Synchronized}
 	| NATIVE {M_Native}
 
+%public variableModifiers:
+	| m=variableModifier { m::[] }
+	| ms=variableModifiers m=variableModifier { ms@[m] }
+
+variableModifier:
+	| VOLATILE{VM_Volatile}
+	| TRANSIENT{VM_Transient}
+	| FINAL {VM_Final}
+
 %public Annotation: (* TODO *)
 	|ANOT i=IDENTIFIER{  { aname=i ; aoth="" } }
 
