@@ -101,6 +101,9 @@ InsideBody:
 	|mm=modifiers 						 	rt=ResultType md=MethodDeclarator 			SEMI option(semiColons) { {jmmodifiers=mm;jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=ST_Empty} }
 	|										rt=ResultType md=MethodDeclarator 			SEMI option(semiColons) { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=ST_Empty} }
 
+%public NotImplMethod_plain:
+	|rt=ResultType md=MethodDeclarator th=Throws SEMI option(semiColons) { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=ST_Empty} }
+
 
 /* aux TODO */
 
