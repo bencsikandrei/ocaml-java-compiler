@@ -123,9 +123,16 @@ let rec string_mul i s =
 	| 0 -> s
 	| _ -> (string_mul (i-1) (s^s))
 
-let print_annot a=a.aname;;
+let rec print_annot a=(string_of_types a.aName)^indent("\n"^(print_list string_of_elemValuePair a.aElemPairs  ", "))
 
-let print_modif modifier= match modifier with
+and string_of_elemValuePair a = a.evpId^" = "^string_of_elemValue a.evpValue
+
+and string_of_elemValue ev = match ev with 
+	| EV_Ex ev -> string_of_exp  ev
+	| EV_Annot ev -> print_annot ev
+	| EV_Array ev -> print_list string_of_elemValue ev " "
+
+and print_modif modifier= match modifier with
 	|M_Annot a -> print_annot a
 	|M_Public -> "public"
 	|M_Protected -> "protected"
@@ -135,43 +142,42 @@ let print_modif modifier= match modifier with
 	|M_Final -> "final"
 	|M_Synchronized -> "synchronized"
 	|M_Native -> "native"
-	|M_Strictfp -> "strictfp";; 
+	|M_Strictfp -> "strictfp" 
 
-let print_vm var = match var with
+and print_vm var = match var with
 	|VM_Final -> "final"
 	|VM_Annot a -> print_annot a
 	|VM_Transient -> "transient"
 	|VM_Volatile -> "volatile"
 
-let print_type_param var = match var with
+and print_type_param var = match var with
 	| TPL_Ident s -> s
-	| TPL_Extend (s1,s2) -> s1^"-ext-"^s2	;;
+	| TPL_Extend (s1,s2) -> s1^"-ext-"^s2	
 
-let print_return_type var = match var with
+and print_return_type var = match var with
 	|RT_Type t-> string_of_allTypes t	
 	|RT_Void -> "void"
 
-let print_declaratorId var = match var with 
+and print_declaratorId var = match var with 
 	|DI_Identifier s -> s
 	|DI_Args(i,d)-> i^(string_mul d "[]")
 
-let print_formal_parameter var = 
+and print_formal_parameter var = 
 	let el = match var.pelipsis with | true -> "..." | false -> "" in
 	(print_list print_vm var.pmodif " ")^" : "^string_of_allTypes var.ptype^el^" : "^(print_declaratorId var.pname)
-;;
 
-let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
+and print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
 
-let string_of_exception e=
+and string_of_exception e=
 	print_list string_of_definedType e "."
 
 (* end of my add *)
   
-let string_of_enhanced_for ef =
+and string_of_enhanced_for ef =
 	match ef with
 	| Enhanced_for(ml,t,s) -> (print_list print_vm (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
 
-let string_of_literal x =
+and string_of_literal x =
  	match x with
 	| L_Str(v)-> v
 	| L_Float(v) ->  string_of_float v
@@ -182,7 +188,7 @@ let string_of_literal x =
  	| L_Null -> "null"
  	| L_Long(v) -> string_of_int v
 
-let rec string_of_exp exp =
+and string_of_exp exp =
 	match exp with
 	| Identifier id -> id
 	| Literal lit -> string_of_literal lit
@@ -287,7 +293,22 @@ let rec print_inside_class var = match var with
 	| IC_Empty -> ""
 	| IC_Interface(inter) -> (print_interface inter)
 	| IC_Static(b) -> (string_of_stmt b)
-	
+	| IC_InterfaceAnoot b -> string_of_annotationTypeDeclaration b
+
+and string_of_annotationTypeDeclaration a = "Annot: "^a.iaName^"\n\tmodifs:\n"^(indent (print_list print_modif a.iaModifiers "\n"))^"\n\tbody:\n"^(indent (print_list string_of_annotationTypeElementDeclaration a.ibody "\n"))
+
+and string_of_annotationTypeElementDeclaration a= match a with
+	|ATED_Class e -> print_java_class e
+	|ATED_Inter e -> print_interface e
+	|ATED_Annot e -> string_of_annotationTypeDeclaration e
+	|ATED_None -> ""
+	|ATED_Declar (* TODO *) ->""
+	|ATED_Basic e -> string_of_annotationTED e
+
+and string_of_annotationTED e = 
+	let i = match e.default with | Some e -> string_of_elemValue e | None -> "" in
+	"Name: "^e.atedName^":"^(string_of_allTypes e.atedType)^" default: "^"\n\tmodifs:\n"^(indent (print_list print_modif e.atedModifs "\n"))
+
 and print_java_class var =
 	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
 	"\nIdentifier: "^var.cidentifier^

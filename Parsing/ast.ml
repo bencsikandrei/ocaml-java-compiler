@@ -22,58 +22,6 @@ and definedType =
 	| DT_Id of string
 	| DT_Generic of string * definedType list
 
-(* definitions.ml *)
-type annotation = { aname: string ; aoth: string };; (* TODO *)
-
-type modifier=
-	|M_Annot of annotation
-	|M_Public
-	|M_Protected
-	|M_Private
-	|M_Abstract
-	|M_Static
-	|M_Final
-	|M_Synchronized
-	|M_Native
-	|M_Strictfp;;
-
-type variableModifier =
-	|VM_Final
-	|VM_Volatile
-	|VM_Transient
-	|VM_Annot of annotation;;
-
-type typeParam =
-	| TPL_Ident of string
-	| TPL_Extend of string * string	
-
-
-type resultType=
-	|RT_Type of allTypes	
-	|RT_Void
-
-type declaratorId = 
-	|DI_Identifier of string
-	|DI_Args of string * int
-
-type parentName = string*(typeParam list option)
-
-type parentClass=
-	| C_Parent of parentName
-	| C_Object
-
-type formalParameter = {
-	pmodif: variableModifier list; 
-	ptype: allTypes; 
-	pname: declaratorId;
-	pelipsis: bool;
-};;
-
-type methodDeclarator= {
-	mname: string; 
-	mparams: formalParameter list
-}
-
 
 (* arithmetic ops *)
 type binop =
@@ -141,14 +89,80 @@ type literal =
 	| L_Long of int
 	| L_Null
 
-type enhanced_for =
-	| Enhanced_for of variableModifier list option * allTypes * string
 
 
 type jexception = definedType list
 
+
+type annotation = {
+	aName:types;
+	aElemPairs: elemValuePair list
+}
+	
+
+and elemValue =
+	| EV_Ex of expression
+	| EV_Annot of annotation
+	| EV_Array of elemValue list
+
+and elemValuePair = {evpId:string;evpValue:elemValue}
+
+
+and modifier=
+	|M_Annot of annotation
+	|M_Public
+	|M_Protected
+	|M_Private
+	|M_Abstract
+	|M_Static
+	|M_Final
+	|M_Synchronized
+	|M_Native
+	|M_Strictfp
+
+and variableModifier =
+	|VM_Final
+	|VM_Volatile
+	|VM_Transient
+	|VM_Annot of annotation
+
+and typeParam =
+	| TPL_Ident of string
+	| TPL_Extend of string * string	
+
+
+and resultType=
+	|RT_Type of allTypes	
+	|RT_Void
+
+and declaratorId = 
+	|DI_Identifier of string
+	|DI_Args of string * int
+
+and parentName = string*(typeParam list option)
+
+and parentClass=
+	| C_Parent of parentName
+	| C_Object
+
+and formalParameter = {
+	pmodif: variableModifier list; 
+	ptype: allTypes; 
+	pname: declaratorId;
+	pelipsis: bool;
+}
+
+and methodDeclarator= {
+	mname: string; 
+	mparams: formalParameter list
+}
+
+
+and enhanced_for =
+	| Enhanced_for of variableModifier list option * allTypes * string
+
 (* Clases and methods *)
-type javaMethod={
+and javaMethod={
 	mutable jmmodifiers: modifier list;
 	mutable jmtparam: typeParam list; 	
 	mutable jmrtype: resultType;
@@ -173,7 +187,46 @@ and insideClass=
 	| IC_Semi
 	| IC_Empty
 	| IC_Interface of javaInterface
+	| IC_InterfaceAnoot of annotationTypeDeclaration
 	| IC_Static of statement
+
+and annotationTypeDeclaration = {
+	mutable iaModifiers: modifier list;
+	iaName:string;
+	ibody:annotationTypeElementDeclaration list;
+		
+}
+
+and annotationTypeElementDeclaration = 
+	| ATED_Class of javaClass
+	| ATED_Inter of javaInterface
+	| ATED_Annot of annotationTypeDeclaration
+	| ATED_None
+	| ATED_Declar
+	| ATED_Basic of annotationTED
+
+and annotationTED = {
+	atedModifs: modifier list; 
+	atedName:string; 
+	atedType:allTypes; 
+	default:elemValue option }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 and javaInterface={
 	imodifiers: modifier list;

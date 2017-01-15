@@ -31,7 +31,4 @@ variableModifier:
 	| TRANSIENT{VM_Transient}
 	| FINAL {VM_Final}
 
-%public Annotation: (* TODO *)
-	|ANOT i=IDENTIFIER{  { aname=i ; aoth="" } }
-
 %%
