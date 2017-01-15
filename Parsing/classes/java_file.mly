@@ -43,5 +43,5 @@ file_content_l:
 	| l=file_content_l c=file_content { l@[c] }
 
 file_content:
-	| c=j_class { F_Class c }
-	| i=j_interface { F_Interface i }
+	| c=j_class option(semiColons) { F_Class c }
+	| i=j_interface option(semiColons) { F_Interface i }
