@@ -15,6 +15,7 @@ let indent var =
 
 let rec print_list print_f  list separator = match list with
 	| [] ->  ""
+	| head::[] -> (print_f head)
 	| head::tail -> (print_f head)^separator^(print_list print_f tail separator);;
 
 
@@ -174,13 +175,24 @@ let string_of_enhanced_for ef =
 let string_of_literal x =
  	match x with
 	| L_Str(v)-> v
-	| L_Float(v) ->  string_of_float v
-	| L_Double(v) -> string_of_float v
+	| L_Float(v) ->  (string_of_float v)^"f"
+	| L_Double(v) -> (string_of_float v)^"d"
 	| L_Char(v) -> (String.make 1 v)
 	| L_Boolean(v) -> string_of_bool v
  	| L_Int(v) -> string_of_int v
  	| L_Null -> "null"
  	| L_Long(v) -> string_of_int v
+
+let symbol_option str symbol =
+	match str with
+	| "" -> ""
+	| _ -> symbol
+
+let print_parent var = match var with
+	| C_Parent(p,g) -> ( p^"<"^(print_list print_type_param (list_of_option g) ",")^">")
+	| C_Object -> ""
+
+let print_parent_name (a,b) = a^"<"^(print_list print_type_param (list_of_option b) ",")^">"
 
 let rec string_of_exp exp =
 	match exp with
@@ -196,21 +208,21 @@ let rec string_of_exp exp =
 	| EX_Unop(op, e) -> (string_of_uo op)^(string_of_exp e)
 	| EX_Postfix(op, e) -> (string_of_exp e)^(string_of_uo op)
 	| EX_Assign(op, e1, e2) -> (string_of_exp e1)^(string_of_assign op)^(string_of_exp e2)
-	| EX_Primitive(p, so) -> (string_of_primitive p)^(string_of_int (int_of_option so))
+	| EX_Primitive(p, so) -> (string_of_primitive p)^" "^(string_of_int (int_of_option so))
 	| EX_Cast(e1, e2) -> " ("^(string_of_exp e1)^") "^(string_of_exp e2)
 	| EX_Class(e,i) -> (string_of_exp e)^(string_mul i "[]")
 	| EX_Ternary(e1,e2,e3) -> (string_of_exp e1)^" ? "^(string_of_exp e2)^" : "^(string_of_exp e3)
 	| EX_Case(e) -> "case "^(string_of_exp e)^":"
 	| EX_Default -> "default:"
 	| EX_Array_access(e1,e2) -> (string_of_exp e1)^"["^(string_of_exp e2)^"]"
-	| EX_Field_access(e, eo) -> (string_of_exp e)^"."^(string_of_exp (exp_of_option eo))
-	| EX_Method_access(e,el) -> (string_of_exp e)^"("^(String.concat "," (List.map string_of_exp el))^")"
-	| EX_Array_alloc(t,elo, io) -> "new "^(string_of_types t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(string_of_int (int_of_option io))
-	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(String.concat "," (List.map string_of_exp el))^"}"
-	| EX_Plain_class_alloc(e,el) -> "inside class print"
-	| EX_Class_alloc(dtl,elo) -> "new "^(print_list string_of_definedType dtl ".")^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
-	| EX_New_alloc(so, e) -> (string_of_exp (exp_of_option so))^"."^(string_of_exp e) (* dot optional *)
-	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
+	| EX_Field_access(e, eo) -> let cs=(string_of_exp (exp_of_option eo)) in (string_of_exp e)^(symbol_option cs ".")^cs
+	| EX_Method_access(e,el) -> (string_of_exp e)^"("^(print_list string_of_exp el ",")^")"
+	| EX_Array_alloc(t,elo, io) -> "new "^(string_of_types t)^(print_list string_of_exp (list_of_option elo) " ")^"["^(string_of_int (int_of_option io))^"]"
+	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(print_list string_of_exp el ", ")^"}"
+	| EX_Plain_class_alloc(e,icl) -> (string_of_exp e)^"{"^(print_list print_inside_class icl " ")^"}"
+	| EX_Class_alloc(dtl,elo) -> "new "^(print_list string_of_definedType dtl ".")^"("^(print_list string_of_exp (list_of_option elo) ", ")^")"
+	| EX_New_alloc(so, e) -> let bs=(string_of_exp (exp_of_option so)) in bs^(symbol_option bs ".")^(string_of_exp e)
+	| EX_Var_decl(e, elo) -> let ass=(print_list string_of_exp (list_of_option elo) ",") in (string_of_exp e)^(symbol_option ass " = ")^ass
 	| EX_Primary(pt) -> (string_of_primaryType pt)
 	| EX_QualifiedName(ldt) -> (print_list string_of_definedType ldt ".")
 
@@ -219,11 +231,11 @@ and string_of_primaryType var =
 	| P_Qualified(dl) -> (print_list string_of_definedType dl ".")
 	| P_NotJustName(e) -> (string_of_exp e)
 
-let string_of_catch_header ch =
+and string_of_catch_header ch =
 	match ch with 
 	| Catch_header(t,s) -> (string_of_types t)^" "^(string_of_exp s)
 
-let rec string_of_stmt =
+and string_of_stmt =
 	function
 	| ST_Empty -> ""
 	| ST_Label x -> "\n"^x^": "
@@ -239,47 +251,43 @@ let rec string_of_stmt =
 	| ST_While(e, st) ->  "while ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
 	| ST_Case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(print_list string_of_stmt st ";") 
 	| ST_For(e1, e2, e3, st) -> "for ("^
-								(String.concat "; " (List.map string_of_stmt e1))^
+								(print_list string_of_stmt e1 "; ")^
 								" "^
 								(string_of_exp e2)^
 								"; "^
-								(String.concat "; " (List.map string_of_stmt e3))^
+								(print_list string_of_stmt e3 "; ")^
 								")\n"
 								^(string_of_stmt st)
 	| ST_Efor(ef,e,s) -> "for("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
-	| ST_Do_while(st, e) -> "do {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
+	| ST_Do_while(st, e) -> "do {"^(print_list string_of_stmt st "; ")^"} while ("^(string_of_exp e)^");"
 	| ST_Break(e) -> "break "^e
 	| ST_Continue(e) -> "continue "^e
 	| ST_Return(e) -> "return "^(string_of_exp e)
 	| ST_Throw(e) -> "throw "^(string_of_exp e)
 	| ST_Lvar_decl(e) -> ""^(string_of_exp e)
 	| ST_Synch(e1,e2) -> "synchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
-	| ST_Try(st1,stl,st2) ->  "try {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
+	| ST_Try(st1,stl,st2) ->  "try {"^(string_of_stmt st1)^(print_list string_of_stmt stl "; ")^(string_of_stmt st2)^"}"
 	| ST_Catch(ch, st) ->  "catch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
-	| ST_Catches(stl) -> ""^(String.concat "; " (List.map string_of_stmt stl))
+	| ST_Catches(stl) -> ""^(print_list string_of_stmt stl "; ")
 	| ST_Finally(st) -> "finally "^(string_of_stmt st)
 	| ST_Assert(e1,e2) -> "assert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
-	| ST_Var_decl(so,t, e) -> (str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
+	| ST_Var_decl(so,t, e) -> (str_of_option so)^" "^(string_of_allTypes t)^" "^(print_list string_of_exp e ", ")^";" 
 
 and else_or_noelse st =
 	let stri = (string_of_stmt (stms_of_option st)) in
 	match stri with
 	| "" -> ""
 	| _ -> " else "^stri
-(*  *)
-let print_java_method var = 
+
+and print_java_method var = 
 	"\nMethod: "^(print_method_declarator var.jmdeclarator)^
 	"\nReturn type: "^(print_return_type var.jmrtype)^
 	"\nModifiers: "^(print_list print_modif var.jmmodifiers " ")^
 	"\nGenerics: "^(print_list print_type_param var.jmtparam " ")^
 	"\nThrows: "^(print_list string_of_exception var.jmthrows " ")^
-	"\nBody: "^indent ("\n"^(string_of_stmt var.jmbody));;
+	"\nBody: "^indent ("\n"^(string_of_stmt var.jmbody))
 
-let print_parent var = match var with
-	| C_Parent(p,g) -> ( p^"<"^(print_list print_type_param (list_of_option g) ",")^">")
-	| C_Object -> ""
-
-let rec print_inside_class var = match var with
+and print_inside_class var = match var with
 	| IC_Method(jm) -> (print_java_method jm)
 	| IC_Attribute(alt,el) -> (string_of_allTypes alt)^" "^(print_list string_of_exp el " ")
 	| IC_Class(jc) -> (print_java_class jc)
@@ -296,17 +304,11 @@ and print_java_class var =
 	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
 	"\nBody: "^(print_list print_inside_class var.cbody " ")^" -----------------\n"
 
-and print_fcontent var = match var with
-	| F_Class(c) -> print_java_class c
-	| F_Interface(i) -> print_interface i
-
 and print_inside_interface var = match var with
 	| II_Class(c) -> print_java_class c
 	| II_Interface(i) -> print_interface i
 	| II_Method(m) -> print_java_method m
 	| II_Field(st) -> string_of_stmt st
-
-and print_parent_name (a,b) = a^"<"^(print_list print_type_param (list_of_option b) ",")^">"
 
 and print_interface var =
 	"\nModifiers: "^(print_list print_modif var.imodifiers " ")^
@@ -314,6 +316,10 @@ and print_interface var =
 	"\nType Parameters: "^(print_list print_type_param var.itparam " ")^
 	"\nParents: "^(print_list print_parent_name var.iparent ", ")^
 	"\nBody: "^(print_list print_inside_interface var.ibody " ")
+
+let print_fcontent var = match var with
+	| F_Class(c) -> print_java_class c
+	| F_Interface(i) -> print_interface i
 
 let print_import var =
 	"\nStatic: "^(string_of_bool var.impStatic)^
