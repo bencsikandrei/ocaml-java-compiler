@@ -172,6 +172,7 @@ and insideClass=
 	| IC_Semi
 	| IC_Empty
 	| IC_Interface of javaInterface
+	| IC_Static of statement
 
 and javaInterface={
 	imodifiers: modifier list;

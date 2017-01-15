@@ -49,6 +49,7 @@ interface_list:
 inside_class:
 	| m=modifiers cma=class_method_or_attribute { match cma with | IC_Method me -> me.jmmodifiers<-m; cma |IC_Class c -> c.cmodifiers<-m; cma | _ -> cma }
 	| 			  cma=class_method_or_attribute { cma }
+	| STATIC b=block { IC_Static(b) }
 	/*| i=j_interface { IC_Interface i }*/
 
 class_method_or_attribute:

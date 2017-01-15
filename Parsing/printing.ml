@@ -267,6 +267,7 @@ let rec print_inside_class var = match var with
 	| IC_Semi -> ";"
 	| IC_Empty -> ""
 	| IC_Interface(inter) -> (print_interface inter)
+	| IC_Static(b) -> (string_of_stmt b)
 	
 and print_java_class var =
 	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
