@@ -284,6 +284,7 @@ and print_fcontent var = match var with
 and print_inside_interface var = match var with
 	| II_Class(c) -> print_java_class c
 	| II_Interface(i) -> print_interface i
+	| II_Method(m) -> print_java_method m
 
 and print_parent_name (a,b) = a^"<"^(print_list print_type_param (list_of_option b) ",")^">"
 

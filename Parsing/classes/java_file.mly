@@ -40,7 +40,7 @@ import:
 
 file_content_l:
 	| c=file_content { c::[] }
-	| c=file_content l=file_content_l { c::l }
+	| l=file_content_l c=file_content { l@[c] }
 
 file_content:
 	| c=j_class { F_Class c }
