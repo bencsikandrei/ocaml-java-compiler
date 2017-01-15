@@ -66,7 +66,7 @@ VariableModifier:
 
 /* throws */
 
-Throws:
+%public Throws:
 	THROWS e=ExceptionTypeList { e }
 
 ExceptionTypeList:
