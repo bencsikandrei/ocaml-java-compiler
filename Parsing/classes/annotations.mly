@@ -7,8 +7,6 @@
 %public AnnotationTypeDeclarations:
 	|ANOT i=IDENTIFIER b=AnnotationTypeBody { {iaModifiers=[]; iaName=i; ibody=b} }
 
-AnnotationTypeDeclaration:
-	|m=option(modifiers) ANOT i=IDENTIFIER b=AnnotationTypeBody { let m = match m with | Some m -> m | None ->[] in   {iaModifiers=m; iaName=i; ibody=b} }
 
 AnnotationTypeBody:
 	| LCURL RCURL { [] }
