@@ -1,0 +1,1 @@
+OrderedPair<String, Box<Integer>> p = new OrderedPair<>("primes", new Box<Integer>(1))
