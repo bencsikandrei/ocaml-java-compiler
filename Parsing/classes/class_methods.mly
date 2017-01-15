@@ -86,8 +86,7 @@ InsideBodyList:
 	| ib=InsideBody ibs=InsideBodyList { [ib]@ibs }
 
 InsideBody:
-	| st=statement { st }
-	| lvd=localVariableDeclStmt { lvd }
+	| lvd=localVariableDeclOrStmt { lvd }
 	| c=j_class { ST_Local_class c }
 	| i=j_interface { ST_Local_interface i }
 

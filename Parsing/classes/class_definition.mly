@@ -25,7 +25,7 @@ javaClass:
 				cbody=bod})
 		}
 	| modif=option(modifiers) ENUM id=IDENTIFIER
-		interf=option(interfaces) LCURL bod=enum_body RCURL option(semiColons) { 
+		interf=option(interfaces) LCURL bod=enum_body RCURL { 
 			let modif = match modif with | None -> [] | Some m -> m in
 			let interf = match interf with | None -> [] | Some interf -> interf in
 				JavEnum ({emodifiers=modif;

@@ -23,7 +23,7 @@ compilationUnit:
 	| lvds=localVariableDeclAndStmts lvd=localVariableDeclOrStmt { lvds@[lvd] }
 ;
 
-localVariableDeclOrStmt:
+%public localVariableDeclOrStmt:
 	modifiers lvd=localVariableDeclStmt { lvd } 
 	| lvd=localVariableDeclStmt { lvd } 
 	| stmt=statement { stmt }
