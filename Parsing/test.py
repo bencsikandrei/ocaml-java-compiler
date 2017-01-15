@@ -32,9 +32,11 @@ def main(files_dir):
 					# os.system("./build/main -m "+mode+" -f "+file_name+ " -v "+ok_nok)
 					result = os.popen("./build/main -m "+mode+" -f "+file_name+" -v "+ok_nok).read()
 					print result
-			## search for BAD in the output
-			if result.find(" BAD"):
-				test_failed += 1
+				## search for BAD in the output
+				if result.find(" BAD") != -1:
+					test_failed += 1
+					print "A test failed"
+
 	## return the nb of failed and total
 	return test_count, test_failed
 	
@@ -45,6 +47,8 @@ test_count = 0
 test_failed = 0
 for i in files_dir:
 	(tc, tf) = main(i)
+	print tc
+	print tf
 	test_count += tc
 	test_failed += tf
 print "========="
