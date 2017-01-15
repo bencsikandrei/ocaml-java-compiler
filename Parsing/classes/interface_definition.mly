@@ -67,9 +67,7 @@ interf_member_decl:
 	 	| II_Method a -> a.jmmodifiers<-modifs; t
 		| II_Interface a ->  tmp a; t
 		| II_Atr f -> f.attrmodifiers<- modifs;t
-		| _ -> t
 		
-	
 	 }
 	| t=tmp {t}
 
