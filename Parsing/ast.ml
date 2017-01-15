@@ -173,9 +173,15 @@ and javaClass={
 	cbody: insideClass list;
 }
 
+and attribute={
+	mutable attrmodifiers: modifier list;
+	atype: allTypes;
+	adeclarator: expression list;
+}
+
 and insideClass=
 	| IC_Method of javaMethod
-	| IC_Attribute of allTypes * expression list
+	| IC_Attribute of attribute
 	| IC_Class of javaClass
 	| IC_Semi
 	| IC_Empty
