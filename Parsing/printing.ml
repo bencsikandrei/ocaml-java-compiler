@@ -121,7 +121,7 @@ let int_of_option v =
 (* end of option *)
 let rec string_mul i s =
 	match i with
-	| 0 -> s
+	| 0 -> ""
 	| _ -> (string_mul (i-1) (s^s))
 
 let print_annot a=a.aname;;
@@ -217,7 +217,7 @@ let rec string_of_exp exp =
 	| EX_Array_access(e1,e2) -> (string_of_exp e1)^"["^(string_of_exp e2)^"]"
 	| EX_Field_access(e, eo) -> let cs=(string_of_exp (exp_of_option eo)) in (string_of_exp e)^(symbol_option cs ".")^cs
 	| EX_Method_access(e,el) -> (string_of_exp e)^"("^(print_list string_of_exp el ",")^")"
-	| EX_Array_alloc(t,elo, io) -> "new "^(string_of_types t)^(print_list string_of_exp (list_of_option elo) " ")^"["^(string_of_int (int_of_option io))^"]"
+	| EX_Array_alloc(t,elo, io) -> "new "^(string_of_types t)^"["^(print_list string_of_exp (list_of_option elo) "][")^"]"^(string_mul (int_of_option io) "[]")
 	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(print_list string_of_exp el ", ")^"}"
 	| EX_Plain_class_alloc(e,icl) -> (string_of_exp e)^"{"^(print_list print_inside_class icl " ")^"}"
 	| EX_Class_alloc(dtl,elo) -> "new "^(print_list string_of_definedType dtl ".")^"("^(print_list string_of_exp (list_of_option elo) ", ")^")"
@@ -240,7 +240,7 @@ and string_of_stmt =
 	| ST_Empty -> ""
 	| ST_Label x -> "\n"^x^": "
 	| ST_Block(stl) -> "\nSTART Block:\n"^
-						(String.concat "\n" (List.map string_of_stmt stl))^
+						(print_list string_of_stmt stl "\n")^
 						"\nEND Block\n"
 	| ST_Expression e -> (string_of_exp e)
 	| ST_If(e, st1, st2) -> "if ("^(string_of_exp e)^") "^
@@ -249,7 +249,7 @@ and string_of_stmt =
 							" fi"
 	| ST_Switch(e, sb) -> "switch ("^(string_of_exp e)^") "^(string_of_stmt sb)
 	| ST_While(e, st) ->  "while ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
-	| ST_Case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(print_list string_of_stmt st ";") 
+	| ST_Case(el, st) -> (print_list string_of_exp el ", ")^(print_list string_of_stmt st ";") 
 	| ST_For(e1, e2, e3, st) -> "for ("^
 								(print_list string_of_stmt e1 "; ")^
 								" "^
