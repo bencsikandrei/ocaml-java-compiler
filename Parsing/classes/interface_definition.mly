@@ -3,9 +3,10 @@
 %}
 %%
 %public j_interface:
-	| i=interface_plain { JI_IN i }
+	| i=j_interface_plain { JI_IN i }
 	| i=AnnotationTypeDeclarations {JI_AN i }
 
+/*
 normal_interface:
 	| modif=option(modifiers) INTERFACE 
 		id=IDENTIFIER tp=option(type_params_defin) 
@@ -19,8 +20,9 @@ normal_interface:
 				iparent=sup;
 				ibody=bod} 
 		}
+*/
 
-interface_plain:
+%public j_interface_plain:
 	| INTERFACE id=IDENTIFIER tp=option(type_params_defin) 
 		sup=option(super_int) bod=interf_body { 
 			let tp = match tp with | None -> [] | Some tp -> tp in

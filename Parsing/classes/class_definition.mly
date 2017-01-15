@@ -64,7 +64,7 @@ method_or_attribute:
 	| j=javaMethod_plain { IC_Constructor j }
 	| fvd=fieldVariableDeclaration { fvd }
 	| t=allTypes j=javaMethod_plain { j.jmrtype<-RT_Type t; IC_Method j }
-	| i=j_interface { IC_Interface i }
+	| i=j_interface_plain { IC_Interface (JI_IN i) }
 
 
 %public j_class_plain:

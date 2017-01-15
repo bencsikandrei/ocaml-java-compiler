@@ -50,8 +50,8 @@ ElementValue:
 	| e= ElementValueArrayInitializer {EV_Array e} 
 
 ElementValueArrayInitializer:
-	|LCURL RCURL { [] }
-	|LCURL e=ElementValues option(COMM) RCURL { e }
+	| LCURL RCURL { [] }
+	| LCURL e=ElementValues option(COMM) RCURL { e }
 
 ElementValues:
 	| e=ElementValue {e::[]}

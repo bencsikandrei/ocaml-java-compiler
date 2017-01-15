@@ -55,7 +55,7 @@ let compile mode file vervose bad =
 			try
 				print( (fakeDict mode) nexttoken lexbuf ) vervose;
 				close_in (input_file);
-				print_endline("OK");
+				print_string("OK");
 			with 
 				|SyntaxError s -> print_endline (s^" "^(position lexbuf)^(ok_nok !bad_test));
 				|JavaParser.Error -> print_endline ("Parsing error  "^(position lexbuf)^(ok_nok !bad_test));
@@ -72,9 +72,9 @@ let main =
 	]
 	in let usage_msg = "miniJavaCompiler. Options available:"
 	in Arg.parse speclist print_endline usage_msg;
-	print_endline ("Verbose mode: " ^ string_of_bool !verbose);
+	(*print_endline ("Verbose mode: " ^ string_of_bool !verbose);
 	print_endline ("Parser to be used: " ^ !modes);
-	print_endline ("Bad test expected: " ^ string_of_bool !bad_test);
+	print_endline ("Bad test expected: " ^ string_of_bool !bad_test);*)
 	try 
 		compile !modes !filename !verbose !bad_test
 	with
