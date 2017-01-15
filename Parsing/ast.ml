@@ -345,6 +345,7 @@ type fileContent=
 	| F_Interface of javaInterface
 
 type javaCompilationFile={
+	fannotations: annotation list;
 	fPackage: string list;
 	fImports: import list;
 	fContent: fileContent list;

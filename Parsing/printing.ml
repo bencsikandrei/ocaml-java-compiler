@@ -297,6 +297,7 @@ and print_inside_class var = match var with
 	| IC_Empty -> ""
 	| IC_Interface(inter) -> (print_interface inter)
 	| IC_Static(b) -> (string_of_stmt b)
+	| IC_Constructor(c) -> (print_java_method c)
 
 and string_of_annotationTypeDeclaration a = "Annot: "^a.iaName^"\n\tmodifs:\n"^(indent (print_list print_modif a.iaModifiers "\n"))^"\n\tbody:\n"^(indent (print_list string_of_annotationTypeElementDeclaration a.ibody "\n"))
 
@@ -368,6 +369,7 @@ let print_import var =
 	"\nAll: "^(string_of_bool var.impAll)
 
 let prit_java_file var =
+	"\nAnnotations: "^(print_list print_annot var.fannotations ", ")^
 	"\nPackage: "^(String.concat ", " var.fPackage)^
 	"\nImports: "^(print_list print_import var.fImports " ")^
 	"\nFile Content: "^(print_list print_fcontent var.fContent " ")^"\n\n"
