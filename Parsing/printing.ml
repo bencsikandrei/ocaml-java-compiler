@@ -223,15 +223,27 @@ let string_of_catch_header ch =
 
 let rec string_of_stmt =
 	function
-	| ST_Empty -> "/* ST_empty */"
-	| ST_Label x -> "\n"^x
-	| ST_Block(stl) -> (String.concat "\n" (List.map string_of_stmt stl))
-	| ST_Expression e -> "\n"^string_of_exp e
-	| ST_If(e, st1, st2) -> "\nif ("^(string_of_exp e)^") {"^(string_of_stmt st1)^"}"^(string_of_stmt (stms_of_option st2))
-	| ST_Switch(e, sb) -> "\nswitch ("^(string_of_exp e)^") "^(string_of_stmt sb)
-	| ST_While(e, st) ->  "\nwhile ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
+	| ST_Empty -> ""
+	| ST_Label x -> "\n"^x^": "
+	| ST_Block(stl) -> "\nSTART Block:\n"^
+						(String.concat "\n" (List.map string_of_stmt stl))^
+						"\nEND Block\n"
+	| ST_Expression e -> (string_of_exp e)
+	| ST_If(e, st1, st2) -> "if ("^(string_of_exp e)^") "^
+							(string_of_stmt st1)^
+							(else_or_noelse st2)^
+							" fi"
+	| ST_Switch(e, sb) -> "switch ("^(string_of_exp e)^") "^(string_of_stmt sb)
+	| ST_While(e, st) ->  "while ("^(string_of_exp e)^") {"^(string_of_stmt st)^"}"
 	| ST_Case(el, st) -> (String.concat ", " (List.map string_of_exp el))^(print_list string_of_stmt st ";") 
-	| ST_For(e1, e2, e3, st) -> "\nfor ("^(String.concat "; " (List.map string_of_stmt e1))^" "^(string_of_exp e2)^"; "^(String.concat "; " (List.map string_of_stmt e3))^")"^(string_of_stmt st)
+	| ST_For(e1, e2, e3, st) -> "for ("^
+								(String.concat "; " (List.map string_of_stmt e1))^
+								" "^
+								(string_of_exp e2)^
+								"; "^
+								(String.concat "; " (List.map string_of_stmt e3))^
+								")\n"
+								^(string_of_stmt st)
 	| ST_Efor(ef,e,s) -> "\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
 	| ST_Do_while(st, e) -> "\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
 	| ST_Break(e) -> "\nbreak "^e
@@ -245,8 +257,13 @@ let rec string_of_stmt =
 	| ST_Catches(stl) -> "\n"^(String.concat "; " (List.map string_of_stmt stl))
 	| ST_Finally(st) -> "\nfinally "^(string_of_stmt st)
 	| ST_Assert(e1,e2) -> "\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
-	| ST_Var_decl(so,t, e) -> "\n"^(str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
+	| ST_Var_decl(so,t, e) -> (str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
 
+and else_or_noelse st =
+	let stri = (string_of_stmt (stms_of_option st)) in
+	match stri with
+	| "" -> ""
+	| _ -> " else "^stri
 (*  *)
 let print_java_method var = 
 	"\nMethod: "^(print_method_declarator var.jmdeclarator)^
