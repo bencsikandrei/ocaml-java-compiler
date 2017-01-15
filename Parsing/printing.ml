@@ -124,7 +124,6 @@ let rec string_mul i s =
 	| _ -> (string_mul (i-1) (s^s))
 
 let print_annot a=a.aname;;
-let print_excep a=a.ename;;
 
 let print_modif modifier= match modifier with
 	|M_Annot a -> print_annot a
@@ -162,6 +161,9 @@ let print_formal_parameter var =
 ;;
 
 let print_method_declarator var = var.mname^"\n"^(indent (print_list print_formal_parameter var.mparams "\n"))
+
+let string_of_exception e=
+	print_list string_of_definedType e "."
 
 (* end of my add *)
   
@@ -244,19 +246,19 @@ let rec string_of_stmt =
 								(String.concat "; " (List.map string_of_stmt e3))^
 								")\n"
 								^(string_of_stmt st)
-	| ST_Efor(ef,e,s) -> "\nfor("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
-	| ST_Do_while(st, e) -> "\ndo {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
-	| ST_Break(e) -> "\nbreak "^e
-	| ST_Continue(e) -> "\ncontinue "^e
-	| ST_Return(e) -> "\nreturn "^(string_of_exp e)
-	| ST_Throw(e) -> "\nthrow "^(string_of_exp e)
-	| ST_Lvar_decl(e) -> "\n"^(string_of_exp e)
-	| ST_Synch(e1,e2) -> "\nsynchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
-	| ST_Try(st1,stl,st2) ->  "\ntry {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
-	| ST_Catch(ch, st) ->  "\ncatch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
-	| ST_Catches(stl) -> "\n"^(String.concat "; " (List.map string_of_stmt stl))
-	| ST_Finally(st) -> "\nfinally "^(string_of_stmt st)
-	| ST_Assert(e1,e2) -> "\nassert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
+	| ST_Efor(ef,e,s) -> "for("^(string_of_enhanced_for ef)^" : "^(string_of_exp e)^") "^(string_of_stmt s)
+	| ST_Do_while(st, e) -> "do {"^(String.concat "; " (List.map string_of_stmt st))^"} while ("^(string_of_exp e)^");"
+	| ST_Break(e) -> "break "^e
+	| ST_Continue(e) -> "continue "^e
+	| ST_Return(e) -> "return "^(string_of_exp e)
+	| ST_Throw(e) -> "throw "^(string_of_exp e)
+	| ST_Lvar_decl(e) -> ""^(string_of_exp e)
+	| ST_Synch(e1,e2) -> "synchronized "^(string_of_exp e1)^" : "^(string_of_stmt e2)
+	| ST_Try(st1,stl,st2) ->  "try {"^(string_of_stmt st1)^(String.concat "; " (List.map string_of_stmt stl))^(string_of_stmt st2)^"}"
+	| ST_Catch(ch, st) ->  "catch ("^(string_of_catch_header ch)^")"^(string_of_stmt st)
+	| ST_Catches(stl) -> ""^(String.concat "; " (List.map string_of_stmt stl))
+	| ST_Finally(st) -> "finally "^(string_of_stmt st)
+	| ST_Assert(e1,e2) -> "assert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
 	| ST_Var_decl(so,t, e) -> (str_of_option so)^" "^(string_of_allTypes t)^" "^(String.concat ", " (List.map string_of_exp e))^";" 
 
 and else_or_noelse st =
@@ -270,7 +272,7 @@ let print_java_method var =
 	"\nReturn type: "^(print_return_type var.jmrtype)^
 	"\nModifiers: "^(print_list print_modif var.jmmodifiers " ")^
 	"\nGenerics: "^(print_list print_type_param var.jmtparam " ")^
-	"\nThrows: "^(print_list print_excep var.jmthrows " ")^
+	"\nThrows: "^(print_list string_of_exception var.jmthrows " ")^
 	"\nBody: "^indent ("\n"^(string_of_stmt var.jmbody));;
 
 let print_parent var = match var with

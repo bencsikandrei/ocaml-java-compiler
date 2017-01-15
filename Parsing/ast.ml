@@ -24,7 +24,6 @@ and definedType =
 
 (* definitions.ml *)
 type annotation = { aname: string ; aoth: string };; (* TODO *)
-type jexception = { ename: string ; eoth: string };; (* TODO *)
 
 type modifier=
 	|M_Annot of annotation
@@ -145,6 +144,8 @@ type literal =
 type enhanced_for =
 	| Enhanced_for of variableModifier list option * allTypes * string
 
+
+type jexception = definedType list
 
 (* Clases and methods *)
 type javaMethod={

@@ -66,19 +66,16 @@ VariableModifier:
 
 /* throws */
 
-Throws:
-	THROWS ExceptionTypeList {[]}
 
-ExceptionTypeList:
-	|ExceptionType {}
-	|ExceptionTypeList COMM ExceptionType {}
+	Throws:
+		THROWS e=ExceptionTypeList {e}
 
-ExceptionType: /* TODO check section 4.3 */
-/* 
-	|ClassType {}
-	|TypeVariable {}
-*/		
-	|allTypes {}
+	ExceptionTypeList:
+		|e=ExceptionType {e::[]}
+		|e=ExceptionType COMM el=ExceptionTypeList{e::el}
+
+	ExceptionType: (* TODO check section 4.3 *)
+		|q=qualifiedName {q}
 
 MethodBody:
 	| b=block { b }
