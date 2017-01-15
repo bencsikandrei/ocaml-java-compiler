@@ -73,7 +73,6 @@ let main =
 	in let usage_msg = "miniJavaCompiler. Options available:"
 	in Arg.parse speclist print_endline usage_msg;
 	print_endline ("Verbose mode: " ^ string_of_bool !verbose);
-	print_endline ("File to be treated: " ^ !filename);
 	print_endline ("Parser to be used: " ^ !modes);
 	print_endline ("Bad test expected: " ^ string_of_bool !bad_test);
 	try 
