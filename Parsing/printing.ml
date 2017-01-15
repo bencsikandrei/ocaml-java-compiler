@@ -29,15 +29,7 @@ let string_of_primitive var = match var with
 	| PT_Short ->  "short"
 	| PT_Double ->  "double"
 
-let rec string_of_definedType var = match var with
-	| DT_Id id -> id
-	| DT_Generic(t,al) -> t^"<"^(print_list string_of_definedType al " ")^">"
-let rec string_of_allTypes var = match var with
-	| AL_Types a -> string_of_types a
-	| AL_Array (a,dim) -> "["^(string_of_types a)^"]dims="^(string_of_int dim)
-and string_of_types var = match var with
-	| T_Primitive v -> string_of_primitive v
-	| T_Qualified v -> print_list string_of_definedType v "-"
+
 
 (* get string of operators *)
 let string_of_bo = function
@@ -129,17 +121,21 @@ let symbol_option str symbol =
 	| "" -> ""
 	| _ -> symbol
 
+let print_type_param var = match var with
+	| TPL_Ident s -> s
+	| TPL_Extend (s1,s2) -> s1^"-ext-"^s2	
 
-
+let rec string_of_definedType var = match var with
+	| DT_Id id -> id
+	| DT_Generic(t,al) -> t^"<"^(print_list print_type_param al " ")^">"
+let rec string_of_allTypes var = match var with
+	| AL_Types a -> string_of_types a
+	| AL_Array (a,dim) -> "["^(string_of_types a)^"]dims="^(string_of_int dim)
+and string_of_types var = match var with
+	| T_Primitive v -> string_of_primitive v
+	| T_Qualified v -> print_list string_of_definedType v "-"
 
 let rec print_annot a=(string_of_types a.aName)^indent("\n"^(print_list string_of_elemValuePair a.aElemPairs  ", "))
-
-and string_of_elemValuePair a = a.evpId^" = "^string_of_elemValue a.evpValue
-
-and string_of_elemValue ev = match ev with 
-	| EV_Ex ev -> string_of_exp  ev
-	| EV_Annot ev -> print_annot ev
-	| EV_Array ev -> print_list string_of_elemValue ev " "
 
 and print_modif modifier= match modifier with
 	|M_Annot a -> print_annot a
@@ -159,9 +155,12 @@ and print_vm var = match var with
 	|VM_Transient -> "transient"
 	|VM_Volatile -> "volatile"
 
-and print_type_param var = match var with
-	| TPL_Ident s -> s
-	| TPL_Extend (s1,s2) -> s1^"-ext-"^s2	
+and string_of_elemValuePair a = a.evpId^" = "^string_of_elemValue a.evpValue
+
+and string_of_elemValue ev = match ev with 
+	| EV_Ex ev -> string_of_exp  ev
+	| EV_Annot ev -> print_annot ev
+	| EV_Array ev -> print_list string_of_elemValue ev " "
 
 and print_return_type var = match var with
 	|RT_Type t-> string_of_allTypes t	
@@ -179,8 +178,6 @@ and print_method_declarator var = var.mname^"\n"^(indent (print_list print_forma
 
 and string_of_exception e=
 	print_list string_of_definedType e "."
-
-(* end of my add *)
   
 and string_of_enhanced_for ef =
 	match ef with

@@ -10,19 +10,6 @@ type primTypes =
 	| PT_Short
 	| PT_Double
 
-type allTypes =
-	| AL_Types of types
-	| AL_Array of types*int
-
-and types=
-	| T_Primitive of primTypes
-	| T_Qualified of definedType list
-
-and definedType =
-	| DT_Id of string
-	| DT_Generic of string * definedType list
-
-
 (* arithmetic ops *)
 type binop =
 	| BO_Add
@@ -89,16 +76,26 @@ type literal =
 	| L_Long of int
 	| L_Null
 
+type typeParam =
+	| TPL_Ident of string
+	| TPL_Extend of string * string	
 
-
-type jexception = definedType list
-
+type declaratorId = 
+	|DI_Identifier of string
+	|DI_Args of string * int
 
 type annotation = {
 	aName:types;
 	aElemPairs: elemValuePair list
 }
 	
+and allTypes =
+	| AL_Types of types
+	| AL_Array of types*int
+
+and definedType =
+	| DT_Id of string
+	| DT_Generic of string * typeParam list
 
 and elemValue =
 	| EV_Ex of expression
@@ -107,6 +104,11 @@ and elemValue =
 
 and elemValuePair = {evpId:string;evpValue:elemValue}
 
+and jexception = definedType list
+
+and types=
+	| T_Primitive of primTypes
+	| T_Qualified of definedType list
 
 and modifier=
 	|M_Annot of annotation
@@ -126,18 +128,9 @@ and variableModifier =
 	|VM_Transient
 	|VM_Annot of annotation
 
-and typeParam =
-	| TPL_Ident of string
-	| TPL_Extend of string * string	
-
-
 and resultType=
 	|RT_Type of allTypes	
 	|RT_Void
-
-and declaratorId = 
-	|DI_Identifier of string
-	|DI_Args of string * int
 
 and parentName = string*(typeParam list option)
 
