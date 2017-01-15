@@ -186,6 +186,7 @@ and insideInterface=
 	| II_Class of javaClass
 	| II_Interface of javaInterface
 	| II_Method of javaMethod
+	| II_Field of statement
 
 (* expressions.ml *)
 and expression =

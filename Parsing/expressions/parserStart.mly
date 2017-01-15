@@ -30,7 +30,7 @@ localVariableDeclOrStmt:
 
 %public localVariableDeclStmt:
 	ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(None,ts,vd) }
-	/* | FINAL ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(Some("final "),ts,vd) } */
+	/*| STATIC ts=allTypes vd=variableStaticDeclarators SEMI { ST_Var_decl(Some("static"),ts,vd) }*/
 ;
 
 /* variable declarators */
