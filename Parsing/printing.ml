@@ -291,7 +291,7 @@ and print_java_method var =
 
 and print_inside_class var = match var with
 	| IC_Method(jm) -> (print_java_method jm)
-	| IC_Attribute(alt,el) -> (string_of_allTypes alt)^" "^(print_list string_of_exp el " ")
+	| IC_Attribute  a -> (string_of_allTypes a.atype)^" "^(print_list string_of_exp a.adeclarator " ")^" modifs: "^(print_list print_modif a.attrmodifiers " ")
 	| IC_Class(jc) -> (print_java_class jc)
 	| IC_Semi -> ";"
 	| IC_Empty -> ""
