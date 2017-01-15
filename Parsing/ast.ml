@@ -189,7 +189,7 @@ and insideInterface=
 	| II_Method of javaMethod
 
 and constructor={
-	constrmodifiers: modifier list;
+	mutable constrmodifiers: modifier list;
 	constrtparam: typeParam list; 	
 	constrdeclarator: methodDeclarator;
 	constrthrows: jexception list;

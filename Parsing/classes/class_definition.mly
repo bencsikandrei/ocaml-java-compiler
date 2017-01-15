@@ -50,6 +50,8 @@ inside_class:
 	| m=modifiers cma=class_method_or_attribute { match cma with | IC_Method me -> me.jmmodifiers<-m; cma |IC_Class c -> c.cmodifiers<-m; cma | _ -> cma }
 	| 			  cma=class_method_or_attribute { cma }
 	| STATIC b=block { IC_Static(b) }
+	| m=modifiers 	c=constructor { c.constrmodifiers<-m; IC_Constructor c }
+	| 				c=constructor { IC_Constructor c }
 	/*| i=j_interface { IC_Interface i }*/
 
 class_method_or_attribute:
@@ -78,16 +80,14 @@ method_or_attribute:
 		}
 
 constructor:
- 	| modif=option(modifiers) tp=option(type_params_defin) 
- 		m=MethodDeclarator t=option(Throws) b=block option(semiColons) {
- 			let modif = match modif with | None -> [] | Some m -> m in
+ 	| tp=option(type_params_defin) m=MethodDeclarator t=option(Throws) b=block option(semiColons) {
 			let tp = match tp with | None -> [] | Some tp -> tp in
 			let t = match t with | None -> [] | Some t -> t in
-				{constrmodifiers=modif;
+				{constrmodifiers=[];
 				constrdeclarator=m;
 				constrtparam=tp;
 				constrthrows=t;
-				cbody=b} 
+				constrbody=b} 
 		}
  	/*this IDENTIFIER must be the simple name of the class*/
 %%
