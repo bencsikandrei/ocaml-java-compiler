@@ -206,7 +206,7 @@ let rec string_of_exp exp =
 	| EX_Array_alloc(t,elo, io) -> "new "^(string_of_types t)^(String.concat "" (List.map string_of_exp (list_of_option elo) ))^(string_of_int (int_of_option io))
 	| EX_Plain_array_alloc(e,el) -> (string_of_exp e)^"{"^(String.concat "," (List.map string_of_exp el))^"}"
 	| EX_Plain_class_alloc(e,el) -> "inside class print"
-	| EX_Class_alloc(t,elo) -> "new "^(string_of_types t)^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
+	| EX_Class_alloc(dtl,elo) -> "new "^(print_list string_of_definedType dtl ".")^"("^(String.concat "," (List.map string_of_exp (list_of_option elo) ))^")"
 	| EX_New_alloc(so, e) -> (string_of_exp (exp_of_option so))^"."^(string_of_exp e) (* dot optional *)
 	| EX_Var_decl(e, elo) -> (string_of_exp e)^" = "^(String.concat "," (List.map string_of_exp (list_of_option elo))) (* assign optional *)
 	| EX_Primary(pt) -> (string_of_primaryType pt)

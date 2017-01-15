@@ -87,8 +87,8 @@ plainNewAllocationExpression:
 ;
 
 classAllocationExpression:
-	NEW tn=types LPAR args=argumentList RPAR { EX_Class_alloc(tn,Some(args)) }
-	| NEW tn=types LPAR RPAR { EX_Class_alloc(tn, None) }
+	NEW tn=qualifiedName LPAR args=argumentList RPAR { EX_Class_alloc(tn,Some(args)) }
+	| NEW tn=qualifiedName LPAR RPAR { EX_Class_alloc(tn, None) }
 ;
 
 argumentList:

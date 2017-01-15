@@ -211,7 +211,7 @@ and expression =
 	| EX_Array_alloc of types * expression list option * int option
 	| EX_Plain_array_alloc of expression * expression list
 	| EX_Plain_class_alloc of expression * insideClass list
-	| EX_Class_alloc of types * expression list option
+	| EX_Class_alloc of definedType list * expression list option
 	| EX_New_alloc of expression option * expression
 	| EX_Var_decl of expression * expression list option
 	| EX_Primary of primaryType
