@@ -212,13 +212,12 @@ and annotationTypeDeclaration = {
 and annotationTypeElementDeclaration = 
 	| ATED_Class of class_or_enum
 	| ATED_Inter of javaInterface
-	| ATED_Annot of annotationTypeDeclaration
 	| ATED_None
-	| ATED_Declar
+	| ATED_Declar of attribute
 	| ATED_Basic of annotationTED
 
 and annotationTED = {
-	atedModifs: modifier list; 
+	mutable atedModifs: modifier list; 
 	atedName:string; 
 	atedType:allTypes; 
 	default:elemValue option }
@@ -254,7 +253,7 @@ and insideInterface=
 	| II_Class of class_or_enum
 	| II_Interface of javaInterface
 	| II_Method of javaMethod
-	| II_Field of statement
+	| II_Atr of attribute
 
 and constructor={
 	mutable constrmodifiers: modifier list;
@@ -326,7 +325,7 @@ and statement =
 	| ST_Catches of statement list
 	| ST_Finally of statement
 	| ST_Assert of expression * expression option
-	| ST_Var_decl of string option * allTypes * expression list
+	| ST_Var_decl of modifier list option * allTypes * expression list
 	| ST_Local_class of class_or_enum
 	| ST_Local_interface of javaInterface
 

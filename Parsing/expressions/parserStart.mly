@@ -42,6 +42,7 @@ compilationUnit:
 
 variableDeclarator:
 	dn=declaratorName { EX_Var_decl(dn, None) }
+	| dn=declaratorName dims { EX_Var_decl(dn, None) }
 	| dn=declaratorName ASSIGN vi=variableInitializer { EX_Var_decl(dn,Some(vi)) }
 ;
 

@@ -271,7 +271,7 @@ and string_of_stmt =
 	| ST_Catches(stl) -> ""^(print_list string_of_stmt stl "; ")
 	| ST_Finally(st) -> "finally "^(string_of_stmt st)
 	| ST_Assert(e1,e2) -> "assert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
-	| ST_Var_decl(so,t, e) -> (str_of_option so)^" "^(string_of_allTypes t)^" "^(print_list string_of_exp e ", ")^";" 
+	| ST_Var_decl(so,t, e) -> (print_list print_modif (list_of_option so) " ")^" "^(string_of_allTypes t)^" "^(print_list string_of_exp e ", ")^";" 
 	| ST_Local_class(c) -> (print_java_class c)
 	| ST_Local_interface(i) -> (print_interface i)
 
@@ -289,9 +289,12 @@ and print_java_method var =
 	"\nThrows: "^(print_list string_of_exception var.jmthrows " ")^
 	"\nBody: "^indent ("\n"^(string_of_stmt var.jmbody))
 
+and string_of_attribute a=
+	(string_of_allTypes a.atype)^" "^(print_list string_of_exp a.adeclarator " ")^" modifs: "^(print_list print_modif a.attrmodifiers " ")
+
 and print_inside_class var = match var with
 	| IC_Method(jm) -> (print_java_method jm)
-	| IC_Attribute  a -> (string_of_allTypes a.atype)^" "^(print_list string_of_exp a.adeclarator " ")^" modifs: "^(print_list print_modif a.attrmodifiers " ")
+	| IC_Attribute  a -> string_of_attribute a 
 	| IC_Class(jc) -> (print_java_class jc)
 	| IC_Semi -> ";"
 	| IC_Empty -> ""
@@ -304,9 +307,8 @@ and string_of_annotationTypeDeclaration a = "Annot: "^a.iaName^"\n\tmodifs:\n"^(
 and string_of_annotationTypeElementDeclaration a= match a with
 	|ATED_Class e -> print_java_class e
 	|ATED_Inter e -> print_interface e
-	|ATED_Annot e -> string_of_annotationTypeDeclaration e
 	|ATED_None -> ""
-	|ATED_Declar (* TODO *) ->""
+	|ATED_Declar e -> string_of_attribute e
 	|ATED_Basic e -> string_of_annotationTED e
 
 and string_of_annotationTED e = 
@@ -340,7 +342,7 @@ and print_inside_interface var = match var with
 	| II_Class(c) -> print_java_class c
 	| II_Interface(i) -> print_interface i
 	| II_Method(m) -> print_java_method m
-	| II_Field(st) -> string_of_stmt st
+	| II_Atr(st) -> string_of_attribute st
 
 and print_interface_norm var =
 	"\nModifiers: "^(print_list print_modif var.imodifiers " ")^

@@ -127,7 +127,7 @@ method_or_attribute:
 				cbody=bod})
 		}
 	| ENUM id=IDENTIFIER
-		interf=option(interfaces) LCURL bod=enum_body RCURL option(semiColons) {
+		interf=option(interfaces) LCURL bod=enum_body RCURL {
 			let interf = match interf with | None -> [] | Some interf -> interf in
 				JavEnum ({emodifiers=[];
 				eidentifier=id;
