@@ -152,7 +152,7 @@ and methodDeclarator= {
 
 
 and enhanced_for =
-	| Enhanced_for of variableModifier list option * allTypes * string
+	| Enhanced_for of modifier list option * allTypes * string
 
 (* Clases and methods *)
 and javaMethod={

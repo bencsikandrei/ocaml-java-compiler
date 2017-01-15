@@ -29,7 +29,7 @@ localVariableDeclOrStmt:
 ;
 
 %public localVariableDeclStmt:
-	ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(None,ts,vd) }
+	modifiers ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(None,ts,vd) }
 	/*| STATIC ts=allTypes vd=variableStaticDeclarators SEMI { ST_Var_decl(Some("static"),ts,vd) }*/
 ;
 

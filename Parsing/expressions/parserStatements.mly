@@ -100,7 +100,7 @@ forIncr:
 ;
 
 forVarOpt:
-	ms=variableModifiers ts=allTypes id=IDENTIFIER { Enhanced_for(Some(ms),ts,id) }
+	ms=modifiers ts=allTypes id=IDENTIFIER { Enhanced_for(Some(ms),ts,id) }
 	| ts=allTypes id=IDENTIFIER { Enhanced_for(None,ts,id) }
 ;
 
