@@ -271,7 +271,7 @@ and string_of_stmt =
 	| ST_Catches(stl) -> ""^(print_list string_of_stmt stl "; ")
 	| ST_Finally(st) -> "finally "^(string_of_stmt st)
 	| ST_Assert(e1,e2) -> "assert ("^(string_of_exp e1)^") : ("^(string_of_exp(exp_of_option e2))^");"
-	| ST_Var_decl(so,t, e) -> (str_of_option so)^" "^(string_of_allTypes t)^" "^(print_list string_of_exp e ", ")^";" 
+	| ST_Var_decl(so,t, e) -> (print_list print_modif (list_of_option so) " ")^" "^(string_of_allTypes t)^" "^(print_list string_of_exp e ", ")^";" 
 	| ST_Local_class(c) -> (print_java_class c)
 	| ST_Local_interface(i) -> (print_interface i)
 

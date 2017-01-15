@@ -325,7 +325,7 @@ and statement =
 	| ST_Catches of statement list
 	| ST_Finally of statement
 	| ST_Assert of expression * expression option
-	| ST_Var_decl of string option * allTypes * expression list
+	| ST_Var_decl of modifier list option * allTypes * expression list
 	| ST_Local_class of class_or_enum
 	| ST_Local_interface of javaInterface
 
