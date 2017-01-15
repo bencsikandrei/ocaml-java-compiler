@@ -1,14 +1,30 @@
-# Authors: 
+*******************************************************************************
+*******************************************************************************
+JFAP - MiniJava Compiler for F2B304 TELECOM Bretagne
+2016-2017
+
+Authors: 
 	Javier Alejandro ATADIA
 	Florencia ALVAREZ
 	Paulina ALVAREZ
 	Andrei-Florin BENCSIK
 
-# Project Name
+*******************************************************************************
+*******************************************************************************
+
+1. Project Name
 
 JAVA Compiler using Ocaml - Phase I
 
-## Installation
+
+*******************************************************************************
+*******************************************************************************
+
+2. Installation
+
+First make sure to clone the repository with the command and input your credentials:
+
+	git clone https://redmine-df.telecom-bretagne.eu/git/f2b304-minijava-jfap
 
 To be able to run the first phase, please go to PROJECT_ROOT/Parsing, and do:
 
@@ -16,9 +32,17 @@ To be able to run the first phase, please go to PROJECT_ROOT/Parsing, and do:
 
 This will compile all the necessary files and move them to the build folder
 
-## Usage
 
-After the make, you can test the compiler by running the python script:
+*******************************************************************************
+*******************************************************************************
+
+3. Testing
+
+*******************************************************************************
+
+3.1 Testing the parser
+
+After the (2) Installation, you can test the compiler by running the python script:
 
 	python test.py
 
@@ -49,11 +73,17 @@ be full valid Java files)
 Bad tests are tests that are supposed to fail. Any file in a folder starting 
 with bad_test_* is made to fail.
 
-To add your own classes to auto-testing, you just need to add that .java file to:
+*******************************************************************************
+
+3.2 Adding more tests
+
+ To add your own classes to auto-testing, you just need to add that .java file to:
 	
 	./classes_testing/test_file
 
-## One file at a time testing
+*******************************************************************************
+
+3.3 Testing only one file
 
 If by change you want to test a file yourself, you can use..
 For the parser:
@@ -62,11 +92,17 @@ For the parser:
 
 Default mode for the parser is: file
 
-For the lexer:
+*******************************************************************************
+
+3.2 Testing the lexer:
 	
 	python parser.py --file Myclass.java
 
-## History
+
+*******************************************************************************
+*******************************************************************************
+
+5. History
 
 The compiler is a merge between a classes compiler and a statement/expression 
 compiler
@@ -76,12 +112,17 @@ Both parts are available by switching to dedicated branches
 	expressions -> only statements and expressions
 	classes -> only classes
 
-## Credits
+
+*******************************************************************************
+*******************************************************************************
+
+6. Credits
 
 	Javier Alejandro ATADIA
 	Florencia ALVAREZ
 	Paulina ALVAREZ
 	Andrei-Florin BENCSIK
 
-## License
 
+*******************************************************************************
+*******************************************************************************
