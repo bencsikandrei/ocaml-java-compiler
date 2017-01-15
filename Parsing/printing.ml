@@ -313,12 +313,27 @@ and string_of_annotationTED e =
 	"Name: "^e.atedName^":"^(string_of_allTypes e.atedType)^" default: "^"\n\tmodifs:\n"^(indent (print_list print_modif e.atedModifs "\n"))
 
 and print_java_class var =
-	"\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
-	"\nIdentifier: "^var.cidentifier^
-	"\nType Parameters: "^(print_list print_type_param var.ctparam " ")^
-	"\nParent: "^(print_parent var.cparent)^
-	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
-	"\nBody: "^(print_list print_inside_class var.cbody " ")^" -----------------\n"
+	match var with
+	| JavClass var -> 
+		"\n-Class-\nModifiers: "^(print_list print_modif var.cmodifiers " ")^
+		"\nIdentifier: "^var.cidentifier^
+		"\nType Parameters: "^(print_list print_type_param var.ctparam " ")^
+		"\nParent: "^(print_parent var.cparent)^
+		"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
+		"\nBody: "^(print_list print_inside_class var.cbody " ")^" -----------------\n"
+	| JavEnum var -> 
+		"\n-Enum-\nModifiers: "^(print_list print_modif var.emodifiers " ")^
+		"\nIdentifier: "^var.eidentifier^
+		"\nInterfaces: "^(String.concat ", " var.einterfaces)^
+		"\nBody: "^indent("Enum constants:"^indent(print_enum_body var.ebody))^" -----------------\n"
+	
+and print_enum_body (econst,defin) = (print_list print_enum_const econst "\n")^(print_list print_inside_class defin " ")	
+
+and print_enum_const var = 
+	let annot = match var.ecAnnotation with | None -> "-" | Some a -> print_annot a in
+	let args = match var.ecArguments with | None -> "-" | Some a -> (print_list string_of_exp a ",") in
+		"\nAnnotation: "^annot^"\nIdentifier: "^var.ecIdentifier^"\nArguments: "^args
+
 
 and print_inside_interface var = match var with
 	| II_Class(c) -> print_java_class c
