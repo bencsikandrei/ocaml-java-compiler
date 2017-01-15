@@ -90,7 +90,7 @@ InsideBody:
 	| c=j_class { ST_Local_class c }
 	| i=j_interface { ST_Local_interface i }
 
-%public NotImplMethod:
+/*%public NotImplMethod:
 	|mm=modifiers 	tp=type_params_defin 	rt=ResultType md=MethodDeclarator th=Throws SEMI option(semiColons) { {jmmodifiers=mm;jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=ST_Empty} }
 	|				tp=type_params_defin 	rt=ResultType md=MethodDeclarator th=Throws SEMI option(semiColons) { {jmmodifiers=[];jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=ST_Empty} }
 	|mm=modifiers 							rt=ResultType md=MethodDeclarator th=Throws SEMI option(semiColons) { {jmmodifiers=mm;jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=ST_Empty} }
@@ -99,7 +99,7 @@ InsideBody:
 	|				tp=type_params_defin 	rt=ResultType md=MethodDeclarator 			SEMI option(semiColons) { {jmmodifiers=[];jmtparam=tp;jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=ST_Empty} }
 	|mm=modifiers 						 	rt=ResultType md=MethodDeclarator 			SEMI option(semiColons) { {jmmodifiers=mm;jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=ST_Empty} }
 	|										rt=ResultType md=MethodDeclarator 			SEMI option(semiColons) { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=[];jmbody=ST_Empty} }
-
+*/
 %public NotImplMethod_plain:
 	|rt=ResultType md=MethodDeclarator th=Throws SEMI option(semiColons) { {jmmodifiers=[];jmtparam=[];jmrtype=rt;jmdeclarator=md;jmthrows=th;jmbody=ST_Empty} }
 

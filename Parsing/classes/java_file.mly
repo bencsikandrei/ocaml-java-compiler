@@ -11,14 +11,21 @@ javaFile:
 	
 javaCompFile:
 	| p=option(package) i=option(imports) c=option(file_content_l) EOF { 
-			let p = match p with | None -> [] | Some p -> p in
+			let a,p = match p with | None -> [],[] | Some (a,p) -> (
+				match a with
+				| None -> [],p
+				| Some a -> a,p) in
 			let i = match i with | None -> [] | Some i -> i in
 			let c = match c with | None -> [] | Some c -> c in
-				{fPackage=p; fImports=i; fContent=c;}
+				{fannotations=a; fPackage=p; fImports=i; fContent=c;}
 		}
 
 package:
-	| PACKAGE p=pack_name SEMI { p }
+	| a=option(annotations) PACKAGE p=pack_name SEMI { a,p }
+
+annotations:
+	| a=Annotation { a::[] }
+	| a=Annotation l=annotations { a::l }
 
 pack_name:
 	| i=IDENTIFIER { i::[] }

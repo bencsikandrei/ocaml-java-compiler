@@ -208,6 +208,8 @@ rule nexttoken = parse
 	(* array dimension *)
 	| dim { DIM }
 
+	| '@' { ANOT }
+
 	(* some types *)
 	| integer as i { INTLIT(int_of_string i) }
 	| double as d { DOUBLELIT(float_of_string d) }
