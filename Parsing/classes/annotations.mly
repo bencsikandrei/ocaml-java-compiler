@@ -30,7 +30,7 @@ tmp:
 
 
 %public Annotation:
-	/*| ANOT q=qualifiedName LPAR e=ElementValuePairs RPAR {  {aName= T_Qualified q;aElemPairs=e}  }*/
+	| ANOT q=qualifiedName LPAR e=ElementValuePairs RPAR {  {aName= T_Qualified q;aElemPairs=e}  }
 	| ANOT q=qualifiedName LPAR e=ElementValue RPAR {   {aName= T_Qualified q;aElemPairs=[{evpId="value" ; evpValue=e}] } }
 	| ANOT q=qualifiedName LPAR RPAR { {aName= T_Qualified q;aElemPairs=[]}  }
 	| ANOT q=qualifiedName {  {aName=T_Qualified q;aElemPairs=[]} }

@@ -47,7 +47,7 @@ interface_list:
 	| i=inside_class l=inside_class_l { i::l }
 
 inside_class:
-	| m=modifiers cma=class_method_or_attribute { match cma with | IC_Method me -> me.jmmodifiers<-m; cma |IC_Class c -> c.cmodifiers<-m; cma | _ -> cma }
+	| m=modifiers cma=class_method_or_attribute { match cma with | IC_Method me -> me.jmmodifiers<-m; cma |IC_Class c -> c.cmodifiers<-m; cma | IC_Attribute a -> a.attrmodifiers<-m; cma | _ -> cma }
 	| 			  cma=class_method_or_attribute { cma }
 	| STATIC b=block { IC_Static(b) }
 /*	| m=modifiers 	c=constructor { c.constrmodifiers<-m; IC_Constructor c }
@@ -62,7 +62,7 @@ method_or_attribute:
 	| t=type_params_defin j=javaMethod_plain_return { j.jmtparam<-t;IC_Method j }
 	| VOID j=javaMethod_plain { IC_Method j }
 	| j=javaMethod_plain { IC_Constructor j }
-	| fvd=fieldVariableDeclaration { fvd }
+	| fvd=fieldVariableDeclaration { IC_Attribute fvd }
 	| t=allTypes j=javaMethod_plain { j.jmrtype<-RT_Type t; IC_Method j }
 	| i=j_interface_plain { IC_Interface (JI_IN i) }
 
