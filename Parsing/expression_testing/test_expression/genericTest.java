@@ -1,1 +1,1 @@
-OrderedPair<String, Box<Integer>> p = new OrderedPair<>("primes", new Box<Integer>(1))
+OrderedPair<T,K> = new OrderedPair<T,K>("primes", new Box<Integer>(1))
