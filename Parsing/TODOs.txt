@@ -1,10 +1,10 @@
-- ";" can be multiples and with spaces
+- ";" can be multiples and with spaces 						DONE
 - constructor (8.8)
 - annotations before package (7.4.1.1)
-- attributes/variable declarators add array init
+- attributes/variable declarators add array init 			DONE??
 - modifiers: separate? class, method, interface, variable
 - inside interfaces
 - add enums in top of classes
-- insideclass: STATIC block
-- class_methods line 76-
+- insideclass: STATIC block 								DONE
+- class_methods line 76-98
 - interface_definition line 7 -> /*| annotation_decl { }*/ 
