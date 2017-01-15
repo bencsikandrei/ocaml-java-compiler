@@ -184,11 +184,13 @@ and enumConstant={
 	ecAnnotation: annotation option;
 	ecIdentifier: string;
 	ecArguments: expression list option;
+}
 
 and attribute={
 	mutable attrmodifiers: modifier list;
 	atype: allTypes;
 	adeclarator: expression list;
+}
 
 and insideClass=
 	| IC_Method of javaMethod
@@ -325,7 +327,7 @@ and statement =
 	| ST_Finally of statement
 	| ST_Assert of expression * expression option
 	| ST_Var_decl of string option * allTypes * expression list
-	| ST_Local_class of javaClass
+	| ST_Local_class of class_or_enum
 	| ST_Local_interface of javaInterface
 
 and class_or_enum=
