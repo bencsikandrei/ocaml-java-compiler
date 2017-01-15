@@ -3,8 +3,8 @@
 %}
 %%
 %public j_interface:
-	| i=normal_interface { i }
-	/*| i=AnnotationTypeDeclaration { i } */
+	| i=interface_plain { JI_IN i }
+	| i=AnnotationTypeDeclarations {JI_AN i }
 
 normal_interface:
 	| modif=option(modifiers) INTERFACE 
@@ -14,6 +14,18 @@ normal_interface:
 			let tp = match tp with | None -> [] | Some tp -> tp in
 			let sup = match sup with | None -> [] | Some sup -> sup in
 				{imodifiers=modif;
+				iidentifier=id;
+				itparam=tp;
+				iparent=sup;
+				ibody=bod} 
+		}
+
+interface_plain:
+	| INTERFACE id=IDENTIFIER tp=option(type_params_defin) 
+		sup=option(super_int) bod=interf_body { 
+			let tp = match tp with | None -> [] | Some tp -> tp in
+			let sup = match sup with | None -> [] | Some sup -> sup in
+				{imodifiers=[];
 				iidentifier=id;
 				itparam=tp;
 				iparent=sup;
