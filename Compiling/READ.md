@@ -10,7 +10,7 @@ JAVA Compiler using Ocaml - Phase I
 
 ## Installation
 
-To be able to run the first phase, please go to Parsing, and do:
+To be able to run the first phase, please go to PROJECT_ROOT/Parsing, and do:
 
 	make
 
@@ -26,9 +26,28 @@ This will test all files present in the predefined test folders
 	
 	classes_testing/test_*
 	expressions_testing/test_*
+	expressions_testing/bad_test_*
 
 The wildcard match specifies the part of the compiler being tested and is used 
-by the script
+by the script. That match for the wildcard means UNIT TESTS! So in those folders,
+please put only valid .java files. 
+
+In statement, only statements (blocks, ifs, fors..)
+Keep in mind that because those parsers are used for testing they start with Blocks, 
+so include your statements into blocks
+
+In expression, only valid expressions (additions, multiplications,.. ). Please
+do not put semicolons 
+
+In methods, only methods (no need for classes around them)
+
+In class, any classes, no imports, no packages
+
+In file, well here you can put what you please! FULL JAVA FILES! (they actually MUST
+be full valid Java files)
+
+Bad tests are tests that are supposed to fail. Any file in a folder starting 
+with bad_test_* is made to fail.
 
 To add your own classes to auto-testing, you just need to add that .java file to:
 	
@@ -40,6 +59,8 @@ If by change you want to test a file yourself, you can use..
 For the parser:
 
 	python parser.py --file Myclass.java [--mode (file|method|class|expression|statement)] [-v|--verbose]
+
+Default mode for the parser is: file
 
 For the lexer:
 	
