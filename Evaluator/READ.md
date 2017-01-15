@@ -96,7 +96,7 @@ Default mode for the parser is: file
 
 3.2 Testing the lexer:
 	
-	python parser.py --file Myclass.java
+	python lexer.py --file Myclass.java
 
 
 *******************************************************************************
