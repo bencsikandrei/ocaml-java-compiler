@@ -17,15 +17,33 @@ AnnotationTypeElementDeclarations:
 	| e=AnnotationTypeElementDeclaration es=AnnotationTypeElementDeclarations {e::es}
 
 AnnotationTypeElementDeclaration:
-	| modifiers t=tmp {t}
+	| m=modifiers t=tmp {
+		let match_inter var m =
+			match var with
+			|JI_IN i ->  i.imodifiers<- m
+			|JI_AN i -> i.iaModifiers<-m
+		in 
+		let match_class var m = 
+		match var with
+			| JavClass c -> c.ctparam<-m
+			| JavEnum e -> e. <-m
+		match t with 
+		| ATED_Basic b -> b.atedModifs<-b;t
+		| Ated_Inter i -> match_inter i m;t
+		| ATED_Class c -> match_class c m;t
+		| ATED_Declar d -> d.attrmodifiers<-m;t
+		| ATED_None -> t
+
+	}
 	| t=tmp {t}
 	| SEMI {ATED_None} 
 
 tmp:
 	| t=allTypes i=IDENTIFIER DEFAULT e=ElementValue SEMI  { ATED_Basic {atedModifs=[];  atedType=t;atedName=i; default=Some e } }
 	| t=allTypes i=IDENTIFIER SEMI  { ATED_Basic {atedModifs=[];  atedType=t;atedName=i; default=None } }
-/*	| t=allTypes vds=variableDeclarators SEMI {  } TODO */
-	| e=j_class_plain {ATED_Class e}
+	| t=fieldVariableDeclaration { ATED_Declar t } 
+	| t=type_params_defin e=j_class_plain {e.ctparam<-t;ATED_Class e}
+	| e=j_class_plain {e}
 	| e=j_interface { ATED_Inter e}
 
 

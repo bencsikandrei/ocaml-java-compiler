@@ -199,13 +199,12 @@ and annotationTypeDeclaration = {
 and annotationTypeElementDeclaration = 
 	| ATED_Class of javaClass
 	| ATED_Inter of javaInterface
-	| ATED_Annot of annotationTypeDeclaration
 	| ATED_None
-	| ATED_Declar
+	| ATED_Declar of attribute
 	| ATED_Basic of annotationTED
 
 and annotationTED = {
-	atedModifs: modifier list; 
+	mutable atedModifs: modifier list; 
 	atedName:string; 
 	atedType:allTypes; 
 	default:elemValue option }
