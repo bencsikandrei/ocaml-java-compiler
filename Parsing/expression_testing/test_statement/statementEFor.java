@@ -1,6 +1,6 @@
 {	
 	/* enhanced for */
-	for(public int i : iterType ) {
+	for(final int i : iterType ) {
 		i++;
 	}
 	

@@ -167,7 +167,7 @@ let print_method_declarator var = var.mname^"\n"^(indent (print_list print_forma
   
 let string_of_enhanced_for ef =
 	match ef with
-	| Enhanced_for(ml,t,s) -> (print_list print_modif (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
+	| Enhanced_for(ml,t,s) -> (print_list print_vm (list_of_option ml) " ")^(string_of_allTypes t)^" "^s
 
 let string_of_literal x =
  	match x with
