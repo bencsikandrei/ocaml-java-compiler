@@ -62,7 +62,7 @@ VariableModifiers:
 
 VariableModifier:
 	|FINAL {VM_Final}
-(*	|a=Annotation {VM_Annot a} /* If an annotation a on a formal parameter corresponds to an annotation type T, and T has a (meta-)annotation m that corresponds to annotation.Target , then m must have an element whose value is annotation.ElementType.PARAMETER , or a compile-time error occurs */*)
+	|a=Annotation {VM_Annot a} /* If an annotation a on a formal parameter corresponds to an annotation type T, and T has a (meta-)annotation m that corresponds to annotation.Target , then m must have an element whose value is annotation.ElementType.PARAMETER , or a compile-time error occurs */
 
 /* throws */
 

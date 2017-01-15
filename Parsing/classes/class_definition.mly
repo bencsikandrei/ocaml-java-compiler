@@ -67,6 +67,7 @@ method_or_attribute:
 	| i=j_interface_plain { IC_Interface (JI_IN i) }
 
 
+
 %public j_class_plain:
 	| CLASS id=IDENTIFIER 
 		tp=option(type_params_defin) sup=option(super) 

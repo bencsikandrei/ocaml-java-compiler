@@ -27,17 +27,17 @@ def main():
 
 	verbosity = ""
 	if args.verbosity:
-		verbosity =" -vervose"
+		verbosity =" -v "
 
 	if args.file and args.mode:
  		file_name = args.file
  		print "Mode is " + args.mode
-		os.system("./build/main " + args.mode + " " + file_name + verbosity)
+		os.system("./build/main -m " + args.mode + " -f " + file_name + verbosity)
  		
  	elif args.file:
  		file_name = args.file
  		print "Mode is FILE"
- 		os.system("./build/main " + "file" + " " + file_name + verbosity)
+ 		os.system("./build/main " + " -f "+ file_name + verbosity)
 
 	else:
 		os.system("python " + sys.argv[0] + " --help")
