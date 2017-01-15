@@ -35,11 +35,10 @@ interf_body:
 
 interf_member_decls:
 	| d=interf_member_decl { d::[] }
-	| d=interf_member_decl l=interf_member_decls { d::l }
+	| l=interf_member_decls d=interf_member_decl { l@[d] }
 
 interf_member_decl:
-	/* ConstantDeclaration
-	AbstractMethodDeclaration */
+	(*| modif=modifiers lvd=localVariableDeclStmt { II_Field(lvd) } /* default public static final attributes that must be initialized */*)
 	| nim=NotImplMethod { II_Method nim }
 	| c=j_class { II_Class c }
 	| i=j_interface { II_Interface i }

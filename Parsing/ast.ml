@@ -24,7 +24,6 @@ and definedType =
 
 (* definitions.ml *)
 type annotation = { aname: string ; aoth: string };; (* TODO *)
-type jexception = { ename: string ; eoth: string };; (* TODO *)
 
 type modifier=
 	|M_Annot of annotation
@@ -146,6 +145,8 @@ type enhanced_for =
 	| Enhanced_for of variableModifier list option * allTypes * string
 
 
+type jexception = definedType list
+
 (* Clases and methods *)
 type javaMethod={
 	mutable jmmodifiers: modifier list;
@@ -167,7 +168,7 @@ and javaClass={
 
 and insideClass=
 	| IC_Method of javaMethod
-	| IC_Attribute of modifier list option * allTypes * expression list
+	| IC_Attribute of allTypes * expression list
 	| IC_Class of javaClass
 	| IC_Semi
 	| IC_Empty
@@ -187,6 +188,7 @@ and insideInterface=
 	| II_Class of javaClass
 	| II_Interface of javaInterface
 	| II_Method of javaMethod
+	| II_Field of statement
 
 and constructor={
 	mutable constrmodifiers: modifier list;

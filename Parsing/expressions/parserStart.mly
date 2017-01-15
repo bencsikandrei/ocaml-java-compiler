@@ -30,7 +30,7 @@ localVariableDeclOrStmt:
 
 %public localVariableDeclStmt:
 	ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(None,ts,vd) }
-	/* | FINAL ts=allTypes vd=variableDeclarators SEMI { ST_Var_decl(Some("final "),ts,vd) } */
+	/*| STATIC ts=allTypes vd=variableStaticDeclarators SEMI { ST_Var_decl(Some("static"),ts,vd) }*/
 ;
 
 /* variable declarators */
@@ -62,8 +62,7 @@ arrayInitializers:
 /* end variable declarators */
 
 %public fieldVariableDeclaration:
-	t=allTypes vds=variableDeclarators SEMI { IC_Attribute(None,t,vds) }
-	(* | t=allTypes vds=variableDeclarators { IC_Attribute(None,t,vds) } *)
+	t=allTypes vds=variableDeclarators SEMI { IC_Attribute(t,vds) }
 ;
 
 %public semiColons:
