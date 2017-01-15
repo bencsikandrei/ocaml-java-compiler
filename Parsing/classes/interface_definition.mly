@@ -4,7 +4,7 @@
 %%
 %public j_interface:
 	| i=normal_interface { i }
-	/*| annotation_decl { }*/
+	/*| i=AnnotationTypeDeclaration { i } */
 
 normal_interface:
 	| modif=option(modifiers) INTERFACE 
