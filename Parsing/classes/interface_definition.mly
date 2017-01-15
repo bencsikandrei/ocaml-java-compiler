@@ -52,7 +52,7 @@ interf_member_decls:
 	| l=interf_member_decls d=interf_member_decl { l@[d] }
 
 interf_member_decl:
-	/*| modif=modifiers lvd=localVariableDeclStmt { II_Field(lvd) }  default public static final attributes that must be initialized */
+	/*| modif=modifiers  }  default public static final attributes that must be initialized */
 	| modifs=modifiers t=tmp {
 		let tmp var= match var with
 			|JI_IN a-> a.imodifiers<-modifs;
@@ -66,6 +66,7 @@ interf_member_decl:
 				| JavEnum e -> e.emodifiers<-modifs; t)
 	 	| II_Method a -> a.jmmodifiers<-modifs; t
 		| II_Interface a ->  tmp a; t
+		| II_Atr f -> f.attrmodifiers<- modifs;t
 		| _ -> t
 		
 	
@@ -84,6 +85,7 @@ tmp:
 	 }
 	| m=tmp2 {m}
 	| i=j_interface { II_Interface  i }
+	| lvd=fieldVariableDeclaration { II_Atr(lvd) }
 
 tmp2:
 	| nim=NotImplMethod_plain { II_Method nim } 

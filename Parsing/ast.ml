@@ -253,7 +253,7 @@ and insideInterface=
 	| II_Class of class_or_enum
 	| II_Interface of javaInterface
 	| II_Method of javaMethod
-	| II_Field of statement
+	| II_Atr of attribute
 
 and constructor={
 	mutable constrmodifiers: modifier list;
