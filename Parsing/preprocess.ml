@@ -12,6 +12,7 @@ let isValid c =
 	| '[' -> true
 	| ']'	-> true
 	| ','	-> true
+	| '?' -> true
 	| _ -> if c >= 'a' && c<='z' || c>='A' && c<='Z' || c>='0' && c<='9' then true else false
 	
  
