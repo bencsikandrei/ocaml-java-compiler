@@ -40,6 +40,7 @@ interf_member_decls:
 interf_member_decl:
 	/* ConstantDeclaration
 	AbstractMethodDeclaration */
+	| nim=NotImplMethod { II_Method nim }
 	| c=j_class { II_Class c }
 	| i=j_interface { II_Interface i }
 

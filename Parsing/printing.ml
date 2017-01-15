@@ -292,7 +292,7 @@ and print_java_class var =
 	"\nType Parameters: "^(print_list print_type_param var.ctparam " ")^
 	"\nParent: "^(print_parent var.cparent)^
 	"\nInterfaces: "^(String.concat ", " var.cinterfaces)^
-	"\nBody: "^(print_list print_inside_class var.cbody " ")
+	"\nBody: "^(print_list print_inside_class var.cbody " ")^" -----------------\n"
 
 and print_fcontent var = match var with
 	| F_Class(c) -> print_java_class c
@@ -301,6 +301,7 @@ and print_fcontent var = match var with
 and print_inside_interface var = match var with
 	| II_Class(c) -> print_java_class c
 	| II_Interface(i) -> print_interface i
+	| II_Method(m) -> print_java_method m
 
 and print_parent_name (a,b) = a^"<"^(print_list print_type_param (list_of_option b) ",")^">"
 
@@ -319,4 +320,4 @@ let print_import var =
 let prit_java_file var =
 	"\nPackage: "^(String.concat ", " var.fPackage)^
 	"\nImports: "^(print_list print_import var.fImports " ")^
-	"\nFile Content: "^(print_list print_fcontent var.fContent " ")
+	"\nFile Content: "^(print_list print_fcontent var.fContent " ")^"\n\n"

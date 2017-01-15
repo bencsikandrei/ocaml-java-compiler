@@ -12,7 +12,7 @@ javaClass:
 %public j_class:
 	| modif=option(modifiers) CLASS id=IDENTIFIER 
 		tp=option(type_params_defin) sup=option(super) 
-		interf=option(interfaces) bod=class_body { 
+		interf=option(interfaces) bod=class_body option(semiColons) { 
 			let modif = match modif with | None -> [] | Some m -> m in
 			let tp = match tp with | None -> [] | Some tp -> tp in
 			let sup = match sup with | None -> C_Object | Some sup -> sup in

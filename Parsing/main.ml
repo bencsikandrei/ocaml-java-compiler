@@ -19,7 +19,7 @@ let print arg vervose=
 			| STATE s -> print_string ( string_of_stmt s );
 			| EXPR e -> print_string (string_of_exp e);
 			| JCLASS c -> print_string (print_java_class c);
-			| JFILE f -> print_string ""
+			| JFILE f -> print_string (prit_java_file f)
 
 let fakeDict str= match str with 
 	| "file" -> javaFile

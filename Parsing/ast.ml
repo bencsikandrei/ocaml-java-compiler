@@ -185,6 +185,7 @@ and javaInterface={
 and insideInterface=
 	| II_Class of javaClass
 	| II_Interface of javaInterface
+	| II_Method of javaMethod
 
 (* expressions.ml *)
 and expression =
