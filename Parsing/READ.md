@@ -29,7 +29,22 @@ This will test all files present in the predefined test folders
 	expressions_testing/bad_test_*
 
 The wildcard match specifies the part of the compiler being tested and is used 
-by the script.
+by the script. That match for the wildcard means UNIT TESTS! So in those folders,
+please put only valid .java files. 
+
+In statement, only statements (blocks, ifs, fors..)
+Keep in mind that because those parsers are used for testing they start with Blocks, 
+so include your statements into blocks
+
+In expression, only valid expressions (additions, multiplications,.. ). Please
+do not put semicolons 
+
+In methods, only methods (no need for classes around them)
+
+In class, any classes, no imports, no packages
+
+In file, well here you can put what you please! FULL JAVA FILES! (they actually MUST
+be full valid Java files)
 
 Bad tests are tests that are supposed to fail. Any file in a folder starting 
 with bad_test_* is made to fail.
