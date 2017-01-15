@@ -154,7 +154,7 @@ and methodDeclarator= {
 and enhanced_for =
 	| Enhanced_for of variableModifier list option * allTypes * string
 
-(* Clases and methods *)
+(* Classes and methods *)
 and javaMethod={
 	mutable jmmodifiers: modifier list;
 	mutable jmtparam: typeParam list; 	
@@ -173,6 +173,19 @@ and javaClass={
 	cbody: insideClass list;
 }
 
+and javaEnum={
+	mutable emodifiers: modifier list;
+	eidentifier: string;
+	einterfaces: string list;
+	ebody: (enumConstant list) * (insideClass list);
+}
+
+and enumConstant={
+	ecAnnotation: annotation option;
+	ecIdentifier: string;
+	ecArguments: expression list option;
+}
+
 and attribute={
 	mutable attrmodifiers: modifier list;
 	atype: allTypes;
@@ -182,7 +195,7 @@ and attribute={
 and insideClass=
 	| IC_Method of javaMethod
 	| IC_Attribute of attribute
-	| IC_Class of javaClass
+	| IC_Class of class_or_enum
 	| IC_Semi
 	| IC_Empty
 	| IC_Interface of javaInterface
@@ -197,7 +210,7 @@ and annotationTypeDeclaration = {
 }
 
 and annotationTypeElementDeclaration = 
-	| ATED_Class of javaClass
+	| ATED_Class of class_or_enum
 	| ATED_Inter of javaInterface
 	| ATED_None
 	| ATED_Declar of attribute
@@ -237,7 +250,7 @@ and javaInterface=
 	| JI_AN of annotationTypeDeclaration
 
 and insideInterface=
-	| II_Class of javaClass
+	| II_Class of class_or_enum
 	| II_Interface of javaInterface
 	| II_Method of javaMethod
 	| II_Field of statement
@@ -313,8 +326,12 @@ and statement =
 	| ST_Finally of statement
 	| ST_Assert of expression * expression option
 	| ST_Var_decl of string option * allTypes * expression list
-	| ST_Local_class of javaClass
+	| ST_Local_class of class_or_enum
 	| ST_Local_interface of javaInterface
+
+and class_or_enum=
+	| JavClass of javaClass
+	| JavEnum of javaEnum
 
 type import={
 	impStatic: bool;
@@ -323,7 +340,7 @@ type import={
 }
 
 type fileContent=
-	| F_Class of javaClass
+	| F_Class of class_or_enum
 	| F_Interface of javaInterface
 
 type javaCompilationFile={
@@ -337,5 +354,5 @@ type abstractSyntaxTree =
 	| STR of string
 	| STATE of statement
 	| EXPR of expression
-	| JCLASS of javaClass
+	| JCLASS of class_or_enum
 	| JFILE of javaCompilationFile

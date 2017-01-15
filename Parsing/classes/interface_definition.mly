@@ -60,7 +60,10 @@ interf_member_decl:
 		in
 
 		match t with 
-		| II_Class a -> a.cmodifiers<-modifs; t
+		| II_Class a -> 
+			(match a with
+				| JavClass a -> a.cmodifiers<-modifs; t
+				| JavEnum e -> e.emodifiers<-modifs; t)
 	 	| II_Method a -> a.jmmodifiers<-modifs; t
 		| II_Interface a ->  tmp a; t
 		| _ -> t
@@ -72,7 +75,10 @@ interf_member_decl:
 tmp:
 	| t=type_params_defin m=tmp2 { 
 		match m with 
-		| II_Class a -> a.ctparam<-t;m
+		| II_Class a -> 
+			(match a with
+				| JavClass a -> a.ctparam<-t;m
+				| JavEnum e -> m)
 	 	| II_Method a -> a.jmtparam<-t;m
 	 	| _ ->m
 	 }

@@ -17,13 +17,49 @@ javaClass:
 			let tp = match tp with | None -> [] | Some tp -> tp in
 			let sup = match sup with | None -> C_Object | Some sup -> sup in
 			let interf = match interf with | None -> [] | Some interf -> interf in
-				{cmodifiers=modif;
+				JavClass ({cmodifiers=modif;
 				cidentifier=id;
 				ctparam=tp;
 				cparent=sup;
 				cinterfaces=interf;
-				cbody=bod} 
+				cbody=bod})
 		}
+	| modif=option(modifiers) ENUM id=IDENTIFIER
+		interf=option(interfaces) LCURL bod=enum_body RCURL option(semiColons) { 
+			let modif = match modif with | None -> [] | Some m -> m in
+			let interf = match interf with | None -> [] | Some interf -> interf in
+				JavEnum ({emodifiers=modif;
+				eidentifier=id;
+				einterfaces=interf;
+				ebody=bod})
+		}
+
+enum_body:
+	| c=option(EnumConstants) d=option(EnumBodyDeclarations) { 
+		let f= match c with 
+		| Some c -> c 
+		| None -> [] in 
+			let g = match d with 
+			| Some d ->d 
+			| None -> [] in 
+				(f,g) 
+	}
+
+EnumConstants:
+	| c=EnumConstant { c::[] }
+	| c=EnumConstant COMM l=EnumConstants { c::l }
+
+EnumConstant:
+	| a=option(Annotation) id=IDENTIFIER arg=option(args) /*option(class_body)*/ { 
+		{ecAnnotation=a;ecIdentifier=id;ecArguments=arg}
+	}
+
+args:
+	| LPAR arg=option(argumentList) RPAR { match arg with | None -> [] | Some arg -> arg }
+
+EnumBodyDeclarations:
+	| semiColons i=option(inside_class_l) { match i with |Some i-> i |None ->[]}
+
 
 %public super:
 	| EXTENDS id=IDENTIFIER typ=option(type_params_defin) {
@@ -47,8 +83,16 @@ interface_list:
 	| i=inside_class l=inside_class_l { i::l }
 
 inside_class:
-	| m=modifiers cma=class_method_or_attribute { match cma with | IC_Method me -> me.jmmodifiers<-m; cma |IC_Class c -> c.cmodifiers<-m; cma | IC_Attribute a -> a.attrmodifiers<-m; cma | _ -> cma }
 	| 			  cma=class_method_or_attribute { cma }
+	| m=modifiers cma=class_method_or_attribute { 
+		match cma with 
+		| IC_Method me -> me.jmmodifiers<-m; cma 
+		| IC_Class c -> 
+			(match c with 
+			| JavClass c -> c.cmodifiers<-m; cma
+			| JavEnum e -> e.emodifiers<-m; cma)
+		| IC_Attribute a -> a.attrmodifiers<-m; cma 
+		| _ -> cma }
 	| STATIC b=block { IC_Static(b) }
 /*	| m=modifiers 	c=constructor { c.constrmodifiers<-m; IC_Constructor c }
 	| 				c=constructor { IC_Constructor c } */
@@ -75,12 +119,20 @@ method_or_attribute:
 			let tp = match tp with | None -> [] | Some tp -> tp in
 			let sup = match sup with | None -> C_Object | Some sup -> sup in
 			let interf = match interf with | None -> [] | Some interf -> interf in
-				{cmodifiers=[];
+				JavClass ({cmodifiers=[];
 				cidentifier=id;
 				ctparam=tp;
 				cparent=sup;
 				cinterfaces=interf;
-				cbody=bod} 
+				cbody=bod})
+		}
+	| ENUM id=IDENTIFIER
+		interf=option(interfaces) LCURL bod=enum_body RCURL option(semiColons) {
+			let interf = match interf with | None -> [] | Some interf -> interf in
+				JavEnum ({emodifiers=[];
+				eidentifier=id;
+				einterfaces=interf;
+				ebody=bod})
 		}
 /*
 constructor:

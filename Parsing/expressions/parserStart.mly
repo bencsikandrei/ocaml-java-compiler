@@ -24,7 +24,8 @@ compilationUnit:
 ;
 
 localVariableDeclOrStmt:
-	lvd=localVariableDeclStmt { lvd } 
+	modifiers lvd=localVariableDeclStmt { lvd } 
+	| lvd=localVariableDeclStmt { lvd } 
 	| stmt=statement { stmt }
 ;
 
@@ -90,7 +91,7 @@ classAllocationExpression:
 	| NEW tn=qualifiedName LPAR RPAR { EX_Class_alloc(tn, None) }
 ;
 
-argumentList:
+%public argumentList:
 	ex=expression { []@[ex] }
 	| args=argumentList COMM ex=expression { args@[ex] }
 ;
