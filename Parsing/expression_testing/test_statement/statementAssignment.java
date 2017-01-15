@@ -9,6 +9,7 @@
 	myClass a = b;
 	myClass a = b.c;
 	myClass a = new myClass();
-	
+	MyClass a = NULL;
+	int[] li = {1,2,3};
 }
 

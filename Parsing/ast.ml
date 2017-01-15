@@ -167,7 +167,7 @@ and javaClass={
 
 and insideClass=
 	| IC_Method of javaMethod
-	| IC_Attribute of modifier list option * allTypes * expression list
+	| IC_Attribute of allTypes * expression list
 	| IC_Class of javaClass
 	| IC_Semi
 	| IC_Empty
