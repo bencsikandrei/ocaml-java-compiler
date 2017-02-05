@@ -12,3 +12,7 @@ let execute lexbuf verbose =
     | Error.Error(e,l) ->
       Error.report_error e;
       Location.print l
+
+let execute2 lexbuf verbose = 
+    compilationUnit Lexer.token lexbuf
+

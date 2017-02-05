@@ -24,7 +24,7 @@ let compile str =
 (*
     print_endline "opening file";
  *)
-    let cmp = Compile.execute lexbuf !verbose in
+    let cmp = Compile.execute2 lexbuf !verbose in
     Typing.typing cmp;
     close_in (input_file);
   with Sys_error s ->
