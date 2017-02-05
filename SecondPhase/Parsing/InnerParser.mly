@@ -3,13 +3,13 @@
     open Type
 
     let rec listOfNames_form_exp = function
-      | { edesc = Name(id) } ->	[id]
-      | { edesc = Attr(o,id) } -> (listOfNames_form_exp o)@[id]
+      | { edesc = Name(id) ; eloc=l ; etype=e} ->	[id]
+      | { edesc = Attr(o,id) ; eloc=l ; etype=e} -> (listOfNames_form_exp o)@[id]
 
     let rec listOfTypes_form_exp = function
-      | { edesc = Name(id) } ->	Ref (Type.mk_type [] id)
-      | { edesc = Attr(o,id) } -> Ref (Type.mk_type (listOfNames_form_exp o) id)
-      | { edesc = Array(e,el) } -> Array(listOfTypes_form_exp e,List.length el)
+      | { edesc = Name(id) ; eloc=l ; etype=e} ->	Ref (Type.mk_type [] id)
+      | { edesc = Attr(o,id) ; eloc=l ; etype=e} -> Ref (Type.mk_type (listOfNames_form_exp o) id)
+      | { edesc = Array(e,el) ; eloc=l ; etype=et} -> Array(listOfTypes_form_exp e,List.length el)
       | e -> failwith ("bug listOfTypes_form_exp("^(string_of_expression e)^")")
 %}
 
@@ -77,7 +77,7 @@
 
 blockStatement:
   | variableModifier t=aType vdl=separated_nonempty_list(COMMA,variableDeclarator) SEMI {
-	VarDecl (List.map (fun (id,init) -> t, id, init) vdl)
+	VarDecl (List.map (fun (id,init,pos) -> t, id, init) vdl)
     }
   | b=block {
 	Block b
@@ -124,7 +124,7 @@ blockStatement:
     }
   | p = primitiveType l = list(pair(LBRACKET,RBRACKET)) vdl=separated_nonempty_list(COMMA,variableDeclarator) SEMI {
 	let t = if List.length l > 0 then Array(Primitive p,List.length l) else Primitive p in
-	VarDecl (List.map (fun (id,init) -> t, id, init) vdl)
+	VarDecl (List.map (fun (id,init,pos) -> t, id, init) vdl)
     }
 
 switchStatement:
@@ -137,7 +137,7 @@ expression0:
   | e=expression { `Exp e }
   | o=expression vdl=separated_nonempty_list(COMMA,variableDeclarator)  { 
       let t = listOfTypes_form_exp o in
-      `Decl (VarDecl (List.map (fun (id,init) -> t, id, init) vdl))
+      `Decl (VarDecl (List.map (fun (id,init,pos) -> t, id, init) vdl))
     }
 		  
 %inline catch:
@@ -145,16 +145,16 @@ expression0:
 
 forInit:
   | { [] }
-  | variableModifier? t=aType vdl=separated_nonempty_list(COMMA,variableDeclarator) { List.map (fun (id,init) -> Some t, id, init) vdl }
-  | variableModifier? vdl=separated_nonempty_list(COMMA,variableDeclarator2) { List.map (fun (id,init) -> None , id, init) vdl }
+  | variableModifier? t=aType vdl=separated_nonempty_list(COMMA,variableDeclarator) { List.map (fun (id,init,pos) -> Some t, id, init) vdl }
+  | variableModifier? vdl=separated_nonempty_list(COMMA,variableDeclarator2) { List.map (fun (id,init,pos) -> None , id, init) vdl }
 %inline variableModifier: FINAL { }
 
 	      
 %public %inline variableDeclarator:
-  | id=IDENTIFIER list(pair(LBRACKET,RBRACKET)) init=option(preceded(ASSIGN,variableInitializer)) { id, init }
+  | id=IDENTIFIER list(pair(LBRACKET,RBRACKET)) init=option(preceded(ASSIGN,variableInitializer)) { id, init , Location.symbol_loc $startpos $endpos}
 
 %public %inline variableDeclarator2:
-  | id=IDENTIFIER init=option(preceded(ASSIGN,variableInitializer)) { id, init }
+  | id=IDENTIFIER init=option(preceded(ASSIGN,variableInitializer)) { id, init, Location.symbol_loc $startpos $endpos}
 
 variableInitializer:
   | e = expression { e }
@@ -170,72 +170,72 @@ variableInitializerRest:
   | COMMA e = variableInitializer l = variableInitializerRest { e :: l }
 
 arrayInitializer:
-  | l=body(variableInitializers) { { edesc = ArrayInit l } }
+  | l=body(variableInitializers) { { edesc = ArrayInit l ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
 
 expression:
   | LPAREN e=expression RPAREN { e }
-  | op=prefix_op e=expression { { edesc = Pre(op,e) } }
-  | OP_SUB e=expression %prec SUB_UN { { edesc = Pre(Op_neg,e) } }
-  | OP_INC e=expression %prec INC_UN { { edesc = Pre(Op_incr,e) } }
-  | OP_DEC e=expression %prec DEC_UN { { edesc = Pre(Op_decr,e) } }
-  | e=expression op=postfix_op { { edesc = Post(e,op) } }
-  | e1=expression op=assign_op e2=expression { { edesc = AssignExp(e1,op,e2) } }
-  | e1=expression OP_COND e2=expression COLON e3=expression { { edesc = CondOp(e1,e2,e3) } }
-  | e1=expression op=infix_op e2=expression { { edesc = Op(e1,op,e2) } }
-  | e=expression INSTANCEOF t=typeExpr { { edesc = Instanceof(e,t) } }
+  | op=prefix_op e=expression { { edesc = Pre(op,e) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | OP_SUB e=expression %prec SUB_UN { { edesc = Pre(Op_neg,e) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | OP_INC e=expression %prec INC_UN { { edesc = Pre(Op_incr,e) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | OP_DEC e=expression %prec DEC_UN { { edesc = Pre(Op_decr,e) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | e=expression op=postfix_op { { edesc = Post(e,op) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | e1=expression op=assign_op e2=expression { { edesc = AssignExp(e1,op,e2) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | e1=expression OP_COND e2=expression COLON e3=expression { { edesc = CondOp(e1,e2,e3) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | e1=expression op=infix_op e2=expression { { edesc = Op(e1,op,e2) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | e=expression INSTANCEOF t=typeExpr { { edesc = Instanceof(e,t) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
   | LPAREN e1=expression RPAREN e2=expression %prec CAST {
       match e1.edesc with
       | Op _  | Cast _ | Call _ -> (match e2.edesc with
-		 | Pre(Op_neg,e) -> { edesc = Op(e1,Op_sub,e) }
+		 | Pre(Op_neg,e) -> { edesc = Op(e1,Op_sub,e) ; eloc=Location.symbol_loc $startpos $endpos; etype=None}
 		 | _ -> print_endline("CAST( "^(string_of_expression e1)^" ) "^(string_of_expression e2)) ; $syntaxerror)
       | New _ | NewArray _ | If _ | Val _ | AssignExp _ | Post _ | Pre _ | CondOp _ | ArrayInit _
       | ClassOf _ | Instanceof _ | VoidClass ->
          print_endline("CAST( "^(string_of_expression e1)^" ) "^(string_of_expression e2)) ; $syntaxerror
-      | Attr(e,s) -> { edesc = Cast(Ref(Type.mk_type (listOfNames_form_exp e) s),e2) }
-      | Array({ edesc = Name n },tabs) -> { edesc = Cast(Type.mk_array (List.length tabs) (Ref(Type.mk_type [] n)),e2) }
-      | Array({ edesc = Attr(e,s) },tabs) -> { edesc = Cast(Type.mk_array (List.length tabs) (Ref(Type.mk_type (listOfNames_form_exp e) s)),e2) }
-      | Name n -> { edesc = Cast(Ref(Type.mk_type [] n),e2) }
-      | Type t -> { edesc = Cast(t,e2) }
+      | Attr(e,s) -> { edesc = Cast(Ref(Type.mk_type (listOfNames_form_exp e) s),e2) ; eloc=Location.symbol_loc $startpos $endpos; etype=None}
+      | Array({ edesc = Name n ; eloc=l ; etype=e},tabs) -> { edesc = Cast(Type.mk_array (List.length tabs) (Ref(Type.mk_type [] n)),e2) ; eloc=Location.symbol_loc $startpos $endpos; etype=None}
+      | Array({ edesc = Attr(e,s) ; eloc=l ; etype=et},tabs) -> { edesc = Cast(Type.mk_array (List.length tabs) (Ref(Type.mk_type (listOfNames_form_exp e) s)),e2) ; eloc=Location.symbol_loc $startpos $endpos; etype=None}
+      | Name n -> { edesc = Cast(Ref(Type.mk_type [] n),e2) ; eloc=Location.symbol_loc $startpos $endpos; etype=None}
+      | Type t -> { edesc = Cast(t,e2) ; eloc=Location.symbol_loc $startpos $endpos; etype=None}
       | _ -> print_endline("CAST( "^(string_of_expression e1)^" ) "^(string_of_expression e2)) ; $syntaxerror}
   | LPAREN t=primitiveType l=list(pair(LBRACKET,RBRACKET)) RPAREN e=expression %prec CAST {
       let t = match List.length l with
 	| 0 -> Primitive t
 	| n -> Array(Primitive t,n) in
-      { edesc = Cast(t,e) }
+      { edesc = Cast(t,e) ; eloc=Location.symbol_loc $startpos $endpos; etype=None}
     }
   | o=expression LPAREN params=separated_list(COMMA,expression) RPAREN {
       match o with
-      | { edesc = Name(id) } ->	{ edesc = Call(None,id,params) }
-      | { edesc = Attr(o,id) } -> { edesc = Call(Some o,id,params) } }
-  | o=expression DOT n=name  { { edesc = Attr(o,n) } }
-  | o=expression DOT CLASS  { { edesc = Attr(o,"class") } }
+      | { edesc = Name(id) ; eloc=l ; etype=e} ->	{ edesc = Call(None,id,params) ; eloc=Location.symbol_loc $startpos $endpos; etype=None}
+      | { edesc = Attr(o,id) ; eloc=l ; etype=e} -> { edesc = Call(Some o,id,params) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | o=expression DOT n=name  { { edesc = Attr(o,n) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | o=expression DOT CLASS  { { edesc = Attr(o,"class") ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
   | o=expression DOT NEW id=qualifiedName LPAREN params=separated_list(COMMA,expression) RPAREN option(body(classContent* )) {
       match o with
-      | { edesc = Name(n) } -> { edesc = New(Some n,id,params) } }
-  | VOID DOT CLASS  { { edesc = VoidClass } }
-  | NEW id=qualifiedName LPAREN params=separated_list(COMMA,expression) RPAREN option(body(classContent* )) { { edesc = New(None,id,params) } }
-  | NEW id=qualifiedName tab=nonempty_list(delimited(LBRACKET,expression ?,RBRACKET)) init=arrayInitializer?  { { edesc = NewArray(Ref(Type.extract_type id),tab,init) } }
-  | NEW t=primitiveType tab=nonempty_list(delimited(LBRACKET,expression ?,RBRACKET)) init=arrayInitializer? { { edesc = NewArray(Primitive t,tab,init) } }
+      | { edesc = Name(n) ; eloc=l ; etype=e} -> { edesc = New(Some n,id,params) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | VOID DOT CLASS  { { edesc = VoidClass ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | NEW id=qualifiedName LPAREN params=separated_list(COMMA,expression) RPAREN option(body(classContent* )) { { edesc = New(None,id,params) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | NEW id=qualifiedName tab=nonempty_list(delimited(LBRACKET,expression ?,RBRACKET)) init=arrayInitializer?  { { edesc = NewArray(Ref(Type.extract_type id),tab,init) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
+  | NEW t=primitiveType tab=nonempty_list(delimited(LBRACKET,expression ?,RBRACKET)) init=arrayInitializer? { { edesc = NewArray(Primitive t,tab,init) ; eloc=Location.symbol_loc $startpos $endpos; etype=None} }
   | e=expressionSansBracket tab=nonempty_list(delimited(LBRACKET,expression ?,RBRACKET)) {
-      { edesc = Array(e,tab) }
+      { edesc = Array(e,tab) ; eloc=Location.symbol_loc $startpos $endpos ; etype=None}
     }
-  | l=literal { { edesc = Val(l) } }
-  | id=name { { edesc = Name(id) } }
+  | l=literal { { edesc = Val(l) ; eloc=Location.symbol_loc $startpos $endpos ; etype=None} }
+  | id=name { { edesc = Name(id) ; eloc=Location.symbol_loc $startpos $endpos ; etype=None} }
   | t=primitiveType l=list(pair(LBRACKET,RBRACKET)) DOT CLASS {
       let t = match List.length l with
 	| 0 -> Primitive t
 	| n -> Array(Primitive t,n) in
-      { edesc = ClassOf(t) }
+      { edesc = ClassOf(t) ; eloc=Location.symbol_loc $startpos $endpos ; etype=None}
     }
 
 expressionSansBracket:
   | LPAREN e=expression RPAREN { e }
-  | id=name { { edesc = Name(id) } }
-  | o=expression DOT n=name  { { edesc = Attr(o,n) } }
+  | id=name { { edesc = Name(id) ; eloc=Location.symbol_loc $startpos $endpos ; etype=None} }
+  | o=expression DOT n=name  { { edesc = Attr(o,n) ; eloc=Location.symbol_loc $startpos $endpos ; etype=None} }
   | o=expression LPAREN params=separated_list(COMMA,expression) RPAREN {
       match o with
-      | { edesc = Name(id) } ->	{ edesc = Call(None,id,params) }
-      | { edesc = Attr(o,id) } -> { edesc = Call(Some o,id,params) }
+      | { edesc = Name(id) ; eloc=l ; etype=e} ->	{ edesc = Call(None,id,params) ; eloc=Location.symbol_loc $startpos $endpos ; etype=None}
+      | { edesc = Attr(o,id) ; eloc=l; etype=e} -> { edesc = Call(Some o,id,params) ; eloc=Location.symbol_loc $startpos $endpos ; etype=None}
     }
 
 typeExpr:

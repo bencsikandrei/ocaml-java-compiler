@@ -24,8 +24,9 @@ let compile str =
 (*
     print_endline "opening file";
  *)
-    Compile.execute lexbuf !verbose;
-    close_in (input_file)
+    let cmp = Compile.execute lexbuf !verbose in
+    Typing.typing cmp;
+    close_in (input_file);
   with Sys_error s ->
     print_endline ("Can't find file '" ^ file ^ "'")
 
