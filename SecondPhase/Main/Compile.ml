@@ -1,12 +1,13 @@
 open Parser
-open Execute
+open ExecuteProgram
+open CompileTree
 
 (* run the program *)
 let execute lexbuf verbose = 
   try 
     let ast = compilationUnit Lexer.token lexbuf in
     print_endline "successfull parsing";
-    Execute.execute_code ast;
+    CompileTree.compile_tree ast;
     if verbose then AST.print_program ast 
   with 
     | Error ->
