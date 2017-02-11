@@ -11,7 +11,7 @@ type javaclass = {
     cattributes : astattribute list;
     cinits : initial list;
     cconsts : astconst list;
-    cmethods : (string, string) Hashtbl.t
+    jcmethods : (string, string) Hashtbl.t
 }
 
 (* memory specific to classes and methods in the JVM *)
@@ -33,4 +33,4 @@ let print_jvm jvm =
 	Hashtbl.iter (fun key value -> print_string ("key: "^key); 
 									print_endline (" value: "^value.mname)) jvm.methods;
 
-	print_string (string_of_bool jvm.public_class_present)
+	print_string ("Public class present : " ^ (string_of_bool jvm.public_class_present))

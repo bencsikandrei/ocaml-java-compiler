@@ -14,6 +14,27 @@ let find_element lst elem =
 	(* return the index *)
 	find lst elem 0
 
+
+(* put the methods into a hashtable *)
+let add_method jprog clsmeth clsname meth  =
+	(* for dynamic link / late binding we need to keep some special tables *)
+	let mname = clsname ^ "_" ^ meth.mname 
+	in
+	Hashtbl.add jprog.methods mname meth;
+	Hashtbl.add clsmeth meth.mname mname
+
+(* take the environement and add the methods to the global table *)
+let add_methods jprog c clsname = 
+	 
+(* 		iterate through the hash table
+		take only classes (since interfaces are not supported)
+		for classes, loop through their methods
+		add the methods *)
+	let methods = Hashtbl.create 20 
+	in
+	List.iter (add_method jprog methods clsname) c.cmethods;
+	methods
+
 (* put the classes into a hashtable *)
 let add_class jprog fname cls =
 	(* check whether the class is public or not *)
@@ -41,14 +62,14 @@ let add_class jprog fname cls =
 							    cattributes = c.cattributes;
 							    cinits = c.cinits;
 							    cconsts = c.cconsts;
-							    cmethods = Hashtbl.create 20
+							    jcmethods = (add_methods jprog c cls.id)
 								}
 				| _ -> {	id =  ""; 
 							cparent = { tpath = []; tid = "" };
 						    cattributes = [];
 						    cinits = [];
 						    cconsts = [];
-						    cmethods = Hashtbl.create 1
+						    jcmethods = Hashtbl.create 1
 							}
 	in
 	(* add the class to the programm classes *)
@@ -56,39 +77,24 @@ let add_class jprog fname cls =
 	(* mark that a public class is found *)
 	jprog.public_class_present <- true
 
-(* put the methods into a hashtable *)
-let add_method table meth =
-	Hashtbl.add table meth.mname meth
 
 (* take the environement and the ast *)
-let add_classes jprog prog fname =
-	List.iter (fun t -> add_class jprog fname t) prog.type_list
+let add_classes jprog ast fname =
+	List.iter (fun t -> add_class jprog fname t) ast.type_list
 	
 
-(* take the environement and add the methods to the global table *)
-(* let add_methods env = 
-	 
-		iterate through the hash table
-		take only classes (since interfaces are not supported)
-		for classes, loop through their methods
-		add the methods
-	
-	Hashtbl.iter (fun key value -> 
-				match value.info with 
-					| Class(c) -> List.iter (add_method env.methods) c.cmethods
-					| Inter -> ()
-				) env.classes *)
+
 
 (* program is the AST *)
-let compile_tree program fname = 
-	(match program.package with
+let compile_tree ast fname = 
+	(match ast.package with
   	| None -> ()
 	| Some pack -> AST.print_package pack );
-  	(* List.iter (fun t -> AST.print_type "" t; print_newline()) program.type_list *)
+  	(* List.iter (fun t -> AST.print_type "" t; print_newline()) ast.type_list *)
   	let jprog = { public_class_present = false; methods = Hashtbl.create 20; classes = Hashtbl.create 20 } 
   	in
   	(* add the classes *)
-  	add_classes jprog program fname;
+  	add_classes jprog ast fname;
   	(* once we have classes, find methods *)
   	(* add_methods jprog; *)
   	(* print the current state *)
