@@ -43,3 +43,11 @@ exception PublicClassName of string
 1 error
  *)
 exception MethodAlreadyDefined of string
+
+(* UnknownParent.java:1: error: cannot find symbol
+public class UnknownParent extends SomethingUnknown {
+                                   ^
+  symbol: class SomethingUnknown
+1 error
+ *)
+exception UnknownSymbol of string 

@@ -33,10 +33,10 @@ let print_jvm jvm =
 	Hashtbl.iter (fun key value -> print_string ("method: "^key); 
 									print_endline (" value: "^value.mname)) jvm.methods;
 
-	print_string ("Public class present : " ^ (string_of_bool jvm.public_class_present))
+	print_endline ("Public class present: " ^ (string_of_bool jvm.public_class_present))
 
 let print_jclass jclass =
 	print_endline ("### Class " ^ jclass.id ^ " ###");
 	(* print the class methods and attributes *)
 	Hashtbl.iter (fun key value -> print_string ("method: " ^ key);
-									print_endline (" | method in jvm table :" ^value)) jclass.jcmethods
+									print_endline (" | method in jvm table: " ^value)) jclass.jcmethods

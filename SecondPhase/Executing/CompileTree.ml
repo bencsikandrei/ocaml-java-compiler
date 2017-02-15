@@ -5,7 +5,7 @@ open Exceptions
 open Type
 
 (* find in a list, return -1 if not found *)
-let find_element lst elem =
+let has_modifier lst elem =
 	(* tail recursive function *)
 	let rec find lst elem cnt = 
 		match lst with 
@@ -16,7 +16,7 @@ let find_element lst elem =
 
 let check_for_errors jprog fname cls =
 	(* check whether the class is public or not *)
-	if ((find_element cls.modifiers "public") <> -1) 
+	if ((has_modifier cls.modifiers "public") <> -1) 
 	then begin
 		(* is there already a public class ? *)
 		if (jprog.public_class_present = true) 
@@ -25,6 +25,8 @@ let check_for_errors jprog fname cls =
 												"should be declared in a file " ^
 												"named " ^ fname ^ ".java"))
 		else
+			(* mark that a public class is found *)
+			jprog.public_class_present <- true;
 			(* check if the class is in the correct file *)
 			if (fname <> cls.id) 
 			then begin
@@ -34,29 +36,47 @@ let check_for_errors jprog fname cls =
 			end
 	end
 
+(* get method signatures *)
+let rec get_method_signature (params : AST.argument list) (strparams : string) =
+	let spars = match params with
+				| [] -> strparams (* we are done *)
+				| hd::tl -> match hd.ptype with
+							| Primitive(Int) -> get_method_signature tl (strparams^"_int")
+							| _ -> ""
+	in
+	if (spars = "")
+		then 
+			"_void"
+	else
+		spars
+
 (* put the methods into a hashtable *)
-let add_method jprog clsmeth clsname meth  =
-	(* for dynamic link / late binding we need to keep some special tables *)
-	let mname = clsname ^ "_" ^ meth.mname 
+let add_method (jprog : jvm) clsmeth (clsname : string) (meth : AST.astmethod)  =
+	(* for dynamic link / late binding 
+	we need to keep some special tables *)
+	let signature = (get_method_signature meth.margstype "")
+	in
+	let jvmmname = clsname ^ "_" ^ meth.mname ^ signature
 	in
 	(* raise an error if the method is already there *)
-	if Hashtbl.mem jprog.methods mname = true
+	if Hashtbl.mem jprog.methods jvmmname = true
 	then begin
-		raise (Exceptions.MethodAlreadyDefined ("method " ^ mname ^ " is already declared"))
+		raise (Exceptions.MethodAlreadyDefined ("method " ^ jvmmname ^ " is already declared"))
 	end;
-	Hashtbl.add jprog.methods mname meth;
-	Hashtbl.add clsmeth meth.mname mname
+	Hashtbl.add jprog.methods jvmmname meth;
+	Hashtbl.add clsmeth (meth.mname^signature) jvmmname
+
 (* add methods from parent *)
-let add_method_from_parent jprog clsmeth methname methfullname =
+let add_method_from_parent (jprog : jvm) clsmeth (methname : string) (methfullname : string) =
 	(* check for the method in the JVM table *)
-	print_endline "in add method from parents ";
-	print_jvm jprog;
+	(* print_endline "in add method from parents "; *)
+	(* print_jvm jprog; *)
 	let m = Hashtbl.find jprog.methods methfullname
 	in
-	print_endline "after the find ";
+	(* print_endline "after the find "; *)
 
 	(* see if it's private *)
-	let prv = find_element m.mmodifiers "private" 
+	let prv = has_modifier m.mmodifiers "private" 
 	in 
 	(* if not private and not main *)
 	if Hashtbl.mem clsmeth methname = false && methname <> "main" && (prv < 0)
@@ -65,9 +85,9 @@ let add_method_from_parent jprog clsmeth methname methfullname =
 		Hashtbl.add clsmeth methname methfullname 
 
 (* take the environement and add the methods to the global table *)
-let add_methods jprog (c : AST.astclass) clsname = 
+let add_methods (jprog : jvm) (c : AST.astclass) (clsname : string)= 
 	 
-(* 		iterate through the hash table
+	(*  iterate through the hash table
 		take only classes (since interfaces are not supported)
 		for classes, loop through their methods
 		add the methods *)
@@ -81,23 +101,27 @@ let add_methods jprog (c : AST.astclass) clsname =
 	end;
 	methods
 
-let rec get_parent (clslist : AST.asttype list) parent =
+(* get the parant of a class fromt  *)
+let rec get_parent (clslist : AST.asttype list) (parent : string) =
+	(* match all classes with the parent, 
+	raise exception if not found *)
 	match clslist with
 	| hd::tl -> if (hd.id = parent) 
 				then 
 					hd
 				else 
 					get_parent tl parent
+	| _ -> raise (Exceptions.UnknownSymbol ("error: cannot find symbol : class " ^ parent))
 
 (* return true if a class is already added *)
-let class_added jprog clsname = 
-	print_endline ("Testing " ^ clsname);
+let class_added (jprog : jvm) (clsname : string) = 
+	(* print_endline ("Testing " ^ clsname); *)
 	match clsname with
 	| "Object" -> true
 	| _ -> Hashtbl.mem jprog.classes clsname
 
 (* put the classes into a hashtable *)
-let rec add_class jprog ast fname (cls : AST.asttype) =
+let rec add_class (jprog : jvm) ast (fname : string) (cls : AST.asttype) =
 	(* check if the class is already added *)
 	if (class_added jprog cls.id) = false
 	then begin
@@ -109,9 +133,13 @@ let rec add_class jprog ast fname (cls : AST.asttype) =
 			(* if the parent has not already been added *)
 			if (class_added jprog c.cparent.tid) = false 
 			then begin
-				print_endline ("Adding parent " ^ c.cparent.tid);
+				print_endline ("Checking parent " ^ c.cparent.tid);
 				(* add the parent *)
-				add_class jprog ast fname (get_parent ast.type_list c.cparent.tid)
+				try 
+					add_class jprog ast fname (get_parent ast.type_list c.cparent.tid)
+				with
+				(* raise an exception if not found *)
+				| Exceptions.UnknownSymbol(e) -> print_endline e; Location.print c.cloc; exit (-1)
 			end;
 			(* now that all parents are added, add the class *)
 			print_endline ("Adding class " ^ cls.id);
@@ -121,23 +149,20 @@ let rec add_class jprog ast fname (cls : AST.asttype) =
 							    cinits = c.cinits;
 							    cconsts = c.cconsts;
 							    jcmethods = (add_methods jprog c cls.id)
-								}
-				
+								}				
 			in
 			(* add the class to the programm classes *)
 			Hashtbl.add jprog.classes cls.id javacls;
-			(* mark that a public class is found *)
-			jprog.public_class_present <- true
 			
 		| _ -> ()
 	end
 
 (* take the environement and the ast *)
-let add_classes jprog ast fname =
+let add_classes (jprog : jvm) ast (fname : string) =
 	List.iter (add_class jprog ast fname) ast.type_list
 
 (* program is the AST *)
-let compile_tree ast fname = 
+let compile_tree ast (fname : string) = 
 	(match ast.package with
   	| None -> ()
 	| Some pack -> AST.print_package pack );
@@ -149,6 +174,8 @@ let compile_tree ast fname =
   	(* once we have classes, find methods *)
   	(* add_methods jprog; *)
   	(* print the current state *)
+  	print_endline "[----- Printing JVM contents -----]";
   	print_jvm jprog;
   	(* print classes *)
+  	print_endline "[----- Printing each class contents -----]";
   	Hashtbl.iter (fun key value -> print_jclass value) jprog.classes
