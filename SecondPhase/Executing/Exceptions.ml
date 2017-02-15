@@ -36,3 +36,10 @@ public class XXX {
        ^
 1 error *)
 exception PublicClassName of string
+
+(* TwoMethodsOneClass.java:10: error: method m1() is already defined in class TwoMethodsOneClass
+	public void m1 () {
+	            ^
+1 error
+ *)
+exception MethodAlreadyDefined of string
