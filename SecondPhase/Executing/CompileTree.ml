@@ -3,7 +3,7 @@ open AST
 open MemoryModel
 open Exceptions
 open Type
-
+(* ------------------------------- UTILITY ------------------------------------ *)
 (* find in a list, return -1 if not found *)
 let has_modifier lst elem =
 	(* tail recursive function *)
@@ -14,6 +14,7 @@ let has_modifier lst elem =
 	(* return the index *)
 	find lst elem 0
 
+(* eliminates programs with simple errors *)
 let check_for_errors jprog fname cls =
 	(* check whether the class is public or not *)
 	if ((has_modifier cls.modifiers "public") <> -1) 
@@ -27,6 +28,7 @@ let check_for_errors jprog fname cls =
 		else
 			(* mark that a public class is found *)
 			jprog.public_class_present <- true;
+			jprog.public_class <- cls.id;
 			(* check if the class is in the correct file *)
 			if (fname <> cls.id) 
 			then begin
@@ -36,12 +38,31 @@ let check_for_errors jprog fname cls =
 			end
 	end
 
+(* get the parant of a class fromt  *)
+let rec get_parent (clslist : AST.asttype list) (parent : string) =
+	(* match all classes with the parent, 
+	raise exception if not found *)
+	match clslist with
+	| hd::tl -> if (hd.id = parent) 
+				then 
+					hd
+				else 
+					get_parent tl parent
+	| _ -> raise (Exceptions.UnknownSymbol ("error: cannot find symbol : class " ^ parent))
+
+(* -------------------------------------------------------------------------------------- *)
+
+(* ---------------------------------- METHODS ------------------------------------- *)
 (* get method signatures *)
 let rec get_method_signature (params : AST.argument list) (strparams : string) =
 	let spars = match params with
 				| [] -> strparams (* we are done *)
 				| hd::tl -> match hd.ptype with
 							| Primitive(Int) -> get_method_signature tl (strparams^"_int")
+							| Ref(rt) -> get_method_signature tl (strparams^"_"^rt.tid)
+							| Array(t, int) -> match t with 
+												| Primitive(Int) -> get_method_signature tl (strparams^"_int[]")
+												| Ref(rt) -> get_method_signature tl (strparams^"_"^rt.tid^"[]")
 							| _ -> ""
 	in
 	if (spars = "")
@@ -100,19 +121,60 @@ let add_methods (jprog : jvm) (c : AST.astclass) (clsname : string)=
 		Hashtbl.iter (fun key value -> add_method_from_parent jprog methods key value) theparent.jcmethods;
 	end;
 	methods
+(* -------------------------------------------------------------------------------------- *)
 
-(* get the parant of a class fromt  *)
-let rec get_parent (clslist : AST.asttype list) (parent : string) =
-	(* match all classes with the parent, 
-	raise exception if not found *)
-	match clslist with
-	| hd::tl -> if (hd.id = parent) 
-				then 
-					hd
-				else 
-					get_parent tl parent
-	| _ -> raise (Exceptions.UnknownSymbol ("error: cannot find symbol : class " ^ parent))
+(* ----------------------------- CONSTRUCTORS ----------------------------------------------- *)
+(* adds a constructor to the hashtable clsconstr *)
+let add_constructor clsconstr (constr : AST.astconst) =
+	(* for overloading constructors *)
+	let signature = (get_method_signature constr.cargstype "")
+	in
+	Hashtbl.add clsconstr (constr.cname ^ signature) constr 
 
+(* add the constructors from the ast *)
+let add_constructors (c : AST.astclass) =
+	(* get every constructor, put it
+	into the hashtable, also put signature
+	permits overloading *)
+	let constructors = Hashtbl.create 10
+	in
+	(* add each one *)
+	List.iter (add_constructor constructors) c.cconsts;
+	(* return the hashtable *)
+	constructors
+(* -------------------------------------------------------------------------------------- *)
+
+(* ----------------------------- ATTRIBUTES ----------------------------------------------- *)
+(* got through parents attributes, see if not private and inherit *)
+let rec get_parent_attributes (pattributes : astattribute list) (attrlst :  astattribute list) =
+	(* check each element for its modifiers *)
+	match pattributes with 
+	| [] -> attrlst
+	| hd::tl -> 
+			(* does it contain private ? *)
+			let prv = has_modifier hd.amodifiers "private" 
+			in
+			if (prv < 0) 
+			then
+				(* add non private *)
+				get_parent_attributes tl (attrlst @ [hd])
+			else 
+				(* don't add private ones *)
+				get_parent_attributes tl (attrlst)
+(* add all attributes to that class, including the ones from the parent *)
+let add_attributes (jprog : jvm) (c : AST.astclass) =
+	(* Object is not taken care of *)
+	if c.cparent.tid <> "Object" 
+	then begin
+		let parent = Hashtbl.find jprog.classes c.cparent.tid
+		in
+		c.cattributes @ (get_parent_attributes parent.jattributes [])
+	end
+	else
+		c.cattributes 
+(* -------------------------------------------------------------------------------------- *)
+
+(* ------------------------------ CLASSES ------------------------------------ *)
 (* return true if a class is already added *)
 let class_added (jprog : jvm) (clsname : string) = 
 	(* print_endline ("Testing " ^ clsname); *)
@@ -145,9 +207,9 @@ let rec add_class (jprog : jvm) ast (fname : string) (cls : AST.asttype) =
 			print_endline ("Adding class " ^ cls.id);
 			let javacls = {		id =  cls.id; 
 								cparent = c.cparent;
-							    cattributes = c.cattributes;
+							    jattributes = (add_attributes jprog c);
 							    cinits = c.cinits;
-							    cconsts = c.cconsts;
+							    jconsts = (add_constructors c);
 							    jcmethods = (add_methods jprog c cls.id)
 								}				
 			in
@@ -160,6 +222,7 @@ let rec add_class (jprog : jvm) ast (fname : string) (cls : AST.asttype) =
 (* take the environement and the ast *)
 let add_classes (jprog : jvm) ast (fname : string) =
 	List.iter (add_class jprog ast fname) ast.type_list
+(* -------------------------------------------------------------------------------------- *)
 
 (* program is the AST *)
 let compile_tree ast (fname : string) = 
@@ -167,7 +230,7 @@ let compile_tree ast (fname : string) =
   	| None -> ()
 	| Some pack -> AST.print_package pack );
   	(* List.iter (fun t -> AST.print_type "" t; print_newline()) ast.type_list *)
-  	let jprog = { public_class_present = false; methods = Hashtbl.create 20; classes = Hashtbl.create 20 } 
+  	let jprog = { public_class_present = false; public_class = ""; methods = Hashtbl.create 20; classes = Hashtbl.create 20 } 
   	in
   	(* add the classes *)
   	add_classes jprog ast fname;
@@ -178,4 +241,5 @@ let compile_tree ast (fname : string) =
   	print_jvm jprog;
   	(* print classes *)
   	print_endline "[----- Printing each class contents -----]";
-  	Hashtbl.iter (fun key value -> print_jclass value) jprog.classes
+  	Hashtbl.iter (fun key value -> print_jclass value) jprog.classes;
+  	jprog
