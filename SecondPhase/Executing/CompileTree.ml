@@ -230,7 +230,13 @@ let compile_tree ast (fname : string) =
   	| None -> ()
 	| Some pack -> AST.print_package pack );
   	(* List.iter (fun t -> AST.print_type "" t; print_newline()) ast.type_list *)
-  	let jprog = { public_class_present = false; public_class = ""; methods = Hashtbl.create 20; classes = Hashtbl.create 20 } 
+  	let jprog = { public_class_present = false; 
+  		public_class = ""; 
+  		methods = Hashtbl.create 10; 
+  		classes = Hashtbl.create 10;
+  		jvmstack = Stack.create ();
+  		jvmheap = Hashtbl.create 10;
+  		} 
   	in
   	(* add the classes *)
   	add_classes jprog ast fname;

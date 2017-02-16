@@ -1,5 +1,6 @@
 public class MultipleMainMethods {
 	public static void main (String [] args) {
+		int a, b;
 		System.out.println("The public class");
 		System.out.println("Hello world");
 		System.out.println("Bla vla");

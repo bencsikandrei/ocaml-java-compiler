@@ -21,9 +21,13 @@ type jvm = {
 	(* save the public class *)
 	mutable public_class: string;
 	(* method names and ast type given *)
-	methods : (string, astmethod) Hashtbl.t;
+	methods: (string, astmethod) Hashtbl.t;
 	(* class names *)
-	classes : (string, javaclass) Hashtbl.t;
+	classes: (string, javaclass) Hashtbl.t;
+	(* the stack *)
+	jvmstack: ( (string, string) Hashtbl.t ) Stack.t;
+	(* the heap *)
+	jvmheap: (string, string) Hashtbl.t;
 }
 
 
