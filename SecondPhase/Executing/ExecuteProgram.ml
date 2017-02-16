@@ -15,6 +15,9 @@ let get_main_method (jprog : jvm) =
 	with
 	| _ -> raise (NoMainMethod ("Error: Main method not found in class " ^ jprog.public_class ^ ", please define the main method as: public static void main(String[] args) or a JavaFX application class must extend javafx.application.Application "))
 
+let execute_expression expr =
+	()
+
 let execute_statement stmt = 
 	match stmt with
 	| Expr(e) -> (* print_endline (AST.string_of_expression e) *)
