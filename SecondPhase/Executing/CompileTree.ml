@@ -100,7 +100,7 @@ let add_method_from_parent (jprog : jvm) clsmeth (methname : string) (methfullna
 	let prv = has_modifier m.mmodifiers "private" 
 	in 
 	(* if not private and not main *)
-	if Hashtbl.mem clsmeth methname = false && methname <> "main" && (prv < 0)
+	if Hashtbl.mem clsmeth methname = false && methname <> "main_String[]" && (prv < 0)
 	then
 		(* add it *)
 		Hashtbl.add clsmeth methname methfullname 

@@ -20,37 +20,37 @@ let get_main_method (jprog : jvm) =
 								"or a JavaFX application class must extend javafx.application.Application "))
 
 (* do var++ and var--*)
-let rec execute_postfix (e : expression) postop =
+let rec execute_postfix (jprog : jvm) (e : expression) postop =
 	(* see what type *)
 	match postop with
 	| Incr -> 	begin
-				match (execute_expression e) with
+				match (execute_expression jprog e) with
 				| IntVal(v) -> IntVal(v+1)
 				| _ -> raise ArithmeticException
 				end
 	| Decr -> 	begin
-				match (execute_expression e) with
+				match (execute_expression jprog e) with
 				| IntVal(v) -> IntVal(v-1)
 				| _ -> raise ArithmeticException
 				end
 
 (* do ++var and --var *)
-and execute_prefix preop (e : expression) =
+and execute_prefix (jprog : jvm) preop (e : expression) =
 	(* see what type *)
 	match preop with
 	| Op_incr -> begin 
-				match (execute_expression e) with
+				match (execute_expression jprog e) with
 				| IntVal(v) -> IntVal(v+1)
 				| _ -> raise ArithmeticException
 				end
 	| Op_decr -> begin 
-				match (execute_expression e) with
+				match (execute_expression jprog e) with
 				| IntVal(v) -> IntVal(v-1)
 				| _ -> raise ArithmeticException
 				end
 
 (* execute an expression and send back it's value *)
-and execute_expression expr =
+and execute_expression (jprog : jvm) expr =
 	(* check the descriptor *)
 	match expr.edesc with 
 	| Val(v) -> begin
@@ -63,8 +63,8 @@ and execute_expression expr =
 				end
 			  (*| Char of char option
 				*)
-	| Post(e, poi) -> execute_postfix e poi
-	| Pre(pri, e) -> execute_prefix pri e
+	| Post(e, poi) -> execute_postfix jprog e poi
+	| Pre(pri, e) -> execute_prefix jprog pri e
 	(* | New of string option * string list * expression list
 	| AssignExp(e1, op, e2) -> 
 	| If(e1, e2, e3) of expression * expression * expression
@@ -97,7 +97,7 @@ let execute_vardecl (jprog : jvm) decl =
 			Hashtbl.add scope.visible n (match eo with 
 										| None -> Hashtbl.find jprog.defaults p;
 										(* we need type checks here*)
-										| Some(e) -> execute_expression e)
+										| Some(e) -> execute_expression jprog e)
 			end
 	(*
 	| Array(typ,size) -> (stringOf typ)^(array_param size)
@@ -112,7 +112,7 @@ let execute_statement jprog stmt =
 			match e.edesc with
 			| Call(obj, name, args) -> begin
 					match name with
-					| "println" -> print_endline (string_of_value (execute_expression (List.hd args))) 
+					| "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))) 
 					| _ -> print_endline "Statement not executable yet, try a System.out.println().."
 					end
 			| _ -> print_endline "Statement not executable yet, try a System.out.println().."
