@@ -19,6 +19,31 @@ let get_main_method (jprog : jvm) =
 								", please define the main method as: public static void main(String[] args)" ^
 								"or a JavaFX application class must extend javafx.application.Application "))
 
+let compute_value op val1 val2 =
+	match val1,val2 with
+	| IntVal(v1),IntVal(v2) -> begin
+				match op with
+				| Op_add -> IntVal(v1+v2)
+				(*| Op_sub  
+				| Op_mul  
+				| Op_div  
+				| Op_mod 
+				| Op_cand
+				| Op_or   
+				| Op_and  
+				| Op_xor  
+				| Op_eq   
+				| Op_ne   
+				| Op_gt   
+				| Op_lt   
+				| Op_ge   
+				| Op_le   
+				| Op_shl  
+				| Op_shr  
+				| Op_cor  
+				| Op_shrr *)
+				end
+
 (* do var++ and var--*)
 let rec execute_postfix (jprog : jvm) (e : expression) postop =
 	(* see what type *)
@@ -49,6 +74,52 @@ and execute_prefix (jprog : jvm) preop (e : expression) =
 				| _ -> raise ArithmeticException
 				end
 
+(* do assignments *)
+and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
+	(* see what type *)
+	let left = (execute_expression jprog e1)
+	in 
+	let right = (execute_expression jprog e2)
+	in
+	let (_, scope) = Stack.top jprog.jvmstack 
+	in
+	match e1.edesc with
+				| Name(n) -> begin
+							match op with
+							| Assign -> Hashtbl.replace scope.visible n right;
+										right
+							(*| Ass_add -> Hashtbl.replace scope.visible n (execute_operator left right);
+										right
+							| Ass_sub 
+							| Ass_mul 
+							| Ass_div 
+							| Ass_mod 
+							| Ass_shl 
+							| Ass_shr 
+							| Ass_shrr
+							| Ass_and 
+							| Ass_xor 
+							| Ass_or  *)
+							end
+				| _ -> raise (Exception "Bad assignment")
+
+(* variable linking *)
+and execute_name (jprog : jvm) (name : string) =
+	let (_, scope) = Stack.top jprog.jvmstack 
+	in
+	try 
+		Hashtbl.find scope.visible name
+	with
+	| Not_found -> raise (Exception "Variable not defined")
+
+(* execute operation *)
+and execute_operator (jprog : jvm) e1 (op : infix_op) e2 =
+	let left = (execute_expression jprog e1)
+	in 
+	let right = (execute_expression jprog e2)
+	in
+	compute_value op left right
+
 (* execute an expression and send back it's value *)
 and execute_expression (jprog : jvm) expr =
 	(* check the descriptor *)
@@ -65,17 +136,17 @@ and execute_expression (jprog : jvm) expr =
 				*)
 	| Post(e, poi) -> execute_postfix jprog e poi
 	| Pre(pri, e) -> execute_prefix jprog pri e
+	| Name(n) -> execute_name jprog n
+	| AssignExp(e1, op, e2) -> execute_assign jprog e1 op e2
+	| Op(e1, op, e2) -> execute_operator jprog e1 op e2
 	(* | New of string option * string list * expression list
-	| AssignExp(e1, op, e2) -> 
 	| If(e1, e2, e3) of expression * expression * expression
 	| NewArray of Type.t * (expression option) list * expression option
 	| Call of expression option * string * expression list
 	| Attr of expression * string
-	| Name of string
 	| ArrayInit of expression list
 	| Array of expression * (expression option) list
 	| Pre of prefix_op * expression
-	| Op of expression * infix_op * expression
 	| CondOp of expression * expression * expression
 	| Cast of Type.t * expression
 	| Type of Type.t
@@ -83,7 +154,6 @@ and execute_expression (jprog : jvm) expr =
 	| Instanceof of expression * Type.t
 	| VoidClass
  *)
-
 
 (* execute a variable declaration *)
 let execute_vardecl (jprog : jvm) decl = 
