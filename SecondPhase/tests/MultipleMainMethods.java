@@ -1,14 +1,14 @@
 public class MultipleMainMethods {
 	public static void main (String [] args) {
-		int a, b;
+		int a, b = 10;
+		b++; a--;
+		
+		boolean tf = true;
+		float f = 10.0;
+		
 		System.out.println("The public class");
 		System.out.println("Hello world");
 		System.out.println("Bla vla");
-		System.out.println("The public class");
-		System.out.println("The public class");
-		System.out.println("The public class");
-		System.out.println("The public class");
-
 	}
 }
 

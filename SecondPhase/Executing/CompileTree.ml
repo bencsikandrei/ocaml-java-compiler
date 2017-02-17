@@ -234,6 +234,7 @@ let compile_tree ast (fname : string) =
   		public_class = ""; 
   		methods = Hashtbl.create 10; 
   		classes = Hashtbl.create 10;
+  		defaults = Hashtbl.create 10;
   		jvmstack = Stack.create ();
   		jvmheap = Hashtbl.create 10;
   		} 

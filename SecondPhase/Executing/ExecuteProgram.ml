@@ -1,69 +1,70 @@
 (* Code for doing the execution *)
+open Type
 open AST
 open Exceptions
 open MemoryModel
-
-(* default initializers for values *)
-type default = {
-	values: (string, valuetype) Hashtbl.t;
-}
-
-(* what can we use *)
-and valuetype = 
-	| IntVal of int
-	| StrVal of string
-	| FltVal of float
-	| BoolVal of bool
-	| RefVal of newobject
-	| NullVal
-
-(* heap declared objects *)
-and newobject = {
-	(* the object declaration name *)
-	oname: string;
-	(* the class it instantiates *)
-	oclass: javaclass;
-	(* its attributes *)
-	oattributes: (string, valuetype) Hashtbl.t;
-}
-
-type scope = {
-	(* current *)
-	currentclass: javaclass;
-	visible: (string, valuetype) Hashtbl.t;
-}
-
-(* string of valuetypes *)
-let string_of_value v =
-	match v with 
-	| IntVal(i) -> string_of_int i 
-	| StrVal(s) -> s
- 	| FltVal(f) -> string_of_float f
- 	| BoolVal(b) -> string_of_bool b
-	(* | RefVal of newobject *)
 
 (* find the start point *)
 let get_main_method (jprog : jvm) =
 	(* search if there is a main method, 
 	if yes -> return it
 	else raise an exception *)
-	let main_method_name = (jprog.public_class ^ "_main_String[]") 
+	let main_method_name = (jprog.public_class ^ "_main_String[]") (* classic java main method *)
 	in
 	try 
+		(* get the method from the jvm table *)
 		Hashtbl.find jprog.methods main_method_name
 	with
-	| _ -> raise (NoMainMethod ("Error: Main method not found in class " ^ jprog.public_class ^ ", please define the main method as: public static void main(String[] args) or a JavaFX application class must extend javafx.application.Application "))
+	| _ -> raise (NoMainMethod ("Error: Main method not found in class " ^ jprog.public_class ^ 
+								", please define the main method as: public static void main(String[] args)" ^
+								"or a JavaFX application class must extend javafx.application.Application "))
 
-let execute_expression expr =
+(* do var++ and var--*)
+let rec execute_postfix (e : expression) postop =
+	(* see what type *)
+	match postop with
+	| Incr -> 	begin
+				match (execute_expression e) with
+				| IntVal(v) -> IntVal(v+1)
+				| _ -> raise ArithmeticException
+				end
+	| Decr -> 	begin
+				match (execute_expression e) with
+				| IntVal(v) -> IntVal(v-1)
+				| _ -> raise ArithmeticException
+				end
+
+(* do ++var and --var *)
+and execute_prefix preop (e : expression) =
+	(* see what type *)
+	match preop with
+	| Op_incr -> begin 
+				match (execute_expression e) with
+				| IntVal(v) -> IntVal(v+1)
+				| _ -> raise ArithmeticException
+				end
+	| Op_decr -> begin 
+				match (execute_expression e) with
+				| IntVal(v) -> IntVal(v-1)
+				| _ -> raise ArithmeticException
+				end
+
+(* execute an expression and send back it's value *)
+and execute_expression expr =
+	(* check the descriptor *)
 	match expr.edesc with 
-	| Val(v) -> match v with
-			  | String(s) -> StrVal(s)
-			  | Int(i) -> IntVal(int_of_string i)
-			  | Float(f) -> FltVal(float_of_string f)
-			  | Boolean(b) -> BoolVal(b) 
-			  | Null -> NullVal
+	| Val(v) -> begin
+				match v with
+				| String(s) -> StrVal(s)
+				| Int(i) -> IntVal(int_of_string i)
+				| Float(f) -> FltVal(float_of_string f)
+				| Boolean(b) -> BoolVal(b) 
+				| Null -> NullVal
+				end
 			  (*| Char of char option
 				*)
+	| Post(e, poi) -> execute_postfix e poi
+	| Pre(pri, e) -> execute_prefix pri e
 	(* | New of string option * string list * expression list
 	| AssignExp(e1, op, e2) -> 
 	| If(e1, e2, e3) of expression * expression * expression
@@ -73,7 +74,6 @@ let execute_expression expr =
 	| Name of string
 	| ArrayInit of expression list
 	| Array of expression * (expression option) list
-	| Post of expression * postfix_op
 	| Pre of prefix_op * expression
 	| Op of expression * infix_op * expression
 	| CondOp of expression * expression * expression
@@ -84,40 +84,72 @@ let execute_expression expr =
 	| VoidClass
  *)
 
+
 (* execute a variable declaration *)
-let execute_vardecl currentscope decl = 
+let execute_vardecl (jprog : jvm) decl = 
 	match decl with
 	(* type, name, optional initialization *)
-	| (t, n, eo) -> print_endline (Type.stringOf t)
+	| (Primitive(p), n, eo) -> 
+			begin
+			let (_, scope) = Stack.top jprog.jvmstack 
+			in
+			(* matched an  *)
+			Hashtbl.add scope.visible n (match eo with 
+										| None -> Hashtbl.find jprog.defaults p;
+										(* we need type checks here*)
+										| Some(e) -> execute_expression e)
+			end
+	(*
+	| Array(typ,size) -> (stringOf typ)^(array_param size)
+	| Ref rt -> stringOf_ref rt 
+	*)
 
-let execute_statement currentscope stmt = 
+let execute_statement jprog stmt = 
 	match stmt with
+	(* treat all the expressions *)
 	| Expr(e) -> (* print_endline (AST.string_of_expression e) *)
-				begin
-				match e.edesc with
-				| Call(obj, name, args) -> begin
-									match name with
-									| "println" -> print_endline (string_of_value (execute_expression (List.hd args))) 
-									| _ -> print_endline "Statement not executable yet, try a System.out.println().."
-									end
-				| _ -> print_endline "Statement not executable yet, try a System.out.println().."
-				end
-	| VarDecl(vardecls) -> List.iter (execute_vardecl currentscope) vardecls
+			begin
+			match e.edesc with
+			| Call(obj, name, args) -> begin
+					match name with
+					| "println" -> print_endline (string_of_value (execute_expression (List.hd args))) 
+					| _ -> print_endline "Statement not executable yet, try a System.out.println().."
+					end
+			| _ -> print_endline "Statement not executable yet, try a System.out.println().."
+			end
+	(* a variable declaration *)
+	| VarDecl(vardecls) -> List.iter (execute_vardecl jprog) vardecls
 
 	| _ -> print_endline "Statement not executable yet, try a System.out.println().."
+
+
+(* add default initializer variables *)
+let add_defaults (jprog : jvm) =
+	Hashtbl.add jprog.defaults Int (IntVal 0);
+	(* Hashtbl.add jprog.defaults Int StrVal(""); 
+	*)
+	Hashtbl.add jprog.defaults Float (FltVal 0.0);
+	Hashtbl.add jprog.defaults Boolean (BoolVal false)
 
 (* Make a structure that contains the whole program, its heap
 stack .. *)
 let execute_code (jprog : jvm) =
+	(* setup the JVM *)
+	add_defaults jprog;
+
 	let startpoint = get_main_method jprog 
 	in
 	(* since we know that by now we have a public class *)
 	let currentscope = { 
-							currentclass = (Hashtbl.find jprog.classes jprog.public_class);
-							visible = (Hashtbl.create 10) 
-						}
+						visible = (Hashtbl.create 10) 
+					   }
 	in
+	(* add the main mathods scope to the stack *)
+	Stack.push (startpoint.mname, currentscope) jprog.jvmstack;
+	(* the main method *)
 	AST.print_method "" startpoint;
 	(* run the program *)
 	print_endline "### Running ... ###";
-	List.iter (execute_statement currentscope) startpoint.mbody
+	(* print_scope jprog; *)
+	List.iter (execute_statement jprog) startpoint.mbody;
+	print_scope jprog
