@@ -23,26 +23,37 @@ let compute_value op val1 val2 =
 	match val1,val2 with
 	| IntVal(v1),IntVal(v2) -> begin
 				match op with
-				| Op_add -> IntVal(v1+v2)
-				(*| Op_sub  
-				| Op_mul  
-				| Op_div  
-				| Op_mod 
-				| Op_cand
-				| Op_or   
-				| Op_and  
-				| Op_xor  
-				| Op_eq   
-				| Op_ne   
-				| Op_gt   
-				| Op_lt   
-				| Op_ge   
-				| Op_le   
-				| Op_shl  
-				| Op_shr  
-				| Op_cor  
-				| Op_shrr *)
+				| Op_add -> IntVal(v1 + v2)
+				| Op_sub -> IntVal(v1 - v2)
+				| Op_mul -> IntVal(v1 * v2)
+				| Op_div -> IntVal(v1 / v2) (* exception when v2 is 0 *)
+				| Op_mod -> IntVal(v1 mod v2)
+				| Op_or -> IntVal(v1 lor v2)  
+				| Op_and -> IntVal(v1 land v2)
+				| Op_xor -> IntVal(v1 lxor v2)
+				| Op_shl -> IntVal(v1 lsl v2)
+				| Op_shr -> IntVal(v1 lsr v2)
+				| Op_eq -> BoolVal(v1 == v2) (* the comparisons should work with every type *)
+				| Op_ne -> BoolVal(v1 != v2) 
+				| Op_gt -> BoolVal(v1 > v2) 
+				| Op_lt -> BoolVal(v1 < v2) 
+				| Op_ge -> BoolVal(v1 >= v2)
+				| Op_le -> BoolVal(v1 <= v2)
+				(*| Op_shrr *)
 				end
+	| FltVal(v1),FltVal(v2) -> begin
+				match op with
+				| Op_add -> FltVal(v1 +. v2)
+				| Op_sub -> FltVal(v1 -. v2)
+				| Op_mul -> FltVal(v1 *. v2)
+				| Op_div -> FltVal(v1 /. v2) (* exception when v2 is 0 *)
+				end
+	| BoolVal(v1),BoolVal(v2) -> begin
+				match op with 
+				| Op_cand -> BoolVal(v1 && v2)
+				| Op_cor -> BoolVal(v1 || v2)
+				end
+	| _,_ -> raise (Exception "Not yet implemented or incorrect operation")
 
 (* do var++ and var--*)
 let rec execute_postfix (jprog : jvm) (e : expression) postop =
@@ -88,18 +99,27 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
 							match op with
 							| Assign -> Hashtbl.replace scope.visible n right;
 										right
-							(*| Ass_add -> Hashtbl.replace scope.visible n (execute_operator left right);
+							| Ass_add -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_add e2);
 										right
-							| Ass_sub 
-							| Ass_mul 
-							| Ass_div 
-							| Ass_mod 
-							| Ass_shl 
-							| Ass_shr 
-							| Ass_shrr
-							| Ass_and 
-							| Ass_xor 
-							| Ass_or  *)
+							| Ass_sub -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_sub e2);
+										right
+							| Ass_mul -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_mul e2);
+										right
+							| Ass_div -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2);
+										right
+							| Ass_mod -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2);
+										right
+							| Ass_and -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_and e2); (* and or cand ?? *)
+										right
+							| Ass_or -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_or e2); (* or or cor ?? *)
+										right  
+							| Ass_xor -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_xor e2);
+										right 
+							| Ass_shl -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shl e2);
+										right 
+							| Ass_shr -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shr e2);
+										right 
+							(*| Ass_shrr*)
 							end
 				| _ -> raise (Exception "Bad assignment")
 
