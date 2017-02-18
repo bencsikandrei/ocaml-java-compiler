@@ -50,15 +50,18 @@ let verifyClassInterior (var:AST.astclass) (classesScope:AST.astclass list) chai
 
 (* Checkes in a list if a class with clid "clname" exists *)
 let rec searchClass (clname:Type.ref_type) (scope:AST.astclass list) : AST.astclass=
+	print_string ((flatlistDot clname.tpath)^"."^clname.tid^" -> ");
 	match scope with 
 	| [] -> raise (Invalclid_inheritance ("Class: "^(flatlistDot clname.tpath)^"."^clname.tid^" not found"))
 	| elem::rest -> (
 			match clname.tpath with 
 			| [] -> 
+				print_string (elem.clname^"=??"^clname.tid^"\n");
 				if elem.clname=clname.tid then elem
 				else searchClass clname rest
 			| first::others -> 
-				if elem.clid=first then 
+				print_string (elem.clname^"=?"^first^"\n");
+				if elem.clname=first then 
 					searchClass {tpath=others; tid=clname.tid} elem.classScope
 				else searchClass clname rest
 		)
@@ -84,16 +87,22 @@ let rec getClasses (classes:AST.asttype list) : AST.astclass list =
 			|Inter ->  c
 		)
 
+let f (var:AST.astclass) = 
+		print_string (var.clname^" - ")
+
 let rec fillScopes (clid:string) (classes:AST.astclass list) (scope:AST.astclass list)  = 
 	let f = addScope clid scope in
 	List.map f classes
 
 and addScope (clid:string) (scope:AST.astclass list) (aclass:AST.astclass) =
-	if(aclass.clid<>"Object") then 
+	if(aclass.clid="") then 
 		let cs = getClasses aclass.ctypes in
 		aclass.clid<-clid^"."^aclass.clname;
-		aclass.classScope<-cs@scope;
-		fillScopes aclass.clid cs scope@cs;
+		aclass.classScope<-(cs@scope);
+		fillScopes aclass.clid cs (cs@scope);
+		print_string (aclass.clid^" -> ");
+		List.map f aclass.classScope;
+		print_string "\n";
 		aclass
 	else aclass
 
@@ -107,20 +116,46 @@ let getPackageInfo (var:AST.t) =
 		| Some x -> flatlistDot x
 
 
-let addBasics (pckgname:string) (var:AST.astclass list) = 
-	let pckgInfo = {
-		AST.clid=pckgname ;
-    	AST.clname=pckgname ;
-    	AST.classScope=[];
-    	AST.clmodifiers=[];
-    	AST.cparent = {tpath=[];tid="Object"} ;
-    	AST.cattributes = [];
-    	AST.cinits = [];
-    	AST.cconsts = [];
-    	AST.cmethods = [];
-    	AST.ctypes = [];
-    	AST.cloc = Location.none;
-	} in 
+let rec createPckg (x:AST.qualified_name) (var:AST.astclass list) (id:string)=
+	match x with 
+	| [] -> []
+	| last::[] -> 	[{
+			AST.clid=id^last ;
+	    	AST.clname=last ;
+	    	AST.classScope=var;
+	    	AST.clmodifiers=[];
+	    	AST.cparent = {tpath=[];tid="Object"} ;
+	    	AST.cattributes = [];
+	    	AST.cinits = [];
+	    	AST.cconsts = [];
+	    	AST.cmethods = [];
+	    	AST.ctypes = [];
+	    	AST.cloc = Location.none;
+		}]
+	| head::tail ->
+		let next = createPckg tail var (id^head^".") in
+		[{
+			AST.clid=id^head ;
+    		AST.clname=head ;
+    		AST.classScope=next;
+    		AST.clmodifiers=[];
+	    	AST.cparent = {tpath=[];tid="Object"} ;
+	    	AST.cattributes = [];
+	    	AST.cinits = [];
+	    	AST.cconsts = [];
+	    	AST.cmethods = [];
+	    	AST.ctypes = [];
+	    	AST.cloc = Location.none;
+		} ]
+
+let pckgInfo (pckgname:AST.qualified_name option) (var:AST.astclass list) =
+	match pckgname with 
+	| None -> var
+	| Some x -> (createPckg x var "")@var
+	
+
+let addBasics (pckgname:AST.qualified_name option) (var:AST.astclass list) :AST.astclass list = 
+	let lis = pckgInfo pckgname var in 
 	let objectInfo = {
 		AST.clid="Object";
     	AST.clname="Object";
@@ -134,14 +169,14 @@ let addBasics (pckgname:string) (var:AST.astclass list) =
     	AST.ctypes = [];
     	AST.cloc = Location.none;
     } in objectInfo.classScope<-[objectInfo];
-    pckgInfo::objectInfo::var
+    objectInfo::lis
    
 
 
 (* Checkes in a list if the ast is valclid *)
 let typing (var:AST.t) =
 	(*let classesScope,interfaceScope = colectClassInfo var.type_list in*)
-	let classes =  addBasics (getPackageInfo var) (getClasses var.type_list) in
+	let classes =  addBasics var.package (getClasses var.type_list) in
 	fillScopes  (getPackageInfo var) classes classes;
 	verifyClasses (verifyClassDependency [] ) classes;
 	var
