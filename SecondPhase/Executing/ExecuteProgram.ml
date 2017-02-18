@@ -193,17 +193,15 @@ and execute_expression (jprog : jvm) expr =
 let rec execute_vardecl (jprog : jvm) decls declpairs = 
 	match decls with
 	| [] -> declpairs
-	| hd::tl -> match head with
+	| hd::tl -> begin
+				match hd with
 				(* type, name, optional initialization *)
 				| (Primitive(p), n, eo) -> 
-							let val = (begin
-									match eo with 
-									| None -> Hashtbl.find jprog.defaults p
-									(* we need type checks here*)
-									| Some(e) -> execute_expression jprog e)
-									end)
-							in 
-							execute_vardecl jprog tl (declpairs@[(n, val)]) (* return a list of tuple (name * value) *)
+							let v = (match eo with | None -> Hashtbl.find jprog.defaults p
+												   | Some(e) -> execute_expression jprog e) 
+							in
+							execute_vardecl jprog tl (declpairs@[(n, v)]) (* return a list of tuple (name * value) *)
+				end
 				(*
 				| Array(typ,size) -> (stringOf typ)^(array_param size)
 				| Ref rt -> stringOf_ref rt 
