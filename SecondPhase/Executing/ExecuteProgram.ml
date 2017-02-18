@@ -18,7 +18,23 @@ let get_main_method (jprog : jvm) =
 	| _ -> raise (NoMainMethod ("Error: Main method not found in class " ^ jprog.public_class ^ 
 								", please define the main method as: public static void main(String[] args)" ^
 								"or a JavaFX application class must extend javafx.application.Application "))
-
+(* 
+let rec get_var_names (jprog : jvm) vardecls =
+	match vardecls with
+	| [] -> [] 
+	| hd::tl -> match hd with
+				(* type, name, optional initialization *)
+				| (Primitive(p), n, eo) -> 
+						begin
+						let (_, scope) = Stack.top jprog.jvmstack 
+						in
+						(* matched an  *)
+						Hashtbl.add scope.visible n (match eo with 
+													| None -> Hashtbl.find jprog.defaults p;
+													(* we need type checks here*)
+													| Some(e) -> execute_expression jprog e)
+						end
+ *)
 let compute_value op val1 val2 =
 	match val1,val2 with
 	| IntVal(v1),IntVal(v2) -> begin
@@ -198,7 +214,16 @@ and execute_while (jprog : jvm) e (stmt : statement) =
 	match (execute_expression jprog e) with
 	| BoolVal(true) -> execute_statement jprog stmt; execute_while jprog e stmt
 	| BoolVal(false) -> ()
-	| _ -> raise (Exception "Illegal ternary operator values")
+	| _ -> raise (Exception "Illegal condition in while loop")
+
+(* blocks have different scope *)
+and execute_block (jprog : jvm) (stmt : statement) =
+	match stmt with
+	(* a variable declaration *)
+	| VarDecl(vardecls) -> 	(* let blockscopevars = get_var_names jprog vardecls
+							in *)
+							List.iter (execute_vardecl jprog) vardecls
+	| _ -> execute_statement jprog stmt;
 
 (* execute all sorts of statements *)
 and execute_statement (jprog : jvm) (stmt : statement) = 
@@ -216,10 +241,16 @@ and execute_statement (jprog : jvm) (stmt : statement) =
 			end
 	(* a variable declaration *)
 	| VarDecl(vardecls) -> List.iter (execute_vardecl jprog) vardecls
+	(* blocks *)
+	| Block(stmtlst) -> let blockvars = [] 
+						in
+						List.iter (execute_block jprog) stmtlst
+
 	(* the if statement *)
 	| If(e, stmt, elseopt) -> execute_if jprog e stmt elseopt
 	(* while *)
 	| While(e, s) -> execute_while jprog e s 
+	(* the for loop *)
 	| _ -> print_endline "Statement not executable yet, try a System.out.println().."
 
 
