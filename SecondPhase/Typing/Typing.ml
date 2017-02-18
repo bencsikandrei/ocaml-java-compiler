@@ -156,20 +156,7 @@ let pckgInfo (pckgname:AST.qualified_name option) (var:AST.astclass list) =
 
 let addBasics (pckgname:AST.qualified_name option) (var:AST.astclass list) :AST.astclass list = 
 	let lis = pckgInfo pckgname var in 
-	let objectInfo = {
-		AST.clid="Object";
-    	AST.clname="Object";
-    	AST.classScope=[];
-    	AST.clmodifiers=[];
-    	AST.cparent = {tpath=[];tid="Object"} ;
-    	AST.cattributes = [];
-    	AST.cinits = [];
-    	AST.cconsts = [];
-    	AST.cmethods = [];
-    	AST.ctypes = [];
-    	AST.cloc = Location.none;
-    } in objectInfo.classScope<-[objectInfo];
-    objectInfo::lis
+    Object.objectInfo::lis
    
 
 
