@@ -57,18 +57,13 @@ let compute_value op val1 val2 =
 
 (* do var++ and var--*)
 let rec execute_postfix (jprog : jvm) (e : expression) postop =
-	(* see what type *)
+	(* see what type *) 
+	let one = { edesc = Val(Int("1")) }
+	in
 	match postop with
-	| Incr -> 	begin
-				match (execute_expression jprog e) with
-				| IntVal(v) -> IntVal(v+1)
-				| _ -> raise ArithmeticException
-				end
-	| Decr -> 	begin
-				match (execute_expression jprog e) with
-				| IntVal(v) -> IntVal(v-1)
-				| _ -> raise ArithmeticException
-				end
+	| Incr -> execute_assign jprog e Ass_add one
+	| Decr -> execute_assign jprog e Ass_sub one
+	
 
 (* do ++var and --var *)
 and execute_prefix (jprog : jvm) preop (e : expression) =
@@ -88,8 +83,6 @@ and execute_prefix (jprog : jvm) preop (e : expression) =
 (* do assignments *)
 and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
 	(* see what type *)
-	let left = (execute_expression jprog e1)
-	in 
 	let right = (execute_expression jprog e2)
 	in
 	let (_, scope) = Stack.top jprog.jvmstack 
@@ -97,30 +90,20 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
 	match e1.edesc with
 				| Name(n) -> begin
 							match op with
-							| Assign -> Hashtbl.replace scope.visible n right;
-										right
-							| Ass_add -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_add e2);
-										right
-							| Ass_sub -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_sub e2);
-										right
-							| Ass_mul -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_mul e2);
-										right
-							| Ass_div -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2);
-										right
-							| Ass_mod -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2);
-										right
-							| Ass_and -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_and e2); (* and or cand ?? *)
-										right
-							| Ass_or -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_or e2); (* or or cor ?? *)
-										right  
-							| Ass_xor -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_xor e2);
-										right 
-							| Ass_shl -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shl e2);
-										right 
-							| Ass_shr -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shr e2);
-										right 
+							| Assign -> Hashtbl.replace scope.visible n right
+							| Ass_add -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_add e2)
+							| Ass_sub -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_sub e2)
+							| Ass_mul -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_mul e2)
+							| Ass_div -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2)
+							| Ass_mod -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2)
+							| Ass_and -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_and e2) (* and or cand ?? *)
+							| Ass_or -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_or e2) (* or or cor ?? *)
+							| Ass_xor -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_xor e2)
+							| Ass_shl -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shl e2)
+							| Ass_shr -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shr e2)
 							(*| Ass_shrr*)
-							end
+							end;
+							Hashtbl.find scope.visible n
 				| _ -> raise (Exception "Bad assignment")
 
 (* variable linking *)
@@ -140,18 +123,27 @@ and execute_operator (jprog : jvm) e1 (op : infix_op) e2 =
 	in
 	compute_value op left right
 
+(* values from AST types *)
+and execute_val v =
+	match v with
+	| String(s) -> StrVal(s)
+	| Int(i) -> IntVal(int_of_string i)
+	| Float(f) -> FltVal(float_of_string f)
+	| Boolean(b) -> BoolVal(b) 
+	| Null -> NullVal
+
+(* execute a ternaru a > b ? a: b *)
+and execute_ternary (jprog : jvm) exp1 exp2 exp3 =
+	match (execute_expression jprog exp1) with
+	| BoolVal(true) -> execute_expression jprog exp2
+	| BoolVal(false) -> execute_expression jprog exp3
+	| _ -> raise (Exception "Illegal ternary operator values")
+
 (* execute an expression and send back it's value *)
 and execute_expression (jprog : jvm) expr =
 	(* check the descriptor *)
 	match expr.edesc with 
-	| Val(v) -> begin
-				match v with
-				| String(s) -> StrVal(s)
-				| Int(i) -> IntVal(int_of_string i)
-				| Float(f) -> FltVal(float_of_string f)
-				| Boolean(b) -> BoolVal(b) 
-				| Null -> NullVal
-				end
+	| Val(v) -> execute_val v
 			  (*| Char of char option
 				*)
 	| Post(e, poi) -> execute_postfix jprog e poi
@@ -159,15 +151,13 @@ and execute_expression (jprog : jvm) expr =
 	| Name(n) -> execute_name jprog n
 	| AssignExp(e1, op, e2) -> execute_assign jprog e1 op e2
 	| Op(e1, op, e2) -> execute_operator jprog e1 op e2
+	| CondOp(e1, e2, e3) -> execute_ternary jprog e1 e2 e3 (* this is actually the ternary *)
 	(* | New of string option * string list * expression list
-	| If(e1, e2, e3) of expression * expression * expression
 	| NewArray of Type.t * (expression option) list * expression option
 	| Call of expression option * string * expression list
 	| Attr of expression * string
 	| ArrayInit of expression list
 	| Array of expression * (expression option) list
-	| Pre of prefix_op * expression
-	| CondOp of expression * expression * expression
 	| Cast of Type.t * expression
 	| Type of Type.t
 	| ClassOf of Type.t
@@ -193,8 +183,25 @@ let execute_vardecl (jprog : jvm) decl =
 	| Array(typ,size) -> (stringOf typ)^(array_param size)
 	| Ref rt -> stringOf_ref rt 
 	*)
+(* execute an if condition with possible else *)
+let rec execute_if (jprog : jvm) e (stmt : statement) elseopt =
+	match (execute_expression jprog e) with
+	| BoolVal(true) -> execute_statement jprog stmt
+	| BoolVal(false) -> begin
+						match elseopt with 
+						| Some(s) -> execute_statement jprog s
+						| _ -> ()
+						end
+	| _ -> raise (Exception "Illegal ternary operator values")
 
-let execute_statement jprog stmt = 
+and execute_while (jprog : jvm) e (stmt : statement) = 
+	match (execute_expression jprog e) with
+	| BoolVal(true) -> execute_statement jprog stmt; execute_while jprog e stmt
+	| BoolVal(false) -> ()
+	| _ -> raise (Exception "Illegal ternary operator values")
+
+(* execute all sorts of statements *)
+and execute_statement (jprog : jvm) (stmt : statement) = 
 	match stmt with
 	(* treat all the expressions *)
 	| Expr(e) -> (* print_endline (AST.string_of_expression e) *)
@@ -209,7 +216,10 @@ let execute_statement jprog stmt =
 			end
 	(* a variable declaration *)
 	| VarDecl(vardecls) -> List.iter (execute_vardecl jprog) vardecls
-
+	(* the if statement *)
+	| If(e, stmt, elseopt) -> execute_if jprog e stmt elseopt
+	(* while *)
+	| While(e, s) -> execute_while jprog e s 
 	| _ -> print_endline "Statement not executable yet, try a System.out.println().."
 
 
