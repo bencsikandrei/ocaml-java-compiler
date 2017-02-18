@@ -149,7 +149,10 @@ type astconst = {
   }
 
 and astclass = { 
-    mutable id :string;
+    mutable clid:string;
+    mutable clname:string;
+    mutable classScope: astclass list;
+    mutable clmodifiers: modifier list;
     cparent : Type.ref_type;
     cattributes : astattribute list;
     cinits : initial list;
@@ -173,12 +176,11 @@ and asttype =
     mutable modifiers : modifier list;
     id : string;
     info : type_info;
-    (* mutable package : qualified_name option; *TODO  implement classes with packages*)
   }
 
 type t = {
     package : qualified_name option;
-    type_list : asttype list;
+    mutable type_list : asttype list;
   }
 
 
