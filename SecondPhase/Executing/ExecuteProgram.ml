@@ -37,46 +37,65 @@ let rec get_var_names (jprog : jvm) vardecls =
  *)
 (* add vars to current scope *)
 let rec add_vars_to_scope (jprog : jvm) decls =
+	let (_, scope) =  Stack.top jprog.jvmstack 
+	in 
 	match decls with
 	| [] -> ()
-	| hd::tl -> let (_, scope) =  Stack.top jprog.jvmstack 
-				in ()
-				(* Hashtbl.add scope.visible  *)
+	| hd::tl -> let (n, v) = hd
+			in
+			(* print_string n; print_endline( "= " ^(string_of_value v)); *)
+			Hashtbl.add scope.visible n v;
+			add_vars_to_scope jprog tl
 
+(* remove block variables *)
+let rec remove_vars_from_scope (jprog : jvm) decls =
+	(* print_endline "Any vars to remove from scope ?"; *)
+	let (_, scope) =  Stack.top jprog.jvmstack 
+	in 
+	match decls with
+	| [] -> ()
+	| hd::tl -> let (n, v) = hd
+			in
+			(* print_endline "Some"; *)
+			(* print_string n; print_endline(string_of_value v); *)
+			Hashtbl.remove scope.visible n;
+			remove_vars_from_scope jprog tl
+
+(* compute the value of an expression with operators *)
 let compute_value op val1 val2 =
 	match val1,val2 with
 	| IntVal(v1),IntVal(v2) -> begin
-				match op with
-				| Op_add -> IntVal(v1 + v2)
-				| Op_sub -> IntVal(v1 - v2)
-				| Op_mul -> IntVal(v1 * v2)
-				| Op_div -> IntVal(v1 / v2) (* exception when v2 is 0 *)
-				| Op_mod -> IntVal(v1 mod v2)
-				| Op_or -> IntVal(v1 lor v2)  
-				| Op_and -> IntVal(v1 land v2)
-				| Op_xor -> IntVal(v1 lxor v2)
-				| Op_shl -> IntVal(v1 lsl v2)
-				| Op_shr -> IntVal(v1 lsr v2)
-				| Op_eq -> BoolVal(v1 == v2) (* the comparisons should work with every type *)
-				| Op_ne -> BoolVal(v1 != v2) 
-				| Op_gt -> BoolVal(v1 > v2) 
-				| Op_lt -> BoolVal(v1 < v2) 
-				| Op_ge -> BoolVal(v1 >= v2)
-				| Op_le -> BoolVal(v1 <= v2)
-				(*| Op_shrr *)
-				end
+			match op with
+			| Op_add -> IntVal(v1 + v2)
+			| Op_sub -> IntVal(v1 - v2)
+			| Op_mul -> IntVal(v1 * v2)
+			| Op_div -> IntVal(v1 / v2) (* exception when v2 is 0 *)
+			| Op_mod -> IntVal(v1 mod v2)
+			| Op_or -> IntVal(v1 lor v2)  
+			| Op_and -> IntVal(v1 land v2)
+			| Op_xor -> IntVal(v1 lxor v2)
+			| Op_shl -> IntVal(v1 lsl v2)
+			| Op_shr -> IntVal(v1 lsr v2)
+			| Op_eq -> BoolVal(v1 == v2) (* the comparisons should work with every type *)
+			| Op_ne -> BoolVal(v1 != v2) 
+			| Op_gt -> BoolVal(v1 > v2) 
+			| Op_lt -> BoolVal(v1 < v2) 
+			| Op_ge -> BoolVal(v1 >= v2)
+			| Op_le -> BoolVal(v1 <= v2)
+			(*| Op_shrr *)
+			end
 	| FltVal(v1),FltVal(v2) -> begin
-				match op with
-				| Op_add -> FltVal(v1 +. v2)
-				| Op_sub -> FltVal(v1 -. v2)
-				| Op_mul -> FltVal(v1 *. v2)
-				| Op_div -> FltVal(v1 /. v2) (* exception when v2 is 0 *)
-				end
+			match op with
+			| Op_add -> FltVal(v1 +. v2)
+			| Op_sub -> FltVal(v1 -. v2)
+			| Op_mul -> FltVal(v1 *. v2)
+			| Op_div -> FltVal(v1 /. v2) (* exception when v2 is 0 *)
+			end
 	| BoolVal(v1),BoolVal(v2) -> begin
-				match op with 
-				| Op_cand -> BoolVal(v1 && v2)
-				| Op_cor -> BoolVal(v1 || v2)
-				end
+			match op with 
+			| Op_cand -> BoolVal(v1 && v2)
+			| Op_cor -> BoolVal(v1 || v2)
+			end
 	| _,_ -> raise (Exception "Not yet implemented or incorrect operation")
 
 (* do var++ and var--*)
@@ -94,15 +113,15 @@ and execute_prefix (jprog : jvm) preop (e : expression) =
 	(* see what type *)
 	match preop with
 	| Op_incr -> begin 
-				match (execute_expression jprog e) with
-				| IntVal(v) -> IntVal(v+1)
-				| _ -> raise ArithmeticException
-				end
+			match (execute_expression jprog e) with
+			| IntVal(v) -> IntVal(v+1)
+			| _ -> raise ArithmeticException
+			end
 	| Op_decr -> begin 
-				match (execute_expression jprog e) with
-				| IntVal(v) -> IntVal(v-1)
-				| _ -> raise ArithmeticException
-				end
+			match (execute_expression jprog e) with
+			| IntVal(v) -> IntVal(v-1)
+			| _ -> raise ArithmeticException
+			end
 
 (* do assignments *)
 and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
@@ -112,23 +131,23 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
 	let (_, scope) = Stack.top jprog.jvmstack 
 	in
 	match e1.edesc with
-				| Name(n) -> begin
-							match op with
-							| Assign -> Hashtbl.replace scope.visible n right
-							| Ass_add -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_add e2)
-							| Ass_sub -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_sub e2)
-							| Ass_mul -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_mul e2)
-							| Ass_div -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2)
-							| Ass_mod -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2)
-							| Ass_and -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_and e2) (* and or cand ?? *)
-							| Ass_or -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_or e2) (* or or cor ?? *)
-							| Ass_xor -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_xor e2)
-							| Ass_shl -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shl e2)
-							| Ass_shr -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shr e2)
-							(*| Ass_shrr*)
-							end;
-							Hashtbl.find scope.visible n
-				| _ -> raise (Exception "Bad assignment")
+			| Name(n) -> begin
+					match op with
+					| Assign -> Hashtbl.replace scope.visible n right
+					| Ass_add -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_add e2)
+					| Ass_sub -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_sub e2)
+					| Ass_mul -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_mul e2)
+					| Ass_div -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2)
+					| Ass_mod -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2)
+					| Ass_and -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_and e2) (* and or cand ?? *)
+					| Ass_or -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_or e2) (* or or cor ?? *)
+					| Ass_xor -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_xor e2)
+					| Ass_shl -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shl e2)
+					| Ass_shr -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shr e2)
+					(*| Ass_shrr*)
+					end;
+					Hashtbl.find scope.visible n
+			| _ -> raise (Exception "Bad assignment")
 
 (* variable linking *)
 and execute_name (jprog : jvm) (name : string) =
@@ -176,6 +195,11 @@ and execute_expression (jprog : jvm) expr =
 	| AssignExp(e1, op, e2) -> execute_assign jprog e1 op e2
 	| Op(e1, op, e2) -> execute_operator jprog e1 op e2
 	| CondOp(e1, e2, e3) -> execute_ternary jprog e1 e2 e3 (* this is actually the ternary *)
+	| Call(obj, name, args) -> begin
+			match name with
+			| "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
+			| _ -> print_endline "Call not executable yet, try a System.out.println().."; 
+			end; NullVal
 	(* | New of string option * string list * expression list
 	| NewArray of Type.t * (expression option) list * expression option
 	| Call of expression option * string * expression list
@@ -191,74 +215,119 @@ and execute_expression (jprog : jvm) expr =
 
 (* execute a variable declaration *)
 let rec execute_vardecl (jprog : jvm) decls declpairs = 
+	(* at the end give a list of all declared variables *)
 	match decls with
 	| [] -> declpairs
 	| hd::tl -> begin
-				match hd with
-				(* type, name, optional initialization *)
-				| (Primitive(p), n, eo) -> 
-							let v = (match eo with | None -> Hashtbl.find jprog.defaults p
-												   | Some(e) -> execute_expression jprog e) 
-							in
-							execute_vardecl jprog tl (declpairs@[(n, v)]) (* return a list of tuple (name * value) *)
-				end
-				(*
-				| Array(typ,size) -> (stringOf typ)^(array_param size)
-				| Ref rt -> stringOf_ref rt 
-				*)
+			match hd with
+			(* type, name, optional initialization *)
+			| (Primitive(p), n, eo) -> 
+					let v = (match eo with | None -> Hashtbl.find jprog.defaults p
+										   | Some(e) -> execute_expression jprog e) 
+					in
+					execute_vardecl jprog tl (declpairs@[(n, v)]) (* return a list of tuple (name * value) *)
+			end
+			(*
+			| Array(typ,size) -> (stringOf typ)^(array_param size)
+			| Ref rt -> stringOf_ref rt 
+			*)
+
+let rec execute_for_vardecl (jprog : jvm) decls declpairs = 
+	(* at the end give a list of all declared variables *)
+	match decls with
+	| [] -> declpairs
+	| hd::tl -> begin
+			match hd with
+			(* type, name, optional initialization *)
+			| (Some(Primitive(p)), n, eo) -> 
+					let v = (match eo with | None -> Hashtbl.find jprog.defaults p
+										   | Some(e) -> execute_expression jprog e) 
+					in
+					execute_for_vardecl jprog tl (declpairs@[(n, v)]) (* return a list of tuple (name * value) *)
+			| (None, n, eo) -> 
+					let v = (match eo with | Some(e) -> execute_expression jprog e) 
+					in
+					execute_for_vardecl jprog tl (declpairs) (* return a list of tuple (name * value) *)
+			end
+
 (* execute an if condition with possible else *)
 let rec execute_if (jprog : jvm) e (stmt : statement) elseopt =
 	match (execute_expression jprog e) with
 	| BoolVal(true) -> execute_statement jprog stmt
 	| BoolVal(false) -> begin
-				match elseopt with 
-				| Some(s) -> execute_statement jprog s
-				| _ -> ()
-				end
-	| _ -> raise (Exception "Illegal ternary operator values")
+			match elseopt with 
+			(* execute the else part *)
+			| Some(s) -> execute_statement jprog s
+			| _ -> []
+			end
+	| _ -> raise (Exception "Illegal if condition")
 
+(* simple while loop *)
 and execute_while (jprog : jvm) e (stmt : statement) = 
 	match (execute_expression jprog e) with
 	| BoolVal(true) -> execute_statement jprog stmt; execute_while jprog e stmt
 	| BoolVal(false) -> ()
 	| _ -> raise (Exception "Illegal condition in while loop")
 
-(* blocks have different scope *)
-and execute_block (jprog : jvm) (stmt : statement) =
-	match stmt with
-	(* a variable declaration *)
-	| _ -> execute_statement jprog stmt;
+(* the simple for statement, not enhanced *)
+and execute_for (jprog : jvm) fortest forincr (stmt : statement) =
+	let test = (match fortest with 
+				| Some(e) -> execute_expression jprog e
+				| None -> BoolVal(true))
+	in
+	match test with
+	| BoolVal(true) -> 	execute_statement jprog stmt; 
+						List.iter (fun t -> execute_expression jprog t; ()) forincr;
+						execute_for jprog fortest forincr stmt
+	| BoolVal(false) -> ()
+	| _ -> raise (Exception "Illegal condition in while loop")
 
 (* execute all sorts of statements *)
-and execute_statement (jprog : jvm) (stmt : statement) = 
+and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.valuetype) list = 
 	match stmt with
 	(* treat all the expressions *)
-	| Expr(e) -> (* print_endline (AST.string_of_expression e) *)
-			begin
-			match e.edesc with
-			| Call(obj, name, args) -> begin
-					match name with
-					| "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))) 
-					| _ -> print_endline "Statement not executable yet, try a System.out.println().."
-					end
-			| _ -> print_endline "Statement not executable yet, try a System.out.println().."
-			end
+	| Expr(e) -> execute_expression jprog e; (* print_endline (AST.string_of_expression e) *)
+				[]
 	(* a variable declaration *)
 	| VarDecl(vardecls) -> let declarations = execute_vardecl jprog vardecls []
-						in
-						add_vars_to_scope jprog declarations
+			in
+			add_vars_to_scope jprog declarations;
+			declarations
 	(* blocks *)
-	| Block(stmtlst) -> let blockvars = [] 
-						in
-						List.iter (execute_block jprog) stmtlst
-
+	| Block(stmtlst) -> let blockvars =	List.append [] (execute_statements jprog stmtlst) 
+			in
+			remove_vars_from_scope jprog blockvars;
+			[]
+			
 	(* the if statement *)
-	| If(e, stmt, elseopt) -> execute_if jprog e stmt elseopt
+	| If(e, stmt, elseopt) -> execute_if jprog e stmt elseopt; []
 	(* while *)
-	| While(e, s) -> execute_while jprog e s 
+	| While(test, stmt) -> execute_while jprog test stmt; []
+	(* while *)
+	| For(vardecls, fortest, forincr, forstmt) ->
+			(* first add the for declared variables to scope *)
+			let declarations = execute_for_vardecl jprog vardecls []
+			in
+			add_vars_to_scope jprog declarations;
+			execute_for jprog fortest forincr forstmt;
+			remove_vars_from_scope jprog declarations;
+			[]
 	(* the for loop *)
-	| _ -> print_endline "Statement not executable yet, try a System.out.println().."
+	| _ -> print_endline "Statement not executable yet, try a System.out.println().."; []
 
+(* execute statements like List.iter 
+	a statement can decalre a new variable or not
+	it's the case for VarDecl
+	so if a block declares a variable, we add it 
+	to a list
+	*)
+and execute_statements (jprog : jvm) (stmts : statement list) =
+	match stmts with
+	| [] -> []
+	| hd::tl -> (* execute one statement, then pass to others *)
+				let decl = execute_statement jprog hd 
+				in
+				decl @ (execute_statements jprog tl)
 
 (* add default initializer variables *)
 let add_defaults (jprog : jvm) =
@@ -288,5 +357,5 @@ let execute_code (jprog : jvm) =
 	(* run the program *)
 	print_endline "### Running ... ###";
 	(* print_scope jprog; *)
-	List.iter (execute_statement jprog) startpoint.mbody;
+	execute_statements jprog startpoint.mbody;
 	print_scope jprog
