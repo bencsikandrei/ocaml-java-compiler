@@ -2,6 +2,11 @@
 exception Recursive_inheritance of string
 exception Invalid_inheritance of string
 
+
+
+(* ***********************
+* AUX FUNCTIONS
+* ************************ *)
 let rec inlist elem arr = 
 	match arr with
 	| [] -> false
@@ -16,6 +21,16 @@ let rec flatlist lis =
 
 
 
+
+
+
+
+
+(* ***********************
+* Class Checking functions
+* ************************ *)
+
+(* Checkes in a list if a class with id "name" exists *)
 let rec searchClass name (scope:AST.asttype list) =
 	match scope with 
 	| [] -> raise (Invalid_inheritance ("Class: "^name^" not found"))
@@ -25,31 +40,28 @@ let rec searchClass name (scope:AST.asttype list) =
 
 
 
+(* Checkes if a class/method/variable has valid modifiers *)
 let checkModifs (mods:AST.modifier list)=
 	print_endline("implment checkModifs")(* TODO *)
 
 
-
-
-let rec verifyClassDependency (var:AST.asttype) (classesScope:AST.asttype list) chain=
-	if inlist var.id chain then
-		raise (Recursive_inheritance ("Class: "^var.id^" inherits from itself"))
+(* Verifies that the inheritance of a class is valid *)
+let rec verifyClassDependency (cl:AST.astclass) (classesScope:AST.astclass list) chain=
+	if inlist cl.id chain then
+		raise (Recursive_inheritance ("Class: "^cl.id^" inherits from itself"))
 	else
-		match var.info with
-		| Class cl -> 
 			if cl.cparent.tid="Object" then ()
 			else verifyClassDependency (searchClass cl.cparent.tid classesScope) classesScope (var.id::chain)
-		| Inter -> ()
 
 
-
-let rec verifyClasses classes classesScope=
+(* Calls the given function for all classes *)
+let rec verifyClasses fn classes classesScope=
 	match classes with
 	| [] -> ()
-	| elem::rest -> verifyClassDependency elem classesScope []; verifyClasses rest classesScope
+	| elem::rest -> fn elem classesScope []; verifyClasses fn rest classesScope
 
 
-
+(* Sorts te asttype list and returs a list of classes and a list of interfaces *)
 let rec colectClassInfo (classes:AST.asttype list) = 
 	match classes with
 	| [] -> ([],[])
@@ -57,14 +69,24 @@ let rec colectClassInfo (classes:AST.asttype list) =
 			checkModifs elem.modifiers;
 			let c,i = colectClassInfo rest in 
 			match elem.info with
-			|Class cl ->  (elem::c,i)
+			|Class cl ->  cl.id<-elem.id; (elem::cl,i)
 			|Inter ->  (c,elem::i)
 		)
 
+let verifyClassInterior (var:AST.astclass) (classesScope:AST.astclass list) chain =
+	[]
 
 
+
+(* ***********************
+* main function of the module
+* ************************ *)
+
+(* Checkes in a list if the ast is valid *)
 let typing (var:AST.t) =
 	let classesScope,interfaceScope = colectClassInfo var.type_list in
-	verifyClasses classesScope classesScope
+	verifyClasses verifyClassDependency classesScope classesScope
+	verifyClasses verifyClassInterior classesScope classesScope
+	
 	
 	
