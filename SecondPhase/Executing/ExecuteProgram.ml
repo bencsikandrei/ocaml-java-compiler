@@ -35,6 +35,14 @@ let rec get_var_names (jprog : jvm) vardecls =
 													| Some(e) -> execute_expression jprog e)
 						end
  *)
+(* add vars to current scope *)
+let rec add_vars_to_scope (jprog : jvm) decls =
+	match decls with
+	| [] -> ()
+	| hd::tl -> let (_, scope) =  Stack.top jprog.jvmstack 
+				in ()
+				(* Hashtbl.add scope.visible  *)
+
 let compute_value op val1 val2 =
 	match val1,val2 with
 	| IntVal(v1),IntVal(v2) -> begin
@@ -182,32 +190,33 @@ and execute_expression (jprog : jvm) expr =
  *)
 
 (* execute a variable declaration *)
-let execute_vardecl (jprog : jvm) decl = 
-	match decl with
-	(* type, name, optional initialization *)
-	| (Primitive(p), n, eo) -> 
-			begin
-			let (_, scope) = Stack.top jprog.jvmstack 
-			in
-			(* matched an  *)
-			Hashtbl.add scope.visible n (match eo with 
-										| None -> Hashtbl.find jprog.defaults p;
-										(* we need type checks here*)
-										| Some(e) -> execute_expression jprog e)
-			end
-	(*
-	| Array(typ,size) -> (stringOf typ)^(array_param size)
-	| Ref rt -> stringOf_ref rt 
-	*)
+let rec execute_vardecl (jprog : jvm) decls declpairs = 
+	match decls with
+	| [] -> declpairs
+	| hd::tl -> match head with
+				(* type, name, optional initialization *)
+				| (Primitive(p), n, eo) -> 
+							let val = (begin
+									match eo with 
+									| None -> Hashtbl.find jprog.defaults p
+									(* we need type checks here*)
+									| Some(e) -> execute_expression jprog e)
+									end)
+							in 
+							execute_vardecl jprog tl (declpairs@[(n, val)]) (* return a list of tuple (name * value) *)
+				(*
+				| Array(typ,size) -> (stringOf typ)^(array_param size)
+				| Ref rt -> stringOf_ref rt 
+				*)
 (* execute an if condition with possible else *)
 let rec execute_if (jprog : jvm) e (stmt : statement) elseopt =
 	match (execute_expression jprog e) with
 	| BoolVal(true) -> execute_statement jprog stmt
 	| BoolVal(false) -> begin
-						match elseopt with 
-						| Some(s) -> execute_statement jprog s
-						| _ -> ()
-						end
+				match elseopt with 
+				| Some(s) -> execute_statement jprog s
+				| _ -> ()
+				end
 	| _ -> raise (Exception "Illegal ternary operator values")
 
 and execute_while (jprog : jvm) e (stmt : statement) = 
@@ -220,9 +229,6 @@ and execute_while (jprog : jvm) e (stmt : statement) =
 and execute_block (jprog : jvm) (stmt : statement) =
 	match stmt with
 	(* a variable declaration *)
-	| VarDecl(vardecls) -> 	(* let blockscopevars = get_var_names jprog vardecls
-							in *)
-							List.iter (execute_vardecl jprog) vardecls
 	| _ -> execute_statement jprog stmt;
 
 (* execute all sorts of statements *)
@@ -240,7 +246,9 @@ and execute_statement (jprog : jvm) (stmt : statement) =
 			| _ -> print_endline "Statement not executable yet, try a System.out.println().."
 			end
 	(* a variable declaration *)
-	| VarDecl(vardecls) -> List.iter (execute_vardecl jprog) vardecls
+	| VarDecl(vardecls) -> let declarations = execute_vardecl jprog vardecls []
+						in
+						add_vars_to_scope jprog declarations
 	(* blocks *)
 	| Block(stmtlst) -> let blockvars = [] 
 						in
