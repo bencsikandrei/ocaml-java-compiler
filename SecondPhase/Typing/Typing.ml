@@ -130,8 +130,56 @@ and addScope (clid:string) (scope:AST.astclass list) (aclass:AST.astclass) =
 let verifyNoMethodDuplicates (methods:AST.astmethod list) = 
 	print_endline "TODO  Implement verifyNoMethodDuplicates"
 
+
+
+let rec verifyNoClassDuplicates (amethod:AST.asttype list) = 
+	print_endline "TODO  Implement verifyNoClassDuplicates"
+
+
+let rec verifyClassModifiers (aclass:AST.astclass) = 
+	print_endline "TODO  Implement verifyClassModifiers";
+	() (*leave this unit to prevent recursive map problems*)
+
+
+let verifyNoAttributesDuplicated (args:AST.astattribute list) = 
+	print_endline "TODO  Implement verifyNoAttributesDuplicated"
+
+let verifyAttributeCoherence (args:AST.astattribute) = 
+	print_endline "TODO  Implement verifyAttributeCoherence"
+
+let verifyAttributeModifiers (args:AST.astattribute) = 
+	print_endline "TODO  Implement verifyAttributeModifiers"
+
+let rec verifyClassAttributes (aclass:AST.astclass) = 
+	verifyNoAttributesDuplicated aclass.cattributes;
+	List.map verifyAttributeModifiers aclass.cattributes;
+	List.map verifyAttributeCoherence aclass.cattributes;
+	List.map verifyClassAttributes (getClasses aclass.ctypes);
+	()
+
+let rec verifyClassConstructors (aclass:AST.astclass) = 
+	print_endline "TODO  Implement verifyClassConstructors";
+	() (*leave this unit to prevent recursive map problems*)
+
+let rec verifyClassInitials (aclass:AST.astclass) = 
+	print_endline "TODO  Implement verifyClassInitials";
+	() (*leave this unit to prevent recursive map problems*)
+
+let verifyMethodModfier (mods:AST.modifier list) = 
+	print_endline "TODO  Implement verifyMethodModfier"
+
+let verifyMethodDuplicatedArguments (args:AST.argument list) = 
+	print_endline "TODO  Implement verifyMethodDuplicatedArguments"
+
+let verifyMethodBody (aclass:AST.astclass) (body:AST.statement list) = 
+	print_endline "TODO  Implement verifyMethodBody"
+
+
 let verifyClassMethod (aclass:AST.astclass) (amethod:AST.astmethod) = 
-	print_endline "TODO  Implement verifyClassMethod"
+	verifyMethodModfier amethod.mmodifiers;
+	verifyMethodDuplicatedArguments amethod.margstype;
+	verifyMethodBody aclass amethod.mbody
+
 
 let rec verifyClassMethods (aclass:AST.astclass) = 
 	verifyNoMethodDuplicates aclass.cmethods;
@@ -139,13 +187,17 @@ let rec verifyClassMethods (aclass:AST.astclass) =
 	List.map verifyClassMethods (getClasses aclass.ctypes);
 	()
 
-let verifyNoClassDuplicates (amethod:AST.asttype list) = 
-	print_endline "TODO  Implement verifyNoClassDuplicates"
-
-(* Calls the given function for all classes *)
+(* Calls *)
 let verifyClasses (var:AST.t) (classes:AST.astclass list)  =
 	verifyNoClassDuplicates var.type_list;
-	List.map (verifyClassDependency [] ) classes
+	List.map verifyClassModifiers classes;
+	List.map (verifyClassDependency [] ) classes;
+	List.map verifyClassAttributes classes;
+	List.map verifyClassMethods classes;
+	List.map verifyClassConstructors classes;
+	List.map verifyClassInitials classes
+
+
 
 (* ***********************
 * Fill the missing information in the ast

@@ -154,11 +154,11 @@ and astclass = {
     mutable classScope: astclass list;
     mutable clmodifiers: modifier list;
     cparent : Type.ref_type;
-    cattributes : astattribute list;
-    cinits : initial list;
-    cconsts : astconst list;
+    cattributes : astattribute list;(*atributes*)
+    cinits : initial list;(* instance initializer *)
+    cconsts : astconst list;(*constructor*)
     cmethods : astmethod list;
-    ctypes : asttype list;
+    ctypes : asttype list;(* inner classes *)
     cloc : Location.t;
   }
 
