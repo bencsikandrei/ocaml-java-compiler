@@ -120,9 +120,22 @@ let rec verifyClassModifiers (aclass:AST.astclass) =
 	print_endline "TODO  Implement verifyClassModifiers";
 	() (*leave this unit to prevent recursive map problems*)
 
+
+let verifyNoAttributesDuplicated (args:AST.astattribute list) = 
+	print_endline "TODO  Implement verifyNoAttributesDuplicated"
+
+let verifyAttributeCoherence (args:AST.astattribute) = 
+	print_endline "TODO  Implement verifyAttributeCoherence"
+
+let verifyAttributeModifiers (args:AST.astattribute) = 
+	print_endline "TODO  Implement verifyAttributeModifiers"
+
 let rec verifyClassAttributes (aclass:AST.astclass) = 
-	print_endline "TODO  Implement verifyClassAttributes";
-	() (*leave this unit to prevent recursive map problems*)
+	verifyNoAttributesDuplicated aclass.cattributes;
+	List.map verifyAttributeModifiers aclass.cattributes;
+	List.map verifyAttributeCoherence aclass.cattributes;
+	List.map verifyClassAttributes (getClasses aclass.ctypes);
+	()
 
 let rec verifyClassConstructors (aclass:AST.astclass) = 
 	print_endline "TODO  Implement verifyClassConstructors";
