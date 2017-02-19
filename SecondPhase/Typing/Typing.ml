@@ -38,28 +38,20 @@ let rec flatlistDot lis =
 * Class Checking functions
 * ************************ *)
 
-(* Checkes in a list if a class with id "name" exists *)
-let rec searchClass name (scope:AST.astclass list) =
-	match scope with 
-	| [] -> raise (Invalid_inheritance ("Class: "^name^" not found"))
-	| elem::rest ->
-		if elem.id=name then elem
-		else searchClass name rest
-
 let rec checkNoDuplicates (mods:AST.modifier list) =
 	match mods with
 	| [] -> ()
-	| hd::tl -> if inlist(hd,tl) then raise (DuplicatedModifier ("Modifier "^stringOf_modifier hd^" duplicated.")); 
+	| hd::tl -> if (inlist hd tl) then raise (DuplicatedModifier ("Modifier "^(AST.stringOf_modifier hd)^" duplicated.")); 
 				checkNoDuplicates tl
 
 let rec checkOneAccessModif (mods:AST.modifier list) =
-	let res = List.filter (fun x -> (x=Public || x=Protected || x=Private);) mods in
-	if List.length res > 1 then raise (InvalidAccessModifiers ("Can't have "^flatlistDot res^" at the same time."))
+	let res = List.filter (fun x -> (x=AST.Public || x=AST.Protected || x=AST.Private);) mods in
+	if List.length res > 1 then raise (InvalidAccessModifiers ("Can't have "^(flatlistDot (List.map AST.stringOf_modifier res))^" at the same time."))
 
 (* Checkes if a class/method/variable has valid modifiers *)
 let checkModifs (mods:AST.modifier list) =
 	checkNoDuplicates(mods);
-	checkOneAccessModif(mods);
+	checkOneAccessModif(mods)
 
 
 let verifyClassInterior (var:AST.astclass) (classesScope:AST.astclass list) chain =
@@ -70,7 +62,7 @@ let verifyClassInterior (var:AST.astclass) (classesScope:AST.astclass list) chai
 let rec searchClass (clname:Type.ref_type) (scope:AST.astclass list) : AST.astclass=
 	print_string ((flatlistDot clname.tpath)^"."^clname.tid^" -> ");
 	match scope with 
-	| [] -> raise (Invalclid_inheritance ("Class: "^(flatlistDot clname.tpath)^"."^clname.tid^" not found"))
+	| [] -> raise (Invalid_inheritance ("Class: "^(flatlistDot clname.tpath)^"."^clname.tid^" not found"))
 	| elem::rest -> (
 			match clname.tpath with 
 			| [] -> 
@@ -137,6 +129,7 @@ let rec verifyNoClassDuplicates (amethod:AST.asttype list) =
 
 
 let rec verifyClassModifiers (aclass:AST.astclass) = 
+	checkModifs(aclass.clmodifiers);
 	print_endline "TODO  Implement verifyClassModifiers";
 	() (*leave this unit to prevent recursive map problems*)
 
