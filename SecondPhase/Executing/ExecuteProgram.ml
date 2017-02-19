@@ -18,6 +18,7 @@ let get_main_method (jprog : jvm) =
 	| _ -> raise (NoMainMethod ("Error: Main method not found in class " ^ jprog.public_class ^ 
 								", please define the main method as: public static void main(String[] args)" ^
 								"or a JavaFX application class must extend javafx.application.Application "))
+
 (* 
 let rec get_var_names (jprog : jvm) vardecls =
 	match vardecls with
@@ -182,6 +183,21 @@ and execute_ternary (jprog : jvm) exp1 exp2 exp3 =
 	| BoolVal(false) -> execute_expression jprog exp3
 	| _ -> raise (Exception "Illegal ternary operator values")
 
+(* execute a list of expressions *)
+and execute_expressions (jprog : jvm) exps =
+	match exps with
+	| [] -> []
+	| hd::tl -> let decl = execute_expression jprog hd 
+				in
+				[decl] @ (execute_expressions jprog tl)
+
+(* execute the call, with the method name and parameters *)
+(*and execute_call (jprog : jvm) (expo : expression option) (meth : string) (params : expression list) =
+	(* if expo is none, it must be in the current scope *)
+	match expo with
+    | Some e -> (execute_expression e)
+    | None -> meth (execute_expressions jprog el)
+*)
 (* execute an expression and send back it's value *)
 and execute_expression (jprog : jvm) expr =
 	(* check the descriptor *)
@@ -195,16 +211,24 @@ and execute_expression (jprog : jvm) expr =
 	| AssignExp(e1, op, e2) -> execute_assign jprog e1 op e2
 	| Op(e1, op, e2) -> execute_operator jprog e1 op e2
 	| CondOp(e1, e2, e3) -> execute_ternary jprog e1 e2 e3 (* this is actually the ternary *)
+	| ArrayInit(el) -> ArrayVal({aname=None;avals=(execute_expressions jprog el);adim=IntVal(List.length el)}) (* TODO check if all elems of same type *)
+	| NewArray(t,expol,expo) -> (* type, dimension, initialization *)
+								let init=(List.map (fun expo -> (match expo with | None -> NullVal
+																				| Some(e) -> (execute_expression jprog e))) expol)
+								in
+								let dim=(match expo with	| None -> NullVal
+															| Some(e) -> execute_expression jprog e)
+								in
+								ArrayVal({aname=None;avals=init;adim=dim})
 	| Call(obj, name, args) -> begin
 			match name with
 			| "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
 			| _ -> print_endline "Call not executable yet, try a System.out.println().."; 
-			end; NullVal
+			end; NullVal				    	
 	(* | New of string option * string list * expression list
-	| NewArray of Type.t * (expression option) list * expression option
+	| Call(expo,meth,el) -> execute_call jprog expo meth el
 	| Call of expression option * string * expression list
 	| Attr of expression * string
-	| ArrayInit of expression list
 	| Array of expression * (expression option) list
 	| Cast of Type.t * expression
 	| Type of Type.t
@@ -214,7 +238,7 @@ and execute_expression (jprog : jvm) expr =
  *)
 
 (* execute a variable declaration *)
-let rec execute_vardecl (jprog : jvm) decls declpairs = 
+let rec execute_vardecl (jprog : jvm) (decls : (Type.t * string * expression option) list) declpairs = 
 	(* at the end give a list of all declared variables *)
 	match decls with
 	| [] -> declpairs
@@ -226,13 +250,17 @@ let rec execute_vardecl (jprog : jvm) decls declpairs =
 										   | Some(e) -> execute_expression jprog e) 
 					in
 					execute_vardecl jprog tl (declpairs@[(n, v)]) (* return a list of tuple (name * value) *)
+			| (Array(t,size), n, eo) -> 
+					let v = (match eo with | None -> ArrayVal({aname=Some(n);adim=IntVal(size);avals=[]}) (* TODO initialize default according to size *)
+										   | Some(e) -> execute_expression jprog e)
+					in
+					execute_vardecl jprog tl (declpairs@[(n, v)])
 			end
 			(*
-			| Array(typ,size) -> (stringOf typ)^(array_param size)
 			| Ref rt -> stringOf_ref rt 
 			*)
 
-let rec execute_for_vardecl (jprog : jvm) decls declpairs = 
+let rec execute_for_vardecl (jprog : jvm) (decls : (Type.t option * string * expression option) list) declpairs = 
 	(* at the end give a list of all declared variables *)
 	match decls with
 	| [] -> declpairs

@@ -26,6 +26,7 @@ and valuetype =
 	| StrVal of string
 	| FltVal of float
 	| BoolVal of bool
+	| ArrayVal of array
 	| RefVal of newobject
 	| NullVal
 
@@ -37,6 +38,13 @@ and newobject = {
 	oclass: javaclass;
 	(* its attributes *)
 	oattributes: (string, valuetype) Hashtbl.t;
+}
+
+(* for arrays *)
+and array = {
+	aname: string option;
+	adim: valuetype;
+	avals: valuetype list;
 }
 
 type scope = {
@@ -65,12 +73,13 @@ type jvm = {
 
 (* ------------------------------ TOSTRING ------------------------------------ *)
 (* string of valuetypes *)
-let string_of_value v =
+let rec string_of_value v =
 	match v with 
 	| IntVal(i) -> string_of_int i 
 	| StrVal(s) -> s
  	| FltVal(f) -> string_of_float f
  	| BoolVal(b) -> string_of_bool b
+ 	| ArrayVal(a) -> "["^ListII.concat_map "," string_of_value a.avals^"]"
 	(* | RefVal of newobject *)
 
 (* ------------------------------ PRINTS ------------------------------------ *)
