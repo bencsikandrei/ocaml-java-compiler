@@ -198,6 +198,37 @@ and execute_expressions (jprog : jvm) exps =
     | Some e -> (execute_expression e)
     | None -> meth (execute_expressions jprog el)
 *)
+(* create a new instance *)
+and execute_new (jprog : jvm) (classname : string) (params : expression list) =
+	(* check if the constructor exists for the class *)
+	let jcls = Hashtbl.find jprog.classes classname
+	in
+	let signature = classname^(get_method_signature_from_expl jprog params "")
+	in
+	let constructor = Hashtbl.find jcls.jconsts signature
+	in
+	constructor
+
+(* receives params as expression list and returns the signature *)
+and get_method_signature_from_expl (jprog : jvm) (params : expression list) (strparams : string) =
+	let spars = match params with
+				| [] -> strparams (* we are done *)
+				| hd::tl -> match (execute_expression jprog hd) with
+							| IntVal(_) -> get_method_signature_from_expl jprog tl (strparams^"_int")
+							| BoolVal(_) -> get_method_signature_from_expl jprog tl (strparams^"_boolean")
+							| RefVal(ob) -> get_method_signature_from_expl jprog tl (strparams^"_"^ob.oname)
+							| FltVal(_) -> get_method_signature_from_expl jprog tl (strparams^"_float")
+							| _ -> ""
+							(*| Array(t, int) -> match t with 
+												| Primitive(Int) -> get_method_signature tl (strparams^"_int[]")
+												| Ref(rt) -> get_method_signature tl (strparams^"_"^rt.tid^"[]")*)
+	in
+	if (spars = "")
+		then 
+			"_void"
+	else
+		spars
+
 (* execute an expression and send back it's value *)
 and execute_expression (jprog : jvm) expr =
 	(* check the descriptor *)
@@ -227,10 +258,10 @@ and execute_expression (jprog : jvm) expr =
 						| _,_ -> BoolVal(false)
 						end
 	| New(stro,strl,expl) -> (* something ?? classname args *)
-							let str = (match stro with | None -> ""
-													   | Some(s) -> s)
+							let constructor = (match stro with | None -> (execute_new jprog (List.nth strl ((List.length strl)-1)) expl).cname (* only local *)
+													   		   | Some(s) -> "")
 							in
-							StrVal(str^"--"^(String.concat "," strl)^"--"^(ListII.concat_map "," string_of_expression expl))
+							StrVal(constructor)
 	| Call(obj, name, args) -> begin
 			match name with
 			| "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
