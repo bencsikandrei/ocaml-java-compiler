@@ -22,6 +22,7 @@ type default = {
 
 (* what can we use *)
 and valuetype = 
+	| TypeVal of Type.t
 	| IntVal of int
 	| StrVal of string
 	| FltVal of float
@@ -80,7 +81,8 @@ let rec string_of_value v =
  	| FltVal(f) -> string_of_float f
  	| BoolVal(b) -> string_of_bool b
  	| ArrayVal(a) -> "["^ListII.concat_map "," string_of_value a.avals^"]"
-	(* | RefVal of newobject *)
+	| RefVal(nw) -> "Class "^nw.oclass.id
+	| NullVal -> "Null"
 
 (* ------------------------------ PRINTS ------------------------------------ *)
 let print_scope jvm = 

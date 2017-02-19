@@ -220,20 +220,29 @@ and execute_expression (jprog : jvm) expr =
 															| Some(e) -> execute_expression jprog e)
 								in
 								ArrayVal({aname=None;avals=init;adim=dim})
+	| Type(t) -> TypeVal(t)
+	| Instanceof(e,t) -> begin 
+						match (execute_expression jprog e),t with
+						| RefVal(r1),Ref(r2) -> if (r1.oname = r2.tid) then BoolVal(true) else BoolVal(false) (* not considering path yet TODO *)
+						| _,_ -> BoolVal(false)
+						end
+	| New(stro,strl,expl) -> (* something ?? classname args *)
+							let str = (match stro with | None -> ""
+													   | Some(s) -> s)
+							in
+							StrVal(str^"--"^(String.concat "," strl)^"--"^(ListII.concat_map "," string_of_expression expl))
 	| Call(obj, name, args) -> begin
 			match name with
 			| "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
 			| _ -> print_endline "Call not executable yet, try a System.out.println().."; 
-			end; NullVal				    	
-	(* | New of string option * string list * expression list
+			end; NullVal
+	| _ -> StrVal("Not yet implemented")			    	
+	(* 
 	| Call(expo,meth,el) -> execute_call jprog expo meth el
-	| Call of expression option * string * expression list
 	| Attr of expression * string
 	| Array of expression * (expression option) list
 	| Cast of Type.t * expression
-	| Type of Type.t
 	| ClassOf of Type.t
-	| Instanceof of expression * Type.t
 	| VoidClass
  *)
 
@@ -255,10 +264,12 @@ let rec execute_vardecl (jprog : jvm) (decls : (Type.t * string * expression opt
 										   | Some(e) -> execute_expression jprog e)
 					in
 					execute_vardecl jprog tl (declpairs@[(n, v)])
+			| (Ref(rt), n, eo) -> 
+					let v = (match eo with | None -> NullVal
+										   | Some(e) -> execute_expression jprog e)
+					in
+					execute_vardecl jprog tl (declpairs@[(n, v)])
 			end
-			(*
-			| Ref rt -> stringOf_ref rt 
-			*)
 
 let rec execute_for_vardecl (jprog : jvm) (decls : (Type.t option * string * expression option) list) declpairs = 
 	(* at the end give a list of all declared variables *)
