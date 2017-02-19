@@ -44,7 +44,7 @@ and newobject = {
 (* for arrays *)
 and array = {
 	aname: string option;
-	adim: valuetype;
+	adim: valuetype list;
 	avals: valuetype list;
 }
 

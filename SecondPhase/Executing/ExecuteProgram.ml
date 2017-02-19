@@ -4,6 +4,15 @@ open AST
 open Exceptions
 open MemoryModel
 
+(* build list of n lenght with the default value *)
+(* gives a list of valuetype of the given dimension with default values according to the type *)
+let rec build_list (jprog : jvm) (t : Type.t) (i : int) (dim : valuetype list) = 
+	(* only treating one dimension *)
+	let n : int = (match (List.nth dim 0) with | IntVal(i) -> i)
+	in
+	match t with
+	| Primitive(p) -> if i <= n then (Hashtbl.find jprog.defaults p)::(build_list jprog t (i+1) dim) else []
+
 (* find the start point *)
 let get_main_method (jprog : jvm) =
 	(* search if there is a main method, 
@@ -242,15 +251,17 @@ and execute_expression (jprog : jvm) expr =
 	| AssignExp(e1, op, e2) -> execute_assign jprog e1 op e2
 	| Op(e1, op, e2) -> execute_operator jprog e1 op e2
 	| CondOp(e1, e2, e3) -> execute_ternary jprog e1 e2 e3 (* this is actually the ternary *)
-	| ArrayInit(el) -> ArrayVal({aname=None;avals=(execute_expressions jprog el);adim=IntVal(List.length el)}) (* TODO check if all elems of same type *)
-	| NewArray(t,expol,expo) -> (* type, dimension, initialization *)
-								let init=(List.map (fun expo -> (match expo with | None -> NullVal
-																				| Some(e) -> (execute_expression jprog e))) expol)
+	| ArrayInit(el) -> ArrayVal({aname=None;avals=(execute_expressions jprog el);adim=[IntVal(List.length el)]}) (* TODO check if all elems of same type *)
+	| NewArray(t,expol,expo) -> (* type, dimension, initialization  *)
+								let dim=(match expol with | [] ->  [IntVal(0)]
+														   | _ -> (List.map (fun expo -> (match expo with 
+														   								| None -> IntVal(0)
+																						| Some(e) -> (execute_expression jprog e))) expol))
 								in
-								let dim=(match expo with	| None -> NullVal
-															| Some(e) -> execute_expression jprog e)
+								let init=(match expo with	| None -> ArrayVal({aname=None;adim=dim;avals=(build_list jprog t 0 dim)})
+															| Some(e) -> execute_expression jprog e) (* overwrites the dimension *)
 								in
-								ArrayVal({aname=None;avals=init;adim=dim})
+								init
 	| Type(t) -> TypeVal(t)
 	| Instanceof(e,t) -> begin 
 						match (execute_expression jprog e),t with
@@ -291,7 +302,7 @@ let rec execute_vardecl (jprog : jvm) (decls : (Type.t * string * expression opt
 					in
 					execute_vardecl jprog tl (declpairs@[(n, v)]) (* return a list of tuple (name * value) *)
 			| (Array(t,size), n, eo) -> 
-					let v = (match eo with | None -> ArrayVal({aname=Some(n);adim=IntVal(size);avals=[]}) (* TODO initialize default according to size *)
+					let v = (match eo with | None -> ArrayVal({aname=Some(n);adim=[IntVal(size)];avals=[]}) (* TODO initialize default according to size *)
 										   | Some(e) -> execute_expression jprog e)
 					in
 					execute_vardecl jprog tl (declpairs@[(n, v)])
