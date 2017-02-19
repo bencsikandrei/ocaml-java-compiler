@@ -7,6 +7,8 @@ public class TestArray {
       	int[] testArray = new int[4];
 		int arr2[];
 		int[] arreglito = new int[] {1,2};
+		System.out.println(arr[0]);
+		System.out.println(arr[1]);
 	}
 
 }

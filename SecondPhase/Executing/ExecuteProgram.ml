@@ -4,6 +4,11 @@ open AST
 open Exceptions
 open MemoryModel
 
+(* returns the value as ocaml primitive from valuetype *)
+let valuetype_to_ocaml_int (v : valuetype) =
+    match v with
+    | IntVal(i) -> i
+
 (* build list of n lenght with the default value *)
 (* gives a list of valuetype of the given dimension with default values according to the type *)
 let rec build_list (jprog : jvm) (t : Type.t) (i : int) (dim : valuetype list) = 
@@ -278,6 +283,19 @@ and execute_expression (jprog : jvm) expr =
                                                        | Some(s) -> NullVal)
                             in
                             obj
+    | Array(exp,expol) -> begin
+                        match (execute_expression jprog exp) with 
+                        | ArrayVal(arr) -> let indx = (List.map (fun expo -> (match expo with
+                                                            | None -> IntVal(0)
+                                                            | Some(e) -> (execute_expression jprog e) )) expol)
+                                            in (* only checking one dimension *)
+                                            let one_dim = (valuetype_to_ocaml_int (List.nth indx 0))
+                                            in (* check if index is inside the dimension limit *)
+                                            if (one_dim <= (valuetype_to_ocaml_int (List.nth arr.adim 0)))
+                                            then (List.nth arr.avals one_dim)
+                                            else raise IndexOutOfBoundsException
+                        | _ -> raise (Exception "Not an array")
+                        end
     | Call(obj, name, args) -> begin
             match name with
             | "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
@@ -287,7 +305,6 @@ and execute_expression (jprog : jvm) expr =
     (* 
     | Call(expo,meth,el) -> execute_call jprog expo meth el
     | Attr of expression * string
-    | Array of expression * (expression option) list
     | Cast of Type.t * expression
     | ClassOf of Type.t
     | VoidClass
