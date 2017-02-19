@@ -1,6 +1,8 @@
 
 exception Recursive_inheritance of string
 exception Invalid_inheritance of string
+exception DuplicatedModifier of string
+exception InvalidAccessModifiers of string
 
 
 
@@ -38,11 +40,20 @@ let rec searchClass name (scope:AST.astclass list) =
 		if elem.id=name then elem
 		else searchClass name rest
 
+let rec checkNoDuplicates (mods:AST.modifier list) =
+	match mods with
+	| [] -> ()
+	| hd::tl -> if inlist(hd,tl) then raise (DuplicatedModifier ("Modifier "^stringOf_modifier hd^" duplicated.")); 
+				checkNoDuplicates tl
 
+let rec checkOneAccessModif (mods:AST.modifier list) =
+	let res = List.filter (fun x -> (x=Public || x=Protected || x=Private);) mods in
+	if List.length res > 1 then raise (InvalidAccessModifiers ("Can't have "^flatlist res^" at the same time."))
 
 (* Checkes if a class/method/variable has valid modifiers *)
-let checkModifs (mods:AST.modifier list)=
-	print_endline("implment checkModifs")(* TODO *)
+let checkModifs (mods:AST.modifier list) =
+	checkNoDuplicates(mods);
+	checkOneAccessModif(mods);
 
 
 (* Verifies that the inheritance of a class is valid *)
