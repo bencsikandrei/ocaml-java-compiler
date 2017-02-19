@@ -131,15 +131,28 @@ let add_constructor clsconstr (constr : AST.astconst) =
 	in
 	Hashtbl.add clsconstr (constr.cname ^ signature) constr 
 
+(* adds the empty constructor that does absolutely nothing *)
+let get_empty_constructor (classname : string) = 
+	let empty_const = { cmodifiers = [Public];
+					    cname = classname;
+					    cargstype = [];
+					    cthrows = [];
+					    cbody = []
+					    } 
+	in
+	empty_const
+
 (* add the constructors from the ast *)
-let add_constructors (c : AST.astclass) =
+let add_constructors (c : AST.astclass) (classname : string) =
 	(* get every constructor, put it
 	into the hashtable, also put signature
 	permits overloading *)
 	let constructors = Hashtbl.create 10
 	in
-	(* add each one *)
-	List.iter (add_constructor constructors) c.cconsts;
+	(* check if there is a constructor defined *)
+	(match c.cconsts with
+	| [] -> add_constructor constructors (get_empty_constructor classname) (* an empty list means no constructor*)
+	| _  -> List.iter (add_constructor constructors) c.cconsts); (* non empty list means there is at least one *)
 	(* return the hashtable *)
 	constructors
 (* -------------------------------------------------------------------------------------- *)
@@ -209,7 +222,7 @@ let rec add_class (jprog : jvm) ast (fname : string) (cls : AST.asttype) =
 								cparent = c.cparent;
 							    jattributes = (add_attributes jprog c);
 							    cinits = c.cinits;
-							    jconsts = (add_constructors c);
+							    jconsts = (add_constructors c cls.id);
 							    jcmethods = (add_methods jprog c cls.id)
 								}				
 			in
