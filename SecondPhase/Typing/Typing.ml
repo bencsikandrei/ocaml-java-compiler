@@ -37,7 +37,7 @@ let rec getClasses (classes:AST.asttype list) : AST.astclass list =
 	| elem::rest ->  (
 			let c = getClasses rest in 
 			match elem.info with
-			|Class cl ->  cl.clname<-elem.id; cl::c
+			|Class cl ->  cl.clname<-elem.id;  cl.clmodifiers<-elem.modifiers; cl::c
 			|Inter ->  c
 		)
 
@@ -103,7 +103,6 @@ let rec verifyClassDependencyInit (cl:AST.astclass) =
 	List.map verifyClassDependencyInit (getClasses cl.ctypes);
 	() 
 
-
 let f (var:AST.astclass) = 
 		print_string (var.clname^" - ")
 
@@ -136,7 +135,6 @@ let rec verifyNoClassDuplicates (amethod:AST.asttype list) =
 
 let rec verifyClassModifiers (aclass:AST.astclass) = 
 	checkModifs(aclass.clmodifiers);
-	print_endline "TODO  Implement verifyClassModifiers";
 	() (*leave this unit to prevent recursive map problems*)
 
 
