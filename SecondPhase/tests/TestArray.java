@@ -6,7 +6,7 @@ public class TestArray {
 		int[] arr = {1,2+a};
       	int[] testArray = new int[4];
 		int arr2[];
-		int[] arreglito = new int[5] {1,2};
+		int[] arreglito = new int[] {1,2};
 	}
 
 }
