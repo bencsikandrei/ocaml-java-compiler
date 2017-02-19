@@ -60,17 +60,17 @@ let verifyClassInterior (var:AST.astclass) (classesScope:AST.astclass list) chai
 
 (* Checkes in a list if a class with clid "clname" exists *)
 let rec searchClass (clname:Type.ref_type) (scope:AST.astclass list) : AST.astclass=
-	print_string ((flatlistDot clname.tpath)^"."^clname.tid^" -> ");
+	(*print_string ((flatlistDot clname.tpath)^"."^clname.tid^" -> ");*)
 	match scope with 
 	| [] -> raise (Invalid_inheritance ("Class: "^(flatlistDot clname.tpath)^"."^clname.tid^" not found"))
 	| elem::rest -> (
 			match clname.tpath with 
 			| [] -> 
-				print_string (elem.clname^"=??"^clname.tid^"\n");
+				(* print_string (elem.clname^"=??"^clname.tid^"\n"); *)
 				if elem.clname=clname.tid then elem
 				else searchClass clname rest
 			| first::others -> 
-				print_string (elem.clname^"=?"^first^"\n");
+				(*print_string (elem.clname^"=?"^first^"\n");*)
 				if elem.clname=first then 
 					searchClass {tpath=others; tid=clname.tid} elem.classScope
 				else searchClass clname rest
@@ -111,9 +111,9 @@ and addScope (clid:string) (scope:AST.astclass list) (aclass:AST.astclass) =
 		aclass.clid<-clid^"."^aclass.clname;
 		aclass.classScope<-(cs@scope);
 		fillScopes aclass.clid cs (cs@scope);
-		print_string (aclass.clid^" -> ");
+		(*print_string (aclass.clid^" -> ");
 		List.map f aclass.classScope;
-		print_string "\n";
+		print_string "\n";*)
 		aclass
 	else aclass
 
