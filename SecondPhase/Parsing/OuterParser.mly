@@ -87,7 +87,10 @@ classOrInterfaceDeclaration:
 	  | Some t -> t in
 	let atts, inits, meths, consts, types = separate cl in
 	id , Class {
-           id = "";
+           clid = "";
+           clname = "";
+           classScope = [];
+           clmodifiers = [];
 		       cparent = extends;
 		       cattributes = atts;
 		       cinits = inits;
