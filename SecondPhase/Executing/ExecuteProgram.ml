@@ -16,7 +16,7 @@ let rec build_list (jprog : jvm) (t : Type.t) (i : int) (dim : valuetype list) =
     let n : int = (match (List.nth dim 0) with | IntVal(i) -> i)
     in
     match t with
-    | Primitive(p) -> if i <= n then (Hashtbl.find jprog.defaults p)::(build_list jprog t (i+1) dim) else []
+    | Primitive(p) -> if i < n then (Hashtbl.find jprog.defaults p)::(build_list jprog t (i+1) dim) else []
 
 (* find the start point *)
 let get_main_method (jprog : jvm) =
@@ -291,10 +291,17 @@ and execute_expression (jprog : jvm) expr =
                                             in (* only checking one dimension *)
                                             let one_dim = (valuetype_to_ocaml_int (List.nth indx 0))
                                             in (* check if index is inside the dimension limit *)
-                                            if (one_dim <= (valuetype_to_ocaml_int (List.nth arr.adim 0)))
+                                            if (one_dim < (valuetype_to_ocaml_int (List.nth arr.adim 0)))
                                             then (List.nth arr.avals one_dim)
                                             else raise IndexOutOfBoundsException
                         | _ -> raise (Exception "Not an array")
+                        end
+    | Attr(exp,name) -> begin
+                        match (execute_expression jprog exp) with
+                        | RefVal(obj) -> try
+                                (Hashtbl.find obj.oattributes name)
+                                with
+                                | _ -> raise NoSuchFieldException 
                         end
     | Call(obj, name, args) -> begin
             match name with
@@ -304,7 +311,6 @@ and execute_expression (jprog : jvm) expr =
     | _ -> StrVal("Not yet implemented")                    
     (* 
     | Call(expo,meth,el) -> execute_call jprog expo meth el
-    | Attr of expression * string
     | Cast of Type.t * expression
     | ClassOf of Type.t
     | VoidClass
