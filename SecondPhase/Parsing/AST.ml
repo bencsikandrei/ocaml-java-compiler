@@ -180,7 +180,7 @@ and asttype =
 
 type t = {
     package : qualified_name option;
-    mutable type_list : asttype list;
+    type_list : asttype list;
   }
 
 

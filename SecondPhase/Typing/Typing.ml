@@ -27,9 +27,7 @@ let rec flatlistDot lis =
 	| elem::rest -> elem^"."^(flatlistDot rest)
 
 
-(* Calls the given function for all classes *)
-let verifyClasses fn classes =
-	List.map fn classes
+
 
 
 
@@ -77,6 +75,7 @@ let rec verifyClassDependency (chain:string list) (cl:AST.astclass) =
 				let par = searchClass cl.cparent cl.classScope in
 				verifyClassDependency (cl.clid::chain) par 
 
+(* Extract the classes from the asstype *)
 let rec getClasses (classes:AST.asttype list) : AST.astclass list =
 	match classes with
 	| [] -> []
@@ -106,8 +105,30 @@ and addScope (clid:string) (scope:AST.astclass list) (aclass:AST.astclass) =
 		aclass
 	else aclass
 
+
+
+let verifyNoMethodDuplicates (methods:AST.astmethod list) = 
+	print_endline "TODO  Implement verifyNoMethodDuplicates"
+
+let verifyClassMethod (aclass:AST.astclass) (amethod:AST.astmethod) = 
+	print_endline "TODO  Implement verifyClassMethod"
+
+let rec verifyClassMethods (aclass:AST.astclass) = 
+	verifyNoMethodDuplicates aclass.cmethods;
+	List.map (verifyClassMethod aclass) aclass.cmethods;
+	List.map verifyClassMethods (getClasses aclass.ctypes);
+	()
+
+let verifyNoClassDuplicates (amethod:AST.asttype list) = 
+	print_endline "TODO  Implement verifyNoClassDuplicates"
+
+(* Calls the given function for all classes *)
+let verifyClasses (var:AST.t) (classes:AST.astclass list)  =
+	verifyNoClassDuplicates var.type_list;
+	List.map (verifyClassDependency [] ) classes
+
 (* ***********************
-* main function of the module
+* Fill the missing information in the ast
 * ************************ *)
 
 let getPackageInfo (var:AST.t) = 
@@ -159,13 +180,16 @@ let addBasics (pckgname:AST.qualified_name option) (var:AST.astclass list) :AST.
     Object.objectInfo::lis
    
 
+(* ***********************
+* main function of the module
+* ************************ *)
 
 (* Checkes in a list if the ast is valclid *)
 let typing (var:AST.t) =
 	(*let classesScope,interfaceScope = colectClassInfo var.type_list in*)
 	let classes =  addBasics var.package (getClasses var.type_list) in
 	fillScopes  (getPackageInfo var) classes classes;
-	verifyClasses (verifyClassDependency [] ) classes;
+	verifyClasses var classes;
 	var
 	
 	
