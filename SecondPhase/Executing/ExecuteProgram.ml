@@ -4,6 +4,8 @@ open AST
 open Exceptions
 open MemoryModel
 
+(* the return value *)
+exception ReturnValue of valuetype
 (* returns the value as ocaml primitive from valuetype *)
 let valuetype_to_ocaml_int (v : valuetype) =
     match v with
@@ -410,12 +412,17 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             declarations
     (* blocks *)
     | Block(stmtlst) -> 
+    		begin
     		print_endline "Enter block";
-    		let blockvars = List.append [] (execute_statements jprog stmtlst) 
-            in
-            print_endline "Exit block, Remove vars from scope"; 
-            remove_vars_from_scope jprog blockvars;
-            []
+    		try 
+	    		let blockvars = List.append [] (execute_statements jprog stmtlst) 
+	            in
+	            print_endline "Exit block, Remove vars from scope"; 
+	            remove_vars_from_scope jprog blockvars;
+	            []
+        	with 
+        	| _ -> []
+        	end
             
     (* the if statement *)
     | If(e, stmt, elseopt) -> execute_if jprog e stmt elseopt; []
@@ -426,20 +433,33 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             (* first add the for declared variables to scope *)
             let declarations = execute_for_vardecl jprog vardecls []
             in
+            (* scope will work because of how OCaml Hashtbl is programmed
+            --> collision means adding a linked list, so we can easily
+            take out the last variables that were added :) *)
             add_vars_to_scope jprog declarations;
+            (* do the work *)
             execute_for jprog fortest forincr forstmt;
+            (* take all for variables out *)
             remove_vars_from_scope jprog declarations;
+            (* a for does not declare variables out of its scope *)
             []
-
+    
     | Return(eo) -> (* a return must pop the top of the stack *)
+    				begin
     				print_endline "Return out of a method or a block"; 
+    				(* print the scope before pop, to see what was there, debug purpose *)
     				print_scope jprog;
     				(* a possibility is to send its return value as the list *)
     				Stack.pop jprog.jvmstack;
     				(* raise an event when we return something, to stop the execution *)
-    				raise (Exception "TEMPORARY WAY OF RESOLVING A RETURN");
-    				(* TODO !! *)
-    				[]
+    				let returnvalue = (match eo with 
+    				| None -> VoidVal
+    				| Some(e) -> execute_expression jprog e)
+    			    in
+    			    (* a way to stop the running statements is to raise an event
+    			    this event is called ReturnValue *)
+    			    raise (ReturnValue returnvalue)
+    				end
     (* a lot of stuf is marked as NOP so we don't need it *)
     | Nop -> print_endline "Not implemented in the parser"; []
     | _ -> print_endline "Statement not executable yet, try a System.out.println().."; []
@@ -451,12 +471,27 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
     to a list
     *)
 and execute_statements (jprog : jvm) (stmts : statement list) =
+    begin
     match stmts with
     | [] -> []
     | hd::tl -> (* execute one statement, then pass to others *)
                 let decl = execute_statement jprog hd 
                 in
                 decl @ (execute_statements jprog tl)
+    end
+
+(* execute a method *)
+let execute_method (jprog : jvm) (m : astmethod) =
+	begin
+	try
+		(* execute all statements of a method, when there is a return
+		catch the event and return it's value *)
+		execute_statements jprog m.mbody; 
+		(* if there is no return statement, it's void *)
+		VoidVal
+	with
+	| ReturnValue(v) -> v
+	end
 
 (* add default initializer variables *)
 let add_defaults (jprog : jvm) =
@@ -486,5 +521,8 @@ let execute_code (jprog : jvm) =
     (* run the program *)
     print_endline "### Running ... ###";
     (* print_scope jprog; *)
-    execute_statements jprog startpoint.mbody
+    let exitval = execute_method jprog startpoint
+	in
+	print_endline "### --------- ###";
+	print_endline ("Exited with " ^ (string_of_value exitval))
     (* print_scope jprog *)

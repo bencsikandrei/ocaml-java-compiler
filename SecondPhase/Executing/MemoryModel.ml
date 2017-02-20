@@ -23,12 +23,13 @@ type default = {
 (* what can we use *)
 and valuetype = 
 	| TypeVal of Type.t
-	| IntVal of int
+	| IntVal of  int
 	| StrVal of string
 	| FltVal of float
 	| BoolVal of bool
 	| ArrayVal of array
 	| RefVal of newobject
+	| VoidVal
 	| NullVal
 
 (* heap declared objects *)
