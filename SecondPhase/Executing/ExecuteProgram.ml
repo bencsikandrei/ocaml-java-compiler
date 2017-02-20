@@ -443,19 +443,20 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             remove_vars_from_scope jprog declarations;
             (* a for does not declare variables out of its scope *)
             []
-    
+
     | Return(eo) -> (* a return must pop the top of the stack *)
     				begin
     				print_endline "Return out of a method or a block"; 
     				(* print the scope before pop, to see what was there, debug purpose *)
     				print_scope jprog;
-    				(* a possibility is to send its return value as the list *)
-    				Stack.pop jprog.jvmstack;
+    				
     				(* raise an event when we return something, to stop the execution *)
     				let returnvalue = (match eo with 
     				| None -> VoidVal
     				| Some(e) -> execute_expression jprog e)
     			    in
+    			    (* a possibility is to send its return value as the list *)
+    				Stack.pop jprog.jvmstack;
     			    (* a way to stop the running statements is to raise an event
     			    this event is called ReturnValue *)
     			    raise (ReturnValue returnvalue)
