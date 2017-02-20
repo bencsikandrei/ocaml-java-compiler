@@ -87,10 +87,13 @@ let rec string_of_value v =
 (* ------------------------------ PRINTS ------------------------------------ *)
 let print_scope jvm = 
 	print_endline "# Printing scope #";
-	match (Stack.top jvm.jvmstack) with 
-	| (s, v) -> print_endline s; 
+	try 
+		match (Stack.top jvm.jvmstack) with 
+		| (s, v) -> print_endline s; 
 				Hashtbl.iter (fun key value -> print_string (key ^"="); 
 										print_endline (string_of_value value)) v.visible
+	with
+	| _ -> print_endline "Program exited normally"
 
 let print_jvm jvm = 
 	(* Hashtbl.iter (fun key value -> print_endline key; print_endline value.mname) jmc.methods; *)

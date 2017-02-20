@@ -409,8 +409,11 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             add_vars_to_scope jprog declarations;
             declarations
     (* blocks *)
-    | Block(stmtlst) -> let blockvars = List.append [] (execute_statements jprog stmtlst) 
+    | Block(stmtlst) -> 
+    		print_endline "Enter block";
+    		let blockvars = List.append [] (execute_statements jprog stmtlst) 
             in
+            print_endline "Exit block, Remove vars from scope"; 
             remove_vars_from_scope jprog blockvars;
             []
             
@@ -418,7 +421,7 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
     | If(e, stmt, elseopt) -> execute_if jprog e stmt elseopt; []
     (* while *)
     | While(test, stmt) -> execute_while jprog test stmt; []
-    (* while *)
+    (* the for loop *)
     | For(vardecls, fortest, forincr, forstmt) ->
             (* first add the for declared variables to scope *)
             let declarations = execute_for_vardecl jprog vardecls []
@@ -427,7 +430,18 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             execute_for jprog fortest forincr forstmt;
             remove_vars_from_scope jprog declarations;
             []
-    (* the for loop *)
+
+    | Return(eo) -> (* a return must pop the top of the stack *)
+    				print_endline "Return out of a method or a block"; 
+    				print_scope jprog;
+    				(* a possibility is to send its return value as the list *)
+    				Stack.pop jprog.jvmstack;
+    				(* raise an event when we return something, to stop the execution *)
+    				raise (Exception "TEMPORARY WAY OF RESOLVING A RETURN");
+    				(* TODO !! *)
+    				[]
+    (* a lot of stuf is marked as NOP so we don't need it *)
+    | Nop -> print_endline "Not implemented in the parser"; []
     | _ -> print_endline "Statement not executable yet, try a System.out.println().."; []
 
 (* execute statements like List.iter 
@@ -472,5 +486,5 @@ let execute_code (jprog : jvm) =
     (* run the program *)
     print_endline "### Running ... ###";
     (* print_scope jprog; *)
-    execute_statements jprog startpoint.mbody;
-    print_scope jprog
+    execute_statements jprog startpoint.mbody
+    (* print_scope jprog *)
