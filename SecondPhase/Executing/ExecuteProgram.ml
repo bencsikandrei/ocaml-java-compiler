@@ -221,15 +221,20 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     in
     let signature = classname^(get_method_signature_from_expl jprog params "")
     in
-    let constructor = (Hashtbl.find jcls.jconsts signature)
+    let constructor = try (Hashtbl.find jcls.jconsts signature) with | Not_found -> raise IllegalArgumentException
     in
     let attrs : (string, valuetype) Hashtbl.t = (Hashtbl.create 20)
     in
     (* add attributes to the attrs of the object *)
     (List.iter (add_attr jprog attrs) jcls.jattributes);
-    (* run static from class*)
-    
+    (* add attributes to scope *)
+    (add_vars_to_scope jprog (Hashtbl.fold (fun k v acc -> (k, v)::acc) attrs []));
+    (* run non-static block from class *)
+    let st_vals = (List.map (fun x -> if (x.static=false) then (execute_statements jprog x.block) else []) jcls.cinits)
+    in (* apply changes of static block to attributes *)
+    (*(List.map (fun name val -> if ()) st_vals);*)
     (* run constructor *)
+    
     (* return object *)
     RefVal({oname="";oclass=jcls;oattributes=attrs})
 
@@ -430,7 +435,6 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
         	with 
         	| _ -> []
         	end
-            
     (* the if statement *)
     | If(e, stmt, elseopt) -> execute_if jprog e stmt elseopt; []
     (* while *)
