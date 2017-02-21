@@ -35,6 +35,24 @@ let get_main_method (jprog : jvm) =
                                 ", please define the main method as: public static void main(String[] args)" ^
                                 "or a JavaFX application class must extend javafx.application.Application "))
 
+(* determine if a class is throwable *)
+let is_throwable (jprog : jvm) (jcls : javaclass) = 
+    (* iterate all parents until we find Exception
+    , or not *)
+    let parent = jcls.cparent.tid 
+    in
+    let rec find_parent (par : string) = begin
+        match par with 
+        | "Exception" -> true (* if exception is along the way, we are good *)
+        | "Object" -> false (* we reached Object, inevitably, we failed *)
+        | _ -> let nextpar = (Hashtbl.find jprog.classes par)
+                in
+                (* check the next parent *)
+                find_parent nextpar.cparent.tid
+        end
+    in
+    find_parent parent
+
 (* 
 let rec get_var_names (jprog : jvm) vardecls =
     match vardecls with
@@ -462,8 +480,13 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             let exnref = execute_expression jprog e
             in
             match exnref with
-            | RefVal(no) as v -> [(no.oname, v)]
-            | _ -> raise (Exception "Object is not throwable")
+            | RefVal(tro) as v -> 
+                    if (is_throwable jprog tro.oclass) 
+                    then 
+                        [(tro.oname, v)]
+                    else 
+                        raise (Exception "Not throwable")
+            | _ -> raise (Exception "Not throwable")
             end
 
     | Return(eo) -> (* a return must pop the top of the stack *)
@@ -540,12 +563,12 @@ let execute_code (jprog : jvm) =
     (* add the main mathods scope to the stack *)
     Stack.push (startpoint.mname, currentscope) jprog.jvmstack;
     (* the main method *)
-    (* AST.print_method "" startpoint; *)
+    AST.print_method "" startpoint;
     (* run the program *)
     Log.debug true "### Running ... ###";
     (* print_scope jprog; *)
     let exitval = execute_method jprog startpoint
 	in
 	Log.debug true "### --------- ###";
-	Log.debug true ("Exited with " ^ (string_of_value exitval))
-    (* print_scope jprog *)
+	Log.debug true ("Exited with " ^ (string_of_value exitval));
+    print_scope jprog
