@@ -11,6 +11,12 @@ let valuetype_to_ocaml_int (v : valuetype) =
     match v with
     | IntVal(i) -> i
 
+let get_new_scope (name : string) =
+    (name,
+    {
+        visible = (Hashtbl.create 10)
+    })
+
 (* build list of n lenght with the default value *)
 (* gives a list of valuetype of the given dimension with default values according to the type *)
 let rec build_list (jprog : jvm) (t : Type.t) (i : int) (dim : valuetype list) = 
@@ -243,20 +249,15 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     in
     let attrs : (string, valuetype) Hashtbl.t = (Hashtbl.create 20)
     in
-    (* add attributes to the attrs of the object *)
-    (List.iter (add_attr jprog attrs) jcls.jattributes);
-    (* add attributes to scope *)
-    (add_vars_to_scope jprog (Hashtbl.fold (fun k v acc -> (k, v)::acc) attrs []));
     (* run non-static block from class *)
     let st_vals = (List.map (fun x -> if (x.static=false) then (execute_statements jprog x.block) else []) jcls.cinits)
     in 
-    (* add constructor's arguments to the scope *)
-    (add_vars_to_scope jprog (get_argument_list jprog constructor.cargstype params []));
     (* run constructor *)
-    let cons_vals = (execute_statements jprog constructor.cbody)
-    in
+    (* the execute constructor is now in charge of adding vars to scope *)
+    (execute_constructor jprog jcls constructor attrs params);
+    (* print_endline "Finished running"; *)
     (* apply attribute changes to return the object *)
-    List.iter (fun v -> apply_attrs_modification jprog attrs v) (st_vals@[cons_vals]);
+    List.iter (fun v -> apply_attrs_modification jprog attrs v) (st_vals);
     (* return object *)
     RefVal({oname="";oclass=jcls;oattributes=attrs})
 
@@ -268,7 +269,7 @@ and add_attr (jprog : jvm) (ht : (string, valuetype) Hashtbl.t) (attr : astattri
                                                   | Primitive(p) -> Hashtbl.find jprog.defaults p)
                                                   (*| Ref(r) -> RefVal({oname="";oclass=javaclass;oattributes=}))*))
     in
-    Hashtbl.add ht attr.aname init
+    Hashtbl.add ht (attr.aname) init
 
 (* receives params as expression list and returns the signature *)
 and get_method_signature_from_expl (jprog : jvm) (params : expression list) (strparams : string) =
@@ -448,7 +449,8 @@ and execute_for (jprog : jvm) fortest forincr (stmt : statement) =
 and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.valuetype) list = 
     match stmt with
     (* treat all the expressions *)
-    | Expr(e) -> execute_expression jprog e; (* print_endline (AST.string_of_expression e) *)
+    | Expr(e) -> (* print_endline "Executing an expression"; *)
+                execute_expression jprog e; (* print_endline (AST.string_of_expression e) *)
                 []
     (* a variable declaration *)
     | VarDecl(vardecls) -> let declarations = execute_vardecl jprog vardecls []
@@ -543,17 +545,59 @@ and execute_statements (jprog : jvm) (stmts : statement list) =
                 decl @ (execute_statements jprog tl)
     end
 
+(* execute a constructor
+a bit of a special thing
+has to modify the attributes *)
+and execute_constructor (jprog : jvm) (jcls) (c : astconst) (attrs) (params)  =
+    begin
+    (* new scope required *)
+    Stack.push (get_new_scope c.cname) jprog.jvmstack;
+    (* add attributes to the attrs of the object *)
+    (List.iter (add_attr jprog attrs) jcls.jattributes);
+    (* add attributes to scope *)
+    (add_vars_to_scope jprog (Hashtbl.fold (fun k v acc -> (k, v)::acc) attrs []));
+    (* add constructor's arguments to the scope *)
+    (add_vars_to_scope jprog (get_argument_list jprog c.cargstype params []));
+    (* execute all statements of a constructor, when there is a return
+    catch the event and return it's value *)
+    execute_statements jprog c.cbody;
+    (* see if the variables in scope are part of the object *)
+    let (_, scope) = Stack.top jprog.jvmstack
+    in
+    (* all the modified attributes, are they part of the object ?
+    if yes, modify them in the hashtable *)
+    Hashtbl.iter (fun k v -> if (Hashtbl.mem attrs k) 
+            then 
+            (* is it an attribute? *)
+            Hashtbl.replace attrs k v) scope.visible;
+    (* take out of scope *)
+    Stack.pop jprog.jvmstack;
+    (* kept just for some compatibility reason *)
+    end
+
 (* execute a method *)
 let execute_method (jprog : jvm) (m : astmethod) =
+    (* add the main mathods scope to the stack *)
+    Stack.push (get_new_scope m.mname) jprog.jvmstack;
 	begin
 	try
 		(* execute all statements of a method, when there is a return
 		catch the event and return it's value *)
 		execute_statements jprog m.mbody; 
+        (* print the contents of the scope *)
+        print_scope jprog;
+        (* pop the stack *)
+        Stack.pop jprog.jvmstack;
 		(* if there is no return statement, it's void *)
 		VoidVal
 	with
-	| ReturnValue(v) -> v
+	| ReturnValue(v) -> 
+        (* print the stack *)
+        print_scope jprog;
+        (* pop *)
+        Stack.pop jprog.jvmstack; 
+        (* method return value *)
+        v
 	end
 
 (* add default initializer variables *)
@@ -572,13 +616,6 @@ let execute_code (jprog : jvm) =
 
     let startpoint = get_main_method jprog 
     in
-    (* since we know that by now we have a public class *)
-    let currentscope = { 
-                        visible = (Hashtbl.create 10) 
-                       }
-    in
-    (* add the main mathods scope to the stack *)
-    Stack.push (startpoint.mname, currentscope) jprog.jvmstack;
     (* the main method *)
     AST.print_method "" startpoint;
     (* run the program *)
@@ -588,4 +625,4 @@ let execute_code (jprog : jvm) =
 	in
 	Log.debug true "### --------- ###";
 	Log.debug true ("Exited with " ^ (string_of_value exitval));
-    print_scope jprog
+    
