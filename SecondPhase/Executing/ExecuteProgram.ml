@@ -225,16 +225,23 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     in
     let attrs : (string, valuetype) Hashtbl.t = (Hashtbl.create 20)
     in
-    (* run static from class*)
     (* add attributes to the attrs of the object *)
     (List.iter (add_attr jprog attrs) jcls.jattributes);
+    (* run static from class*)
+    
     (* run constructor *)
     (* return object *)
     RefVal({oname="";oclass=jcls;oattributes=attrs})
 
 (* receives and astattribute and returns name and valuetype to add to hashtable *)
 and add_attr (jprog : jvm) (ht : (string, valuetype) Hashtbl.t) (attr : astattribute) =
-    Hashtbl.add ht attr.aname (IntVal 0) (* TODO hardcoded int *)
+    let init = (match attr.adefault with | Some(e) -> (execute_expression jprog e)
+                                         | None -> (match (attr.atype) with
+                                                  | Array(ty,dim) -> ArrayVal({aname=None;avals=(build_list jprog ty 0 [IntVal(dim)]);adim=[IntVal(dim)]})
+                                                  | Primitive(p) -> Hashtbl.find jprog.defaults p)
+                                                  (*| Ref(r) -> RefVal({oname="";oclass=javaclass;oattributes=}))*))
+    in
+    Hashtbl.add ht attr.aname init
 
 (* receives params as expression list and returns the signature *)
 and get_method_signature_from_expl (jprog : jvm) (params : expression list) (strparams : string) =
