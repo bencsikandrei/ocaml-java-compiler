@@ -221,20 +221,32 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     in
     let signature = classname^(get_method_signature_from_expl jprog params "")
     in
-    let constructor = (Hashtbl.find jcls.jconsts signature)
+    let constructor = try (Hashtbl.find jcls.jconsts signature) with | Not_found -> raise IllegalArgumentException
     in
     let attrs : (string, valuetype) Hashtbl.t = (Hashtbl.create 20)
     in
-    (* run static from class*)
     (* add attributes to the attrs of the object *)
     (List.iter (add_attr jprog attrs) jcls.jattributes);
+    (* add attributes to scope *)
+    (add_vars_to_scope jprog (Hashtbl.fold (fun k v acc -> (k, v)::acc) attrs []));
+    (* run non-static block from class *)
+    let st_vals = (List.map (fun x -> if (x.static=false) then (execute_statements jprog x.block) else []) jcls.cinits)
+    in (* apply changes of static block to attributes *)
+    (*(List.map (fun name val -> if ()) st_vals);*)
     (* run constructor *)
+    
     (* return object *)
     RefVal({oname="";oclass=jcls;oattributes=attrs})
 
 (* receives and astattribute and returns name and valuetype to add to hashtable *)
 and add_attr (jprog : jvm) (ht : (string, valuetype) Hashtbl.t) (attr : astattribute) =
-    Hashtbl.add ht attr.aname (IntVal 0) (* TODO hardcoded int *)
+    let init = (match attr.adefault with | Some(e) -> (execute_expression jprog e)
+                                         | None -> (match (attr.atype) with
+                                                  | Array(ty,dim) -> ArrayVal({aname=None;avals=(build_list jprog ty 0 [IntVal(dim)]);adim=[IntVal(dim)]})
+                                                  | Primitive(p) -> Hashtbl.find jprog.defaults p)
+                                                  (*| Ref(r) -> RefVal({oname="";oclass=javaclass;oattributes=}))*))
+    in
+    Hashtbl.add ht attr.aname init
 
 (* receives params as expression list and returns the signature *)
 and get_method_signature_from_expl (jprog : jvm) (params : expression list) (strparams : string) =
@@ -423,7 +435,6 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
         	with 
         	| _ -> []
         	end
-            
     (* the if statement *)
     | If(e, stmt, elseopt) -> execute_if jprog e stmt elseopt; []
     (* while *)
