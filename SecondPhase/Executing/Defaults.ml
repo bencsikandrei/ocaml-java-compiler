@@ -106,7 +106,14 @@ let objecttype = get_asttype [] "Object" (Class objectclass)
 
 (* ----------------------------- Constructors EXCEPTION ----------------------------------------------- *)
 (* the to string *)
-let exception_void = get_constructor [Public] "Exception" [] [] []
+let exception_void = get_constructor [Public] "Exception"[] [] []
+let execution_string = get_constructor [Public] "Exception" 
+			[{
+		    	final = false ;
+    			vararg = false ;
+    			ptype = Ref { tpath = []; tid = "String" };
+    			pident = "s"
+			}] [] []
 (* ----------------------------- END ----------------------------------------------- *)
 
 (* ----------------------------- Class EXCEPTION ----------------------------------------------- *)
@@ -115,7 +122,7 @@ let exceptionmethods = [
 ]
 ;;
 let exceptionconstructors = [
-	exception_void	
+	exception_void; execution_string
 ]
 ;;
 let exceptionclass = get_class { tpath = []; tid = "Object" }
@@ -126,7 +133,6 @@ let exceptionclass = get_class { tpath = []; tid = "Object" }
 			Location.none
 ;;
 (* ----------------------------- END ----------------------------------------------- *)
-
 
 
 (* ----------------------------- AST.Type EXCEPTION ----------------------------------------------- *)
