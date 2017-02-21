@@ -1,9 +1,21 @@
 public class ConstructorTest {
-	ConstructorTest(int a) {
+	int b = 10000;
 
+	{
+		b = 10;
+	}
+
+	ConstructorTest(int a) {
+		System.out.println("Inside constructor");
+		System.out.println(b);
+		b = a;
+		System.out.println(a);
+		System.out.println(b);
+		System.out.println("Leaving constructor");
 	}
 
 	public static void main(String[] args) {
-		ConstructorTest ct = new ConstructorTest(1);
+		ConstructorTest ct = new ConstructorTest(42);
+		System.out.println(ct.b);
 	}
 }

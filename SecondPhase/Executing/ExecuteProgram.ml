@@ -231,10 +231,14 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     (add_vars_to_scope jprog (Hashtbl.fold (fun k v acc -> (k, v)::acc) attrs []));
     (* run non-static block from class *)
     let st_vals = (List.map (fun x -> if (x.static=false) then (execute_statements jprog x.block) else []) jcls.cinits)
-    in (* apply changes of static block to attributes *)
-    (*(List.map (fun name val -> if ()) st_vals);*)
+    in 
+    (* add constructor's arguments to the scope *)
+    (add_vars_to_scope jprog (get_argument_list jprog constructor.cargstype params []));
     (* run constructor *)
-    
+    let cons_vals = (execute_statements jprog constructor.cbody)
+    in
+    (* apply attribute changes to return the object *)
+    List.iter (fun v -> apply_attrs_modification jprog attrs v) (st_vals@[cons_vals]);
     (* return object *)
     RefVal({oname="";oclass=jcls;oattributes=attrs})
 
@@ -267,6 +271,17 @@ and get_method_signature_from_expl (jprog : jvm) (params : expression list) (str
             "_void"
     else
         spars
+
+(* receives a list of params an returns a list of (name argument, value) for methods and constructors *)
+and get_argument_list (jprog : jvm) (arglist : argument list) (params : expression list) (paraml : (string * MemoryModel.valuetype) list) =
+    match arglist,params with
+    | [],[] -> paraml (* we are done *)
+    | hd::tl,hd2::tl2 -> get_argument_list jprog tl tl2 (paraml@[hd.pident,(execute_expression jprog hd2)])
+
+(* receives the attributes from a class with a list of values
+ searches in this list the ones that are attributes modifications and overwrites the values in attrs *)
+and apply_attrs_modification (jprog : jvm) (attrs : (string, valuetype) Hashtbl.t) (vars : (string * MemoryModel.valuetype) list) =
+    List.iter (fun (name, value) -> if (Hashtbl.mem attrs name) then (Hashtbl.replace attrs name value) else ()) vars
 
 (* execute an expression and send back it's value *)
 and execute_expression (jprog : jvm) expr =
