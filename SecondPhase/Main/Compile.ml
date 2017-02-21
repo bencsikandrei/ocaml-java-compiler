@@ -1,16 +1,18 @@
 open Parser
-open ExecuteProgram
+open ExecuteProgramA
 open CompileTree
 
 (* run the program *)
 let execute lexbuf fname verbose = 
   try 
     let ast = compilationUnit Lexer.token lexbuf in
-    print_endline "successfull parsing";
-    let jprog = CompileTree.compile_tree ast fname in
-    print_endline "successfull tree compilation";
-    ExecuteProgram.execute_code jprog;
-    if verbose then AST.print_program ast 
+    Log.debug verbose "successfull parsing";
+    (* compile the AST with or without verbosity *)
+    let jprog = CompileTree.compile_tree verbose ast fname in
+    Log.debug verbose "successfull tree compilation";
+    (* if verbose then AST.print_program ast; *)
+    ExecuteProgramA.execute_code jprog;
+    ()
   with 
     | Error ->
       print_string "Syntax error: ";

@@ -444,6 +444,17 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             (* a for does not declare variables out of its scope *)
             []
 
+    | Throw(e) -> begin
+            (* when a java exn is thrown *) 
+            print_endline "an exception has been thrown";
+            (* get the exception object *)
+            let exnref = execute_expression jprog e
+            in
+            match exnref with
+            | RefVal(no) as v -> [(no.oname, v)]
+            | _ -> raise (Exception "Object is not throwable")
+            end
+
     | Return(eo) -> (* a return must pop the top of the stack *)
     				begin
     				print_endline "Return out of a method or a block"; 
@@ -518,12 +529,12 @@ let execute_code (jprog : jvm) =
     (* add the main mathods scope to the stack *)
     Stack.push (startpoint.mname, currentscope) jprog.jvmstack;
     (* the main method *)
-    AST.print_method "" startpoint;
+    (* AST.print_method "" startpoint; *)
     (* run the program *)
-    print_endline "### Running ... ###";
+    Log.debug true "### Running ... ###";
     (* print_scope jprog; *)
     let exitval = execute_method jprog startpoint
 	in
-	print_endline "### --------- ###";
-	print_endline ("Exited with " ^ (string_of_value exitval))
+	Log.debug true "### --------- ###";
+	Log.debug true ("Exited with " ^ (string_of_value exitval))
     (* print_scope jprog *)

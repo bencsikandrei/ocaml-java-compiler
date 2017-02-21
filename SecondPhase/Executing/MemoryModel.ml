@@ -2,6 +2,7 @@
 open AST
 open Hashtbl
 open Type
+open Log
 
 type javaclass = {
 	(* a type to hold class methods, attributes, constructors,
@@ -29,7 +30,7 @@ and valuetype =
 	| BoolVal of bool
 	| ArrayVal of array
 	| RefVal of newobject
-	| VoidVal
+	| VoidVal 
 	| NullVal
 
 (* heap declared objects *)
@@ -84,6 +85,7 @@ let rec string_of_value v =
  	| ArrayVal(a) -> "["^ListII.concat_map "," string_of_value a.avals^"]"
 	| RefVal(nw) -> "Class "^nw.oclass.id
 	| NullVal -> "Null"
+	| _ -> ""
 
 (* ------------------------------ PRINTS ------------------------------------ *)
 let print_scope jvm = 
@@ -98,11 +100,11 @@ let print_scope jvm =
 
 let print_jvm jvm = 
 	(* Hashtbl.iter (fun key value -> print_endline key; print_endline value.mname) jmc.methods; *)
-	Hashtbl.iter (fun key value -> print_string ("class: "^key); 
-									print_endline (" value: "^value.id)) jvm.classes;
+	Hashtbl.iter (fun key value -> print_string ("class name: "^key); 
+									print_endline (" class in jvm: "^value.id)) jvm.classes;
 
-	Hashtbl.iter (fun key value -> print_string ("method: "^key); 
-									print_endline (" value: "^value.mname)) jvm.methods;
+	Hashtbl.iter (fun key value -> print_string ("method name: "^key); 
+									print_endline (" method in jvm: "^value.mname)) jvm.methods;
 
 	print_endline ("Public class present: " ^ (string_of_bool jvm.public_class_present));
 
@@ -111,11 +113,10 @@ let print_jvm jvm =
 let print_jclass jclass =
 	print_endline ("### Class " ^ jclass.id ^ " ###");
 	(* print all attributes *)
-	print_endline ("# Attributes #");
 	List.iter (fun t -> AST.print_attribute "" t) jclass.jattributes; 
 	(* print the class constructors *)
-	Hashtbl.iter (fun key value -> print_string ("constructor with signature: " ^ key);
-									print_endline (" | constructor name: " ^value.cname)) jclass.jconsts;
+	Hashtbl.iter (fun key value -> print_string ("constructor: " ^ key);
+									print_endline (" | constructor full name: " ^value.cname)) jclass.jconsts;
 	(* print the class methods and attributes *)
 	Hashtbl.iter (fun key value -> print_string ("method: " ^ key);
 									print_endline (" | method in jvm table: " ^value)) jclass.jcmethods
