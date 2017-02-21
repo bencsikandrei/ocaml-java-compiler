@@ -472,13 +472,15 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             remove_vars_from_scope jprog declarations;
             (* a for does not declare variables out of its scope *)
             []
-
+    (* must throw a throwable object, for the moment only those who extend
+    from Exception, direcly or not *)
     | Throw(e) -> begin
             (* when a java exn is thrown *) 
             print_endline "an exception has been thrown";
             (* get the exception object *)
             let exnref = execute_expression jprog e
             in
+            (* check if it's an object that extends Exception *)
             match exnref with
             | RefVal(tro) as v -> 
                     if (is_throwable jprog tro.oclass) 

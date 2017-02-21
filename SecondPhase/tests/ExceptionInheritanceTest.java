@@ -4,6 +4,9 @@ class MyException extends Exception {
 	}
 }
 
+class SecondLevel extends MyException {
+	
+}
 class NotThrowable {
 	public int hashCode() {
 		return 1;
@@ -17,7 +20,7 @@ public class ExceptionInheritanceTest {
 	public static void main(String[] args) {
 		MyException ct = new MyException();
 		System.out.println(4);
-		System.out.println(2+7*3/0);
-		throw new MyException();
+		System.out.println(2+7*3);
+		throw new SecondLevel();
 	}
 }
