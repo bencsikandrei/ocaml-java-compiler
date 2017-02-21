@@ -1,5 +1,5 @@
 open Parser
-open ExecuteProgramA
+open ExecuteProgram
 open CompileTree
 
 (* run the program *)
@@ -11,7 +11,7 @@ let execute lexbuf fname verbose =
     let jprog = CompileTree.compile_tree verbose ast fname in
     Log.debug verbose "successfull tree compilation";
     (* if verbose then AST.print_program ast; *)
-    ExecuteProgramA.execute_code jprog;
+    ExecuteProgram.execute_code jprog;
     ()
   with 
     | Error ->
