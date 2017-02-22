@@ -12,6 +12,11 @@ let valuetype_to_ocaml_int (v : valuetype) =
     match v with
     | IntVal(i) -> i
 
+(* get class name from method in jvm table *)
+let get_class_name_from_jvm_method (meth : string) =
+    (* takes out the class name *)
+    String.sub meth 0 (String.index meth '_')
+
 (* create a scope from the name given *)
 let get_new_scope (name : string) =
     (name,
@@ -23,8 +28,20 @@ let get_new_scope (name : string) =
 let add_object_to_heap (jprog : jvm) (newobj : newobject) =
     (* add it to the next free position *)
     Hashtbl.add jprog.jvmheap (jprog.nextfree) newobj;
+    let oldaddr = jprog.nextfree
+    in
     (* increment the free position *)
-    jprog.nextfree <- jprog.nextfree + 1
+    jprog.nextfree <- jprog.nextfree + 1;
+    (* return the address the object is at *)
+    oldaddr
+
+(* reutrn the object at a certain address *)
+let get_object_from_heap (jprog : jvm) (addr : int) =
+    Hashtbl.find jprog.jvmheap addr
+
+(* get the scope *)
+let get_current_scope (jprog : jvm) =
+    Stack.top jprog.jvmstack
 
 (* build list of n lenght with the default value *)
 (* gives a list of valuetype of the given dimension with default values according to the type *)
@@ -208,7 +225,10 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
                         end
             | Attr(exp,name) -> begin (* when this.name is used got to change the attribute of the object *) 
                             match (execute_expression jprog exp) with
-                            | RefVal(obj) -> if (Hashtbl.mem obj.oattributes name)
+                            | RefVal(addr) -> (* get the object from the heap *)
+                                            let obj = get_object_from_heap jprog addr 
+                                            in
+                                            if (Hashtbl.mem obj.oattributes name)
                                             then ((Hashtbl.replace obj.oattributes name result); (Hashtbl.find obj.oattributes name))
                                             else raise NoSuchFieldException 
                             end; NullVal
@@ -285,12 +305,13 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     (execute_constructor jprog constructor attrs arg_vals);
     (* take out of scope *)
     Stack.pop jprog.jvmstack;
-    let newobj = {oname="";oclass=jcls;oattributes=attrs}
+    let newobj = {oclass=jcls;oattributes=attrs}
     in
     (* adding the object to the heap *)
-    add_object_to_heap jprog newobj;
+    let addr = add_object_to_heap jprog newobj 
+    in
     (* return object *)
-    RefVal(newobj)
+    RefVal(addr)
 
 (* execute a constructor has to modify the attributes *)
 and execute_constructor (jprog : jvm) (c : astconst) (attrs : (string, valuetype) Hashtbl.t) (params : (string * MemoryModel.valuetype) list) =
@@ -311,7 +332,7 @@ and add_attr (jprog : jvm) (ht : (string, valuetype) Hashtbl.t) (attr : astattri
                                          | None -> (match (attr.atype) with
                                                   | Array(ty,dim) -> ArrayVal({aname=None;avals=(build_list jprog ty 0 [IntVal(dim)]);adim=[IntVal(dim)]})
                                                   | Primitive(p) -> Hashtbl.find jprog.defaults p)
-                                                  (*| Ref(r) -> RefVal({oname="";oclass=javaclass;oattributes=}))*))
+                                                  (*| Ref(r) -> RefVal({oclass=javaclass;oattributes=}))*))
     in
     Hashtbl.add ht (attr.aname) init
 
@@ -322,7 +343,9 @@ and get_method_signature_from_expl (jprog : jvm) (params : expression list) (str
                 | hd::tl -> match (execute_expression jprog hd) with
                             | IntVal(_) -> get_method_signature_from_expl jprog tl (strparams^"_int")
                             | BoolVal(_) -> get_method_signature_from_expl jprog tl (strparams^"_boolean")
-                            | RefVal(ob) -> get_method_signature_from_expl jprog tl (strparams^"_"^ob.oname)
+                            | RefVal(addr) -> let ob = get_object_from_heap jprog addr 
+                                            in
+                                            get_method_signature_from_expl jprog tl (strparams^"_"^ob.oclass.id)
                             | FltVal(_) -> get_method_signature_from_expl jprog tl (strparams^"_float")
                             | _ -> ""
                             (*| Array(t, int) -> match t with 
@@ -391,7 +414,8 @@ and execute_expression (jprog : jvm) expr =
                                 init
     | Instanceof(e,t) -> begin 
                         match (execute_expression jprog e),t with
-                        | RefVal(r1),Ref(r2) -> if (r1.oclass.id = r2.tid) then BoolVal(true) else BoolVal(false) (* not considering path yet TODO *)
+                        | RefVal(addr),Ref(r2) -> let r1 = get_object_from_heap jprog addr in
+                                if (r1.oclass.id = r2.tid) then BoolVal(true) else BoolVal(false) (* not considering path yet TODO *)
                         | _,_ -> BoolVal(false)
                         end
     | New(stro,strl,expl) -> (* something ?? classname args *)
@@ -414,7 +438,9 @@ and execute_expression (jprog : jvm) expr =
                         end
     | Attr(exp,name) -> begin
                         match (execute_expression jprog exp) with
-                        | RefVal(obj) -> try
+                        | RefVal(addr) -> try
+                                let obj = get_object_from_heap jprog addr 
+                                in
                                 (Hashtbl.find obj.oattributes name)
                                 with
                                 | _ -> raise NoSuchFieldException 
@@ -424,31 +450,50 @@ and execute_expression (jprog : jvm) expr =
     | VoidClass -> VoidVal
     | Cast(ty,exp) -> execute_cast jprog ty exp
     | Call(expo, name, args) -> begin
+
             let obj = match expo with | None -> VoidVal
-                                    | Some({ edesc = Name(id) }) -> Log.debug false ("Just id: "^id); NullVal 
+                                    | Some({ edesc = Name(id) }) -> Log.debug false ("Just id: "^id);
+                                            let (_,scope) = get_current_scope jprog
+                                            in
+                                            Hashtbl.find scope.visible id
                                     | Some({ edesc = Attr(o, id)}) -> Log.debug false ("Object name: "^id); NullVal
             (* after we have the jvmheap made, we can actually try for NULL object exception *)
             in
+            (* get the signature *)
+            let signature = name^(get_method_signature_from_expl jprog args "")
+            in
             (* A method withoud an object *)
-            match name with
-            | "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
+            match (obj, name) with
+            | (_, "println") -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
                     VoidVal
-            | _ -> (* the return value of the method is given, the method needs the class *)
-                    execute_call jprog (Hashtbl.find jprog.classes jprog.public_class) name args;
+            | (RefVal(addr), n) -> (* we need to the the object *)
+                    let obj = get_object_from_heap jprog addr
+                    in
+                    (* which class is the method from? *)
+                    let mname = Hashtbl.find (obj.oclass.jcmethods) signature
+                    in
+                    (* get scoped class *)
+                    let scoped = get_class_name_from_jvm_method mname
+                    in 
+                    (* change the scoped class if it's an object *)
+                    jprog.scope_class <- scoped;
+                    (* the return value of the method is given, the method needs the class *)
+                    execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) signature args;
+            | (VoidVal, _) -> (* the return value of the method is given, the method needs the class *)
+                    execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) signature args;
             end;
             
     | _ -> StrVal("Not yet implemented")
 
 (* execute a function call *)
-and execute_call (jprog : jvm) (cls : javaclass) (mname : string) (args : expression list) = 
-    (* get the signature *)
-    let signature = mname^(get_method_signature_from_expl jprog args "")
-    in
+and execute_call (jprog : jvm) (cls : javaclass) (signature : string) (args : expression list) = 
     (* find the method and link it dynamicly *)
     let signaturejvm = try (Hashtbl.find cls.jcmethods signature) with | Not_found -> raise (Exception "Method not defined")
     in
     let meth = (Hashtbl.find jprog.methods signaturejvm)
     in
+    (* add the main mathods scope to the stack *)
+    Stack.push (get_new_scope meth.mname) jprog.jvmstack;
     (* get values of the arguments*)
     let arg_vals = (get_argument_list jprog meth.margstype args [])
     in
@@ -582,10 +627,12 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             in
             (* check if it's an object that extends Exception *)
             match exnref with
-            | RefVal(tro) as v -> 
+            | RefVal(addr) as v -> 
+                    let tro = get_object_from_heap jprog addr
+                    in
                     if (is_throwable jprog tro.oclass) 
                     then 
-                        [(tro.oname, v)]
+                        [(tro.oclass.id, v)]
                     else 
                         raise (Exception "Not throwable")
             | _ -> raise (Exception "Not throwable")
@@ -624,8 +671,6 @@ and execute_statements (jprog : jvm) (stmts : statement list) =
 
 (* execute a method *)
 and execute_method (jprog : jvm) (m : astmethod) (args : (string * MemoryModel.valuetype) list) =
-    (* add the main mathods scope to the stack *)
-    Stack.push (get_new_scope m.mname) jprog.jvmstack;
     (* add method's arguments to the scope *)
     (add_vars_to_scope jprog args);
 	let ret = (try
@@ -665,11 +710,15 @@ let execute_code (jprog : jvm) =
     add_defaults jprog;
     let startpoint = get_main_method jprog 
     in
+    (* first scope class *)
+    jprog.scope_class <- jprog.public_class;
     (* the main method *)
     AST.print_method "" startpoint;
-    (* run the program *)
+    (* add the main mathods scope to the stack *)
+    Stack.push (get_new_scope startpoint.mname) jprog.jvmstack;
     Log.debug true "### Running ... ###";
     (* print_scope jprog; *)
+    (* run the program *)
     let exitval = execute_method jprog startpoint []
 	in
 	
