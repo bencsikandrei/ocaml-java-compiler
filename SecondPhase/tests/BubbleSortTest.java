@@ -6,13 +6,13 @@ public class BubbleSortTest {
         for (int out = size - 1; out > 0; out --) {
             for (int in = 0; in < out; in ++) {
                 if( (a[in + 1] < a[in] ? true : false) ) {
-                    int temp = a[i];
-					a[i] = a[j];
-					a[j] = temp;
+                    int temp = a[in + 1];
+					a[in+1] = a[in];
+					a[in] = temp;
                 }
             }
         }
-        
+
         for(int i = 0; i < size; i++) {
         	System.out.println(a[i]);
         }

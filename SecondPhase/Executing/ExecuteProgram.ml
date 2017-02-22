@@ -494,15 +494,15 @@ and execute_expression (jprog : jvm) expr =
                     (* change the scoped class if it's an object *)
                     jprog.scope_class <- scoped;
                     (* the return value of the method is given, the method needs the class *)
-                    execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) signature args;
+                    execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) (Some obj) signature args;
             | (VoidVal, _) -> (* the return value of the method is given, the method needs the class *)
-                    execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) signature args;
+                    execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) None signature args;
             end;
             
     | _ -> StrVal("Not yet implemented")
 
 (* execute a function call *)
-and execute_call (jprog : jvm) (cls : javaclass) (signature : string) (args : expression list) = 
+and execute_call (jprog : jvm) (cls : javaclass) (obj : newobject option) (signature : string) (args : expression list) = 
     (* find the method and link it dynamicly *)
     let signaturejvm = try (Hashtbl.find cls.jcmethods signature) with | Not_found -> raise (Exception "Method not defined")
     in
@@ -513,6 +513,10 @@ and execute_call (jprog : jvm) (cls : javaclass) (signature : string) (args : ex
     in
     (* add the main mathods scope to the stack *)
     Stack.push (get_new_scope meth.mname) jprog.jvmstack;
+    (* add the object's attributes to scope *)
+    (add_vars_to_scope jprog (match obj with 
+            | Some(o) -> (Hashtbl.fold (fun k v acc -> (k, v)::acc) o.oattributes []) 
+            | None -> []));
     (* use the method in the JVM to run it *)
     execute_method jprog meth arg_vals
 
