@@ -2,13 +2,14 @@ public class ConstructorTest {
 	int b = 10000;
 
 	{
+		System.out.println(b);
 		b = 10;
 	}
 
 	ConstructorTest(int a) {
 		System.out.println("Inside constructor");
 		System.out.println(b);
-		b = a;
+		this.b = a;
 		int c = 101;
 		System.out.println(a);
 		System.out.println(b);
@@ -21,7 +22,5 @@ public class ConstructorTest {
 		ct = new ConstructorTest(42);
 		
 		System.out.println(ct.b);
-		
-		
 	}
 }

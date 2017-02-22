@@ -171,27 +171,36 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
     in
     let (_, scope) = Stack.top jprog.jvmstack 
     in
+    let result = begin
+                match op with
+                | Assign -> right
+                | Ass_add -> (execute_operator jprog e1 Op_add e2)
+                | Ass_sub -> (execute_operator jprog e1 Op_sub e2)
+                | Ass_mul -> (execute_operator jprog e1 Op_mul e2)
+                | Ass_div -> (execute_operator jprog e1 Op_div e2)
+                | Ass_mod -> (execute_operator jprog e1 Op_div e2)
+                | Ass_and -> (execute_operator jprog e1 Op_and e2) (* and or cand ?? *)
+                | Ass_or -> (execute_operator jprog e1 Op_or e2) (* or or cor ?? *)
+                | Ass_xor -> (execute_operator jprog e1 Op_xor e2)
+                | Ass_shl -> (execute_operator jprog e1 Op_shl e2)
+                | Ass_shr -> (execute_operator jprog e1 Op_shr e2)
+                (*| Ass_shrr*)
+                end;
+    in
     match e1.edesc with
-            | Name(n) -> begin
-                    match op with
-                    | Assign -> Hashtbl.replace scope.visible n right
-                    | Ass_add -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_add e2)
-                    | Ass_sub -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_sub e2)
-                    | Ass_mul -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_mul e2)
-                    | Ass_div -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2)
-                    | Ass_mod -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_div e2)
-                    | Ass_and -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_and e2) (* and or cand ?? *)
-                    | Ass_or -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_or e2) (* or or cor ?? *)
-                    | Ass_xor -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_xor e2)
-                    | Ass_shl -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shl e2)
-                    | Ass_shr -> Hashtbl.replace scope.visible n (execute_operator jprog e1 Op_shr e2)
-                    (*| Ass_shrr*)
-                    end;
-                    Hashtbl.find scope.visible n
+            | Name(n) -> Hashtbl.replace scope.visible n result;
+                        Hashtbl.find scope.visible n
+            | Attr(exp,name) -> begin (* when this.name is used got to change the attribute of the object *) 
+                            match (execute_expression jprog exp) with
+                            | RefVal(obj) -> if (Hashtbl.mem obj.oattributes name)
+                                            then ((Hashtbl.replace obj.oattributes name result); (Hashtbl.find obj.oattributes name))
+                                            else raise NoSuchFieldException 
+                            end; NullVal
             | _ -> raise (Exception "Bad assignment")
 
 (* variable linking *)
 and execute_name (jprog : jvm) (name : string) =
+    if (name="this") then print_endline "this" else (); (* TODO define this *)
     let (_, scope) = Stack.top jprog.jvmstack 
     in
     try 
@@ -231,13 +240,6 @@ and execute_expressions (jprog : jvm) exps =
                 in
                 [decl] @ (execute_expressions jprog tl)
 
-(* execute the call, with the method name and parameters *)
-(*and execute_call (jprog : jvm) (expo : expression option) (meth : string) (params : expression list) =
-    (* if expo is none, it must be in the current scope *)
-    match expo with
-    | Some e -> (execute_expression e)
-    | None -> meth (execute_expressions jprog el)
-*)
 (* create a new instance *)
 and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     (* check if the constructor exists for the class *)
@@ -249,17 +251,36 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     in
     let attrs : (string, valuetype) Hashtbl.t = (Hashtbl.create 20)
     in
+    (* add attributes to the attrs of the object *)
+    (List.iter (add_attr jprog attrs) jcls.jattributes);
+    (* new scope required *)
+    Stack.push (get_new_scope constructor.cname) jprog.jvmstack;
+    (* add attributes to scope *)
+    (add_vars_to_scope jprog (Hashtbl.fold (fun k v acc -> (k, v)::acc) attrs []));
     (* run non-static block from class *)
     let st_vals = (List.map (fun x -> if (x.static=false) then (execute_statements jprog x.block) else []) jcls.cinits)
-    in 
-    (* run constructor *)
-    (* the execute constructor is now in charge of adding vars to scope *)
-    (execute_constructor jprog jcls constructor attrs params);
-    (* print_endline "Finished running"; *)
+    in
     (* apply attribute changes to return the object *)
-    List.iter (fun v -> apply_attrs_modification jprog attrs v) (st_vals);
+    List.iter (fun v -> apply_attrs_modification jprog attrs v) st_vals;
+    (* run constructor *)
+    (execute_constructor jprog jcls constructor attrs params);
+    (* take out of scope *)
+    Stack.pop jprog.jvmstack;
     (* return object *)
     RefVal({oname="";oclass=jcls;oattributes=attrs})
+
+(* execute a constructor has to modify the attributes *)
+and execute_constructor (jprog : jvm) (jcls : javaclass) (c : astconst) (attrs : (string, valuetype) Hashtbl.t) (params: expression list) =
+    begin
+    (* add constructor's arguments to the scope *)
+    (add_vars_to_scope jprog (get_argument_list jprog c.cargstype params []));
+    (* execute all statements of a constructor, when there is a return catch the event and return it's value *)
+    execute_statements jprog c.cbody;
+    (* see if the variables in scope are part of the object *)
+    let (_, scope) = Stack.top jprog.jvmstack
+    in
+    Hashtbl.iter (fun k v -> if (Hashtbl.mem attrs k) then Hashtbl.replace attrs k v) scope.visible;
+    end
 
 (* receives and astattribute and returns name and valuetype to add to hashtable *)
 and add_attr (jprog : jvm) (ht : (string, valuetype) Hashtbl.t) (attr : astattribute) =
@@ -302,19 +323,37 @@ and get_argument_list (jprog : jvm) (arglist : argument list) (params : expressi
 and apply_attrs_modification (jprog : jvm) (attrs : (string, valuetype) Hashtbl.t) (vars : (string * MemoryModel.valuetype) list) =
     List.iter (fun (name, value) -> if (Hashtbl.mem attrs name) then (Hashtbl.replace attrs name value) else ()) vars
 
+(* casting, just to have an structure, because typing is supossed to do by the other group *)
+and execute_cast (jprog : jvm) (ty : Type.t) (exp : expression) =
+    match (execute_expression jprog exp) with
+    | IntVal(i) -> begin
+                    match ty with 
+                    | Primitive(p) -> begin
+                                    match p with
+                                    | Int -> IntVal(i)
+                                    | Float -> FltVal(float_of_int i)
+                                    end
+                    end
+    | FltVal(i) -> begin
+                    match ty with 
+                    | Primitive(p) -> begin
+                                    match p with
+                                    | Int -> IntVal(int_of_float i)
+                                    | Float -> FltVal(i)
+                                    end
+                    end
+
 (* execute an expression and send back it's value *)
 and execute_expression (jprog : jvm) expr =
     (* check the descriptor *)
     match expr.edesc with 
     | Val(v) -> execute_val v
-              (*| Char of char option
-                *)
     | Post(e, poi) -> execute_postfix jprog e poi
     | Pre(pri, e) -> execute_prefix jprog pri e
     | Name(n) -> execute_name jprog n
     | AssignExp(e1, op, e2) -> execute_assign jprog e1 op e2
     | Op(e1, op, e2) -> execute_operator jprog e1 op e2
-    | CondOp(e1, e2, e3) -> execute_ternary jprog e1 e2 e3 (* this is actually the ternary *)
+    | CondOp(e1, e2, e3) -> execute_ternary jprog e1 e2 e3
     | ArrayInit(el) -> ArrayVal({aname=None;avals=(execute_expressions jprog el);adim=[IntVal(List.length el)]}) (* TODO check if all elems of same type *)
     | NewArray(t,expol,expo) -> (* type, dimension, initialization  *)
                                 let dim=(match expol with | [] ->  [IntVal(0)]
@@ -326,7 +365,6 @@ and execute_expression (jprog : jvm) expr =
                                                             | Some(e) -> execute_expression jprog e) (* overwrites the dimension *)
                                 in
                                 init
-    | Type(t) -> TypeVal(t)
     | Instanceof(e,t) -> begin 
                         match (execute_expression jprog e),t with
                         | RefVal(r1),Ref(r2) -> if (r1.oclass.id = r2.tid) then BoolVal(true) else BoolVal(false) (* not considering path yet TODO *)
@@ -334,7 +372,7 @@ and execute_expression (jprog : jvm) expr =
                         end
     | New(stro,strl,expl) -> (* something ?? classname args *)
                             let obj = (match stro with | None -> execute_new jprog (List.nth strl ((List.length strl)-1)) expl (* only local *)
-                                                       | Some(s) -> NullVal)
+                                                       | Some(s) -> (print_endline "Inner classes, not implemented"); NullVal)
                             in
                             obj
     | Array(exp,expol) -> begin
@@ -357,18 +395,16 @@ and execute_expression (jprog : jvm) expr =
                                 with
                                 | _ -> raise NoSuchFieldException 
                         end
-    | Call(obj, name, args) -> begin
+    | Type(t) -> TypeVal(t)
+    | ClassOf(ty) -> print_endline "ClassOf - I have no idea what this is, if this appears, let met know plz"; NullVal
+    | VoidClass -> VoidVal
+    | Cast(ty,exp) -> execute_cast jprog ty exp
+    | Call(expo, name, args) -> begin
             match name with
             | "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
             | _ -> print_endline "Call not executable yet, try a System.out.println().."; 
             end; NullVal
-    | _ -> StrVal("Not yet implemented")                    
-    (* 
-    | Call(expo,meth,el) -> execute_call jprog expo meth el
-    | Cast of Type.t * expression
-    | ClassOf of Type.t
-    | VoidClass
- *)
+    | _ -> StrVal("Not yet implemented")
 
 (* execute a variable declaration *)
 and execute_vardecl (jprog : jvm) (decls : (Type.t * string * expression option) list) declpairs = 
@@ -543,36 +579,6 @@ and execute_statements (jprog : jvm) (stmts : statement list) =
                 let decl = execute_statement jprog hd 
                 in
                 decl @ (execute_statements jprog tl)
-    end
-
-(* execute a constructor
-a bit of a special thing
-has to modify the attributes *)
-and execute_constructor (jprog : jvm) (jcls) (c : astconst) (attrs) (params)  =
-    begin
-    (* new scope required *)
-    Stack.push (get_new_scope c.cname) jprog.jvmstack;
-    (* add attributes to the attrs of the object *)
-    (List.iter (add_attr jprog attrs) jcls.jattributes);
-    (* add attributes to scope *)
-    (add_vars_to_scope jprog (Hashtbl.fold (fun k v acc -> (k, v)::acc) attrs []));
-    (* add constructor's arguments to the scope *)
-    (add_vars_to_scope jprog (get_argument_list jprog c.cargstype params []));
-    (* execute all statements of a constructor, when there is a return
-    catch the event and return it's value *)
-    execute_statements jprog c.cbody;
-    (* see if the variables in scope are part of the object *)
-    let (_, scope) = Stack.top jprog.jvmstack
-    in
-    (* all the modified attributes, are they part of the object ?
-    if yes, modify them in the hashtable *)
-    Hashtbl.iter (fun k v -> if (Hashtbl.mem attrs k) 
-            then 
-            (* is it an attribute? *)
-            Hashtbl.replace attrs k v) scope.visible;
-    (* take out of scope *)
-    Stack.pop jprog.jvmstack;
-    (* kept just for some compatibility reason *)
     end
 
 (* execute a method *)
