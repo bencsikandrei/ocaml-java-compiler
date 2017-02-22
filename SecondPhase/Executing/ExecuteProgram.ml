@@ -188,8 +188,15 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
                 end;
     in
     match e1.edesc with
-            | Name(n) -> Hashtbl.replace scope.visible n result;
-                        Hashtbl.find scope.visible n
+            | Name(n) -> (* has to check that the attribute is in scope *) 
+                        begin
+                        (* before it was doing just a Hashtbl.replace *)
+                        match (Hashtbl.mem scope.visible n) with
+                        (* if it exists in scope *)
+                        | true -> Hashtbl.replace scope.visible n result;
+                                Hashtbl.find scope.visible n
+                        | false -> raise (Exception "Variable not defined")
+                        end
             | Attr(exp,name) -> begin (* when this.name is used got to change the attribute of the object *) 
                             match (execute_expression jprog exp) with
                             | RefVal(obj) -> if (Hashtbl.mem obj.oattributes name)
@@ -400,9 +407,27 @@ and execute_expression (jprog : jvm) expr =
     | VoidClass -> VoidVal
     | Cast(ty,exp) -> execute_cast jprog ty exp
     | Call(expo, name, args) -> begin
-            match name with
-            | "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
-            | _ -> print_endline "Call not executable yet, try a System.out.println().."; 
+            match expo with
+            | None -> begin
+                    (* A method withoud an object *)
+                    match name with
+                    | "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
+                    | _ -> (* print_endline "Call not executable yet, try a System.out.println().."; *)
+                            begin
+                                print_endline "Call not executable yet, try a System.out.println()..";
+                            end
+                    end
+            | Some(r) -> (* a call with a reference *)
+                    begin
+                    match r with
+                    | { edesc = Name(id) } -> print_endline "Named call"
+                    | { edesc = Attr(o, id) } -> begin
+                            (* A method withoud an object *)
+                            match name with
+                            | "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
+                            | _ -> print_endline "Call not executable yet, try a System.out.println().."; 
+                            end
+                    end
             end; NullVal
     | _ -> StrVal("Not yet implemented")
 
