@@ -492,11 +492,11 @@ and execute_call (jprog : jvm) (cls : javaclass) (signature : string) (args : ex
     in
     let meth = (Hashtbl.find jprog.methods signaturejvm)
     in
-    (* add the main mathods scope to the stack *)
-    Stack.push (get_new_scope meth.mname) jprog.jvmstack;
     (* get values of the arguments*)
     let arg_vals = (get_argument_list jprog meth.margstype args [])
     in
+    (* add the main mathods scope to the stack *)
+    Stack.push (get_new_scope meth.mname) jprog.jvmstack;
     (* use the method in the JVM to run it *)
     execute_method jprog meth arg_vals
 
