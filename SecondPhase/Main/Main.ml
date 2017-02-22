@@ -1,4 +1,5 @@
 let verbose = ref false
+let dorun = ref false
 
 let get_file str =
   let temp2 = Filename.check_suffix str ".java" in
@@ -24,8 +25,7 @@ let compile str =
 (*
     print_endline "opening file";
  *)
-    let cmp = Compile.execute2 lexbuf !verbose in
-    Typing.typing cmp;
+    let cmp = Compile.execute lexbuf filename !verbose !dorun in
     close_in (input_file);
   with Sys_error s ->
     print_endline ("Can't find file '" ^ file ^ "'")
@@ -34,5 +34,5 @@ let () =
   (*
   print_endline "miniJava compiler";
    *)
-  Arg.parse ["-v",Arg.Set verbose,"verbose mode"] compile ""
+  Arg.parse [("-v",Arg.Set verbose,"verbose mode");("-r",Arg.Set dorun,"run mode")] compile ""
 

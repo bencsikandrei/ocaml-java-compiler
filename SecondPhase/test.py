@@ -31,12 +31,12 @@ goodPath = "./tests/Good"
 failPath = "./tests/Fail"
 
 print "*******************"
-print "This files should pass\n"
+print "These files should pass\n"
 check(goodPath)
 
 print
 
 print "*******************"
-print "This files should not\n"
+print "These files should not\n"
 check(failPath,fail=True)
 
