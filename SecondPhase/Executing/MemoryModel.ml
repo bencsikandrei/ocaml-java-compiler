@@ -29,12 +29,14 @@ and valuetype =
 	| FltVal of float
 	| BoolVal of bool
 	| ArrayVal of array
+	(* TODO, chage this to take an address *)
 	| RefVal of newobject
 	| VoidVal 
 	| NullVal
 
 (* heap declared objects *)
 and newobject = {
+	(* TODO remove the name, makes no sense now *)
 	(* the object declaration name *)
 	oname: string;
 	(* the class it instantiates *)
@@ -50,13 +52,13 @@ and array = {
 	avals: valuetype list;
 }
 
-type scope = {
+and scope = {
 	(* current *)
 	visible: (string, valuetype) Hashtbl.t;
 }
 
 (* memory specific to classes and methods in the JVM *)
-type jvm = {
+and jvm = {
 	(* public class present ? *)
 	mutable public_class_present: bool;
 	(* save the public class *)
@@ -69,8 +71,11 @@ type jvm = {
 	defaults: (primitive, valuetype) Hashtbl.t;
 	(* the stack *)
 	jvmstack: ( (string * scope) ) Stack.t;
+	(* next free address *)
+	mutable nextfree: int;
 	(* the heap *)
-	jvmheap: (string, string) Hashtbl.t;
+	jvmheap: (int, newobject) Hashtbl.t;
+
 }
 (* -------------------------------------------------------------------------------------- *)
 
@@ -98,6 +103,15 @@ let print_scope jvm =
 	with
 	| _ -> print_endline "Program exited normally"
 
+(* contents of heap *)
+let print_heap jvm =
+	print_endline "### The HEAP ###";
+	(* Hashtbl.iter (fun key value -> print_endline key; print_endline value.mname) jmc.methods; *)
+	Hashtbl.iter (fun key value -> print_endline (" Object: "^value.oname);
+									print_string " @ address: "; print_int key
+										) jvm.jvmheap
+
+(* the whole content of it *)
 let print_jvm jvm = 
 	(* Hashtbl.iter (fun key value -> print_endline key; print_endline value.mname) jmc.methods; *)
 	Hashtbl.iter (fun key value -> print_string ("class name: "^key); 

@@ -3,6 +3,7 @@ open Type
 open AST
 open Exceptions
 open MemoryModel
+open Log
 
 (* the return value *)
 exception ReturnValue of valuetype
@@ -11,11 +12,19 @@ let valuetype_to_ocaml_int (v : valuetype) =
     match v with
     | IntVal(i) -> i
 
+(* create a scope from the name given *)
 let get_new_scope (name : string) =
     (name,
-    {
+    {   
         visible = (Hashtbl.create 10)
     })
+
+(* add object to heap *)
+let add_object_to_heap (jprog : jvm) (newobj : newobject) =
+    (* add it to the next free position *)
+    Hashtbl.add jprog.jvmheap (jprog.nextfree) newobj;
+    (* increment the free position *)
+    jprog.nextfree <- jprog.nextfree + 1
 
 (* build list of n lenght with the default value *)
 (* gives a list of valuetype of the given dimension with default values according to the type *)
@@ -273,8 +282,12 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     (execute_constructor jprog jcls constructor attrs params);
     (* take out of scope *)
     Stack.pop jprog.jvmstack;
+    let newobj = {oname="";oclass=jcls;oattributes=attrs}
+    in
+    (* adding the object to the heap *)
+    add_object_to_heap jprog newobj;
     (* return object *)
-    RefVal({oname="";oclass=jcls;oattributes=attrs})
+    RefVal(newobj)
 
 (* execute a constructor has to modify the attributes *)
 and execute_constructor (jprog : jvm) (jcls : javaclass) (c : astconst) (attrs : (string, valuetype) Hashtbl.t) (params: expression list) =
@@ -407,29 +420,34 @@ and execute_expression (jprog : jvm) expr =
     | VoidClass -> VoidVal
     | Cast(ty,exp) -> execute_cast jprog ty exp
     | Call(expo, name, args) -> begin
-            match expo with
-            | None -> begin
-                    (* A method withoud an object *)
-                    match name with
-                    | "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
-                    | _ -> (* print_endline "Call not executable yet, try a System.out.println().."; *)
-                            begin
-                                print_endline "Call not executable yet, try a System.out.println()..";
-                            end
-                    end
-            | Some(r) -> (* a call with a reference *)
-                    begin
-                    match r with
-                    | { edesc = Name(id) } -> print_endline "Named call"
-                    | { edesc = Attr(o, id) } -> begin
-                            (* A method withoud an object *)
-                            match name with
-                            | "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
-                            | _ -> print_endline "Call not executable yet, try a System.out.println().."; 
-                            end
-                    end
-            end; NullVal
+            let obj = match expo with | None -> VoidVal
+                                    | Some({ edesc = Name(id) }) -> Log.debug true ("Just id: "^id); NullVal 
+                                    | Some({ edesc = Attr(o, id)}) -> Log.debug true ("Object name: "^id); NullVal
+            (* after we have the jvmheap made, we can actually try for NULL object exception *)
+            in
+            (* A method withoud an object *)
+            match name with
+            | "println" -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
+                    VoidVal
+            | _ -> (* the return value of the method is given, the method needs the class *)
+                    execute_call jprog (Hashtbl.find jprog.classes jprog.public_class) name args;
+            end;
+            
     | _ -> StrVal("Not yet implemented")
+
+(* execute a function call *)
+and execute_call (jprog : jvm) (cls : javaclass) (mname : string) (args : expression list) = 
+    (* get the signature *)
+    let signature = mname^(get_method_signature_from_expl jprog args "")
+    in
+    (* find the method and link it dynamicly *)
+    let signaturejvm = try (Hashtbl.find cls.jcmethods signature) with | Not_found -> raise (Exception "Method not defined")
+    in
+    (* print them for debug *)
+    Log.debug true signature;
+    Log.debug true signaturejvm;
+    (* use the method in the JVM to run it *)
+    execute_method jprog (Hashtbl.find jprog.methods signaturejvm)
 
 (* execute a variable declaration *)
 and execute_vardecl (jprog : jvm) (decls : (Type.t * string * expression option) list) declpairs = 
@@ -607,7 +625,7 @@ and execute_statements (jprog : jvm) (stmts : statement list) =
     end
 
 (* execute a method *)
-let execute_method (jprog : jvm) (m : astmethod) =
+and execute_method (jprog : jvm) (m : astmethod) =
     (* add the main mathods scope to the stack *)
     Stack.push (get_new_scope m.mname) jprog.jvmstack;
 	begin
@@ -644,7 +662,6 @@ stack .. *)
 let execute_code (jprog : jvm) =
     (* setup the JVM *)
     add_defaults jprog;
-
     let startpoint = get_main_method jprog 
     in
     (* the main method *)
@@ -656,4 +673,4 @@ let execute_code (jprog : jvm) =
 	in
 	Log.debug true "### --------- ###";
 	Log.debug true ("Exited with " ^ (string_of_value exitval));
-    
+    print_heap jprog

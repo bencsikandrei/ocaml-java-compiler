@@ -261,6 +261,7 @@ let compile_tree (verb : bool) ast (fname : string) =
   		classes = Hashtbl.create 10;
   		defaults = Hashtbl.create 10;
   		jvmstack = Stack.create ();
+  		nextfree = 0;
   		jvmheap = Hashtbl.create 10;
   		} 
   	in
