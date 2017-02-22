@@ -337,7 +337,8 @@ and get_argument_list (jprog : jvm) (arglist : argument list) (params : expressi
     match arglist,params with
     | [],[] -> paraml (* we are done *)
     | hd::tl,hd2::tl2 -> get_argument_list jprog tl tl2 (paraml@[hd.pident,(execute_expression jprog hd2)])
-
+    (* temporary fix for main method, we don't treat the String[] args yet *)
+    | _, [] -> []
 (* receives the attributes from a class with a list of values
  searches in this list the ones that are attributes modifications and overwrites the values in attrs *)
 and apply_attrs_modification (jprog : jvm) (attrs : (string, valuetype) Hashtbl.t) (vars : (string * MemoryModel.valuetype) list) =
@@ -448,7 +449,7 @@ and execute_call (jprog : jvm) (cls : javaclass) (mname : string) (args : expres
     Log.debug true signature;
     Log.debug true signaturejvm;
     (* use the method in the JVM to run it *)
-    execute_method jprog (Hashtbl.find jprog.methods signaturejvm)
+    execute_method jprog (Hashtbl.find jprog.methods signaturejvm) args
 
 (* execute a variable declaration *)
 and execute_vardecl (jprog : jvm) (decls : (Type.t * string * expression option) list) declpairs = 
@@ -623,10 +624,12 @@ and execute_statements (jprog : jvm) (stmts : statement list) =
     end
 
 (* execute a method *)
-and execute_method (jprog : jvm) (m : astmethod) =
+and execute_method (jprog : jvm) (m : astmethod) (args : expression list) =
     (* add the main mathods scope to the stack *)
     Log.debug true "Adding a new scope";
     Stack.push (get_new_scope m.mname) jprog.jvmstack;
+    (* add method's arguments to the scope *)
+    (add_vars_to_scope jprog (get_argument_list jprog m.margstype args []));
 	let ret = (try
 		(* execute all statements of a method, when there is a return
 		catch the event and return it's value *)
@@ -669,7 +672,7 @@ let execute_code (jprog : jvm) =
     (* run the program *)
     Log.debug true "### Running ... ###";
     (* print_scope jprog; *)
-    let exitval = execute_method jprog startpoint
+    let exitval = execute_method jprog startpoint []
 	in
 	
     print_heap jprog
