@@ -30,6 +30,16 @@ let rec flatlistDot lis =
 
 
 
+(* Extract the classes from the asstype *)
+let rec getClasses (classes:AST.asttype list) : AST.astclass list =
+	match classes with
+	| [] -> []
+	| elem::rest ->  (
+			let c = getClasses rest in 
+			match elem.info with
+			|Class cl ->  cl.clname<-elem.id;  cl.clmodifiers<-elem.modifiers; cl::c
+			|Inter ->  c
+		)
 
 
 
@@ -87,16 +97,11 @@ let rec verifyClassDependency (chain:string list) (cl:AST.astclass) =
 				let par = searchClass cl.cparent cl.classScope in
 				verifyClassDependency (cl.clid::chain) par 
 
-(* Extract the classes from the asstype *)
-let rec getClasses (classes:AST.asttype list) : AST.astclass list =
-	match classes with
-	| [] -> []
-	| elem::rest ->  (
-			let c = getClasses rest in 
-			match elem.info with
-			|Class cl ->  cl.clname<-elem.id; cl.clmodifiers<-elem.modifiers; cl::c
-			|Inter ->  c
-		)
+(* Verifies that the inheritance of a class is valclid *)
+let rec verifyClassDependencyInit (cl:AST.astclass) =
+	verifyClassDependency [] cl;
+	List.map verifyClassDependencyInit (getClasses cl.ctypes);
+	() 
 
 let f (var:AST.astclass) = 
 		print_string (var.clname^" - ")
@@ -183,7 +188,7 @@ let rec verifyClassMethods (aclass:AST.astclass) =
 let verifyClasses (var:AST.t) (classes:AST.astclass list)  =
 	verifyNoClassDuplicates var.type_list;
 	List.map verifyClassModifiers classes;
-	List.map (verifyClassDependency [] ) classes;
+	List.map verifyClassDependencyInit classes;
 	List.map verifyClassAttributes classes;
 	List.map verifyClassMethods classes;
 	List.map verifyClassConstructors classes;
