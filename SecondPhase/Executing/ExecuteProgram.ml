@@ -204,7 +204,7 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
                         (* if it exists in scope *)
                         | true -> Hashtbl.replace scope.visible n result;
                                 Hashtbl.find scope.visible n
-                        | false -> raise (Exception "Variable not defined")
+                        | false -> raise (Exception ("Variable not defined "^n))
                         end
             | Attr(exp,name) -> begin (* when this.name is used got to change the attribute of the object *) 
                             match (execute_expression jprog exp) with
@@ -222,7 +222,7 @@ and execute_name (jprog : jvm) (name : string) =
     try 
         Hashtbl.find scope.visible name
     with
-    | Not_found -> raise (Exception "Variable not defined")
+    | Not_found -> raise (Exception ("Variable not defined "^name ))
 
 (* execute operation *)
 and execute_operator (jprog : jvm) e1 (op : infix_op) e2 =
@@ -422,8 +422,8 @@ and execute_expression (jprog : jvm) expr =
     | Cast(ty,exp) -> execute_cast jprog ty exp
     | Call(expo, name, args) -> begin
             let obj = match expo with | None -> VoidVal
-                                    | Some({ edesc = Name(id) }) -> Log.debug true ("Just id: "^id); NullVal 
-                                    | Some({ edesc = Attr(o, id)}) -> Log.debug true ("Object name: "^id); NullVal
+                                    | Some({ edesc = Name(id) }) -> Log.debug false ("Just id: "^id); NullVal 
+                                    | Some({ edesc = Attr(o, id)}) -> Log.debug false ("Object name: "^id); NullVal
             (* after we have the jvmheap made, we can actually try for NULL object exception *)
             in
             (* A method withoud an object *)
@@ -441,12 +441,12 @@ and execute_call (jprog : jvm) (cls : javaclass) (mname : string) (args : expres
     (* get the signature *)
     let signature = mname^(get_method_signature_from_expl jprog args "")
     in
+    (* print them for debug *)
+    Log.debug true signature;
     (* find the method and link it dynamicly *)
     let signaturejvm = try (Hashtbl.find cls.jcmethods signature) with | Not_found -> raise (Exception "Method not defined")
     in
     (* TODO add good variables to its scope.. STATIC etc.. *)
-    (* print them for debug *)
-    Log.debug true signature;
     Log.debug true signaturejvm;
     (* use the method in the JVM to run it *)
     execute_method jprog (Hashtbl.find jprog.methods signaturejvm) args
@@ -541,11 +541,9 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
     (* blocks *)
     | Block(stmtlst) -> 
     		begin
-    		print_endline "Enter block";
     		try 
 	    		let blockvars = List.append [] (execute_statements jprog stmtlst) 
 	            in
-	            print_endline "Exit block, Remove vars from scope"; 
 	            remove_vars_from_scope jprog blockvars;
 	            []
         	with 
@@ -590,19 +588,16 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             end
 
     | Return(eo) -> (* a return must pop the top of the stack *)
-    				begin
-    				print_endline "Return out of a method or a block"; 
-                    (* raise an event when we return something, to stop the execution *)
-    				let returnvalue = (match eo with 
-    				| None -> VoidVal
-    				| Some(e) -> execute_expression jprog e)
-    			    in
-    			    (* a possibility is to send its return value as the list
-    				Stack.pop jprog.jvmstack; *)
-    			    (* a way to stop the running statements is to raise an event
-    			    this event is called ReturnValue *)
-    			    raise (ReturnValue returnvalue)
-    				end
+			begin
+            (* raise an event when we return something, to stop the execution *)
+			let returnvalue = (match eo with 
+			| None -> VoidVal
+			| Some(e) -> execute_expression jprog e)
+		    in
+		    (* a way to stop the running statements is to raise an event
+		    this event is called ReturnValue *)
+		    raise (ReturnValue returnvalue)
+			end
     (* a lot of stuf is marked as NOP so we don't need it *)
     | Nop -> print_endline "Not implemented in the parser"; []
     | _ -> print_endline "Statement not executable yet, try a System.out.println().."; []

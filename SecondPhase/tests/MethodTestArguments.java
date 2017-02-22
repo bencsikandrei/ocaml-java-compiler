@@ -15,5 +15,7 @@ public class MethodTestArguments {
 		int y = max(10, 15);
 		int z = max();
 		
+		
+		
 	}
 }

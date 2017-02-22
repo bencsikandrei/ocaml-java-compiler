@@ -3,6 +3,7 @@ open AST
 open Hashtbl
 open Type
 open Log
+open Printf
 
 type javaclass = {
 	(* a type to hold class methods, attributes, constructors,
@@ -108,7 +109,7 @@ let print_heap jvm =
 	print_endline "### The HEAP ###";
 	(* Hashtbl.iter (fun key value -> print_endline key; print_endline value.mname) jmc.methods; *)
 	Hashtbl.iter (fun key value -> print_endline (" Object: "^value.oname);
-									print_string " @ address: "; print_int key
+									Printf.printf " @ address: 0x%08x" key
 										) jvm.jvmheap
 
 (* the whole content of it *)
