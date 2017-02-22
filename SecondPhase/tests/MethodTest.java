@@ -8,7 +8,7 @@ public class MethodTest {
 	public static void main(String[] args) {
 		MethodTest m;
 		m = new MethodTest();
-		m.max();
+		max();
 		
 		println("hello world");
 		System.out.println(m.a);

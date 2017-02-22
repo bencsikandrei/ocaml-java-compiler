@@ -443,6 +443,7 @@ and execute_call (jprog : jvm) (cls : javaclass) (mname : string) (args : expres
     (* find the method and link it dynamicly *)
     let signaturejvm = try (Hashtbl.find cls.jcmethods signature) with | Not_found -> raise (Exception "Method not defined")
     in
+    (* TODO add good variables to its scope.. STATIC etc.. *)
     (* print them for debug *)
     Log.debug true signature;
     Log.debug true signaturejvm;
@@ -590,16 +591,13 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
     | Return(eo) -> (* a return must pop the top of the stack *)
     				begin
     				print_endline "Return out of a method or a block"; 
-    				(* print the scope before pop, to see what was there, debug purpose *)
-    				print_scope jprog;
-    				
-    				(* raise an event when we return something, to stop the execution *)
+                    (* raise an event when we return something, to stop the execution *)
     				let returnvalue = (match eo with 
     				| None -> VoidVal
     				| Some(e) -> execute_expression jprog e)
     			    in
-    			    (* a possibility is to send its return value as the list *)
-    				Stack.pop jprog.jvmstack;
+    			    (* a possibility is to send its return value as the list
+    				Stack.pop jprog.jvmstack; *)
     			    (* a way to stop the running statements is to raise an event
     			    this event is called ReturnValue *)
     			    raise (ReturnValue returnvalue)
@@ -627,27 +625,29 @@ and execute_statements (jprog : jvm) (stmts : statement list) =
 (* execute a method *)
 and execute_method (jprog : jvm) (m : astmethod) =
     (* add the main mathods scope to the stack *)
+    Log.debug true "Adding a new scope";
     Stack.push (get_new_scope m.mname) jprog.jvmstack;
-	begin
-	try
+	let ret = (try
 		(* execute all statements of a method, when there is a return
 		catch the event and return it's value *)
 		execute_statements jprog m.mbody; 
-        (* print the contents of the scope *)
-        print_scope jprog;
-        (* pop the stack *)
-        Stack.pop jprog.jvmstack;
 		(* if there is no return statement, it's void *)
 		VoidVal
 	with
-	| ReturnValue(v) -> 
-        (* print the stack *)
-        print_scope jprog;
-        (* pop *)
-        Stack.pop jprog.jvmstack; 
-        (* method return value *)
-        v
-	end
+	| ReturnValue(v) -> v)
+	in
+    (* print the contents of the scope *)
+    print_scope jprog;
+    (* pop the stack *)
+    Log.debug true "Removing a scope";
+    begin
+    try
+        Stack.pop jprog.jvmstack;()
+    with 
+    | _ -> Log.debug true "### --------- ###";
+            Log.debug true ("Exited with " ^ (string_of_value ret));
+    end;
+    ret
 
 (* add default initializer variables *)
 let add_defaults (jprog : jvm) =
@@ -671,6 +671,5 @@ let execute_code (jprog : jvm) =
     (* print_scope jprog; *)
     let exitval = execute_method jprog startpoint
 	in
-	Log.debug true "### --------- ###";
-	Log.debug true ("Exited with " ^ (string_of_value exitval));
+	
     print_heap jprog
