@@ -11,6 +11,11 @@ class SomeClass {
 
 
 public class DynamicLinkTest extends SomeClass {
+	int value = 10;
+	
+	public int getValue() {
+		return value;
+	}
 	
 	public static void max() {
 		System.out.println("In this class");
@@ -22,7 +27,7 @@ public class DynamicLinkTest extends SomeClass {
 		SomeClass sc = new SomeClass();
 		
 				
-		System.out.println(dt.getValue());
+		System.out.println(dt.getValue() + " this is a nice value");
 		System.out.println(sc.getValue());
 	}
 }

@@ -163,6 +163,13 @@ let compute_value op val1 val2 =
             | Op_cand -> BoolVal(v1 && v2)
             | Op_cor -> BoolVal(v1 || v2)
             end
+    (* automatic conversion to string *)
+    | StrVal(s), ( _ as v2) -> begin 
+            StrVal(s^(string_of_value v2))
+            end
+    | ( _ as v1), StrVal(s) -> begin 
+            StrVal((string_of_value v1)^s)
+            end
     | _,_ -> raise (Exception "Not yet implemented or incorrect operation")
 
 (* do var++ and var--*)
