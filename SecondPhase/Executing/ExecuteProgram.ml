@@ -214,11 +214,8 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
                 end;
     in
     match e1.edesc with
-            | Name(n) -> (* has to check that the attribute is in scope *) 
-                        begin
-                        (* before it was doing just a Hashtbl.replace *)
+            | Name(n) -> begin
                         match (Hashtbl.mem scope.visible n) with
-                        (* if it exists in scope *)
                         | true -> Hashtbl.replace scope.visible n result;
                                 Hashtbl.find scope.visible n
                         | false -> raise (Exception ("Variable not defined "^n))
@@ -232,7 +229,26 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
                                             then ((Hashtbl.replace obj.oattributes name result); (Hashtbl.find obj.oattributes name))
                                             else raise NoSuchFieldException 
                             end; NullVal
+            | Array(ex,exol) -> begin (* only considering one dimension! *)
+                                match (List.nth exol 0) with 
+                                | Some(e) -> begin
+                                            match (execute_expression jprog e) with
+                                            | IntVal(i) -> let var = (string_of_expression ex)
+                                                        in (* check it array exists *)
+                                                        if (Hashtbl.mem scope.visible var)
+                                                        then Hashtbl.replace scope.visible var (array_set_nth (Hashtbl.find scope.visible var) i result)
+                                                        else raise (Exception ("Variable not defined "^var))
+                                            end
+                                | None -> raise (Exception "This should be accepted by the parser but it does. SHAME!")
+                                end; NullVal 
             | _ -> raise (Exception "Bad assignment")
+
+(* used to return a list with the nth element modified of the given array *)
+and array_set_nth (arr : valuetype) (n : int) (result : valuetype) =
+match arr with
+| ArrayVal(a) -> if (n < (valuetype_to_ocaml_int (List.nth a.adim 0)))
+                then ArrayVal({adim=a.adim;aname=a.aname;avals=(List.mapi (fun i x -> if (i=n) then result else x) a.avals)})
+                else raise IndexOutOfBoundsException
 
 (* variable linking *)
 and execute_name (jprog : jvm) (name : string) =

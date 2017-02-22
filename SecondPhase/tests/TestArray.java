@@ -9,6 +9,8 @@ public class TestArray {
 		int[] arreglito = new int[] {1,2};
 		System.out.println(arr[0]);
 		System.out.println(arr[1]);
+		arr[0] = 42;
+		System.out.println(arr[0]);
 	}
 
 }

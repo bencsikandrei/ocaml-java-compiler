@@ -1,7 +1,6 @@
 public class BubbleSortTest {
 
     public static void sort(int size) {
-        System.out.println("poto");
 		int [] a = { 5, 5, 6, 7, 8, 1 };
 		
         for (int out = size - 1; out > 0; out --) {
