@@ -9,7 +9,7 @@ public class ConstructorTest {
 	ConstructorTest(int a) {
 		System.out.println("Inside constructor");
 		System.out.println(b);
-		this.b = a;
+		b = a;
 		int c = 101;
 		System.out.println(a);
 		System.out.println(b);
@@ -18,8 +18,9 @@ public class ConstructorTest {
 	}
 
 	public static void main(String[] args) {
+		int asd = 42;
 		ConstructorTest ct;
-		ct = new ConstructorTest(42);
+		ct = new ConstructorTest(asd);
 		
 		System.out.println(ct.b);
 	}

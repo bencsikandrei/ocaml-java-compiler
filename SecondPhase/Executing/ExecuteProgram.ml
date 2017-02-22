@@ -269,6 +269,9 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     in
     (* add attributes to the attrs of the object *)
     (List.iter (add_attr jprog attrs) jcls.jattributes);
+    (* get thee values of the arguments *)
+    let arg_vals = (get_argument_list jprog constructor.cargstype params [])
+    in
     (* new scope required *)
     Stack.push (get_new_scope constructor.cname) jprog.jvmstack;
     (* add attributes to scope *)
@@ -279,7 +282,7 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     (* apply attribute changes to return the object *)
     List.iter (fun v -> apply_attrs_modification jprog attrs v) st_vals;
     (* run constructor *)
-    (execute_constructor jprog jcls constructor attrs params);
+    (execute_constructor jprog constructor attrs arg_vals);
     (* take out of scope *)
     Stack.pop jprog.jvmstack;
     let newobj = {oname="";oclass=jcls;oattributes=attrs}
@@ -290,10 +293,10 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     RefVal(newobj)
 
 (* execute a constructor has to modify the attributes *)
-and execute_constructor (jprog : jvm) (jcls : javaclass) (c : astconst) (attrs : (string, valuetype) Hashtbl.t) (params: expression list) =
+and execute_constructor (jprog : jvm) (c : astconst) (attrs : (string, valuetype) Hashtbl.t) (params : (string * MemoryModel.valuetype) list) =
     begin
     (* add constructor's arguments to the scope *)
-    (add_vars_to_scope jprog (get_argument_list jprog c.cargstype params []));
+    (add_vars_to_scope jprog params);
     (* execute all statements of a constructor, when there is a return catch the event and return it's value *)
     execute_statements jprog c.cbody;
     (* see if the variables in scope are part of the object *)
@@ -441,13 +444,10 @@ and execute_call (jprog : jvm) (cls : javaclass) (mname : string) (args : expres
     (* get the signature *)
     let signature = mname^(get_method_signature_from_expl jprog args "")
     in
-    (* print them for debug *)
-    Log.debug true signature;
     (* find the method and link it dynamicly *)
     let signaturejvm = try (Hashtbl.find cls.jcmethods signature) with | Not_found -> raise (Exception "Method not defined")
     in
     (* TODO add good variables to its scope.. STATIC etc.. *)
-    Log.debug true signaturejvm;
     (* use the method in the JVM to run it *)
     execute_method jprog (Hashtbl.find jprog.methods signaturejvm) args
 
@@ -621,7 +621,6 @@ and execute_statements (jprog : jvm) (stmts : statement list) =
 (* execute a method *)
 and execute_method (jprog : jvm) (m : astmethod) (args : expression list) =
     (* add the main mathods scope to the stack *)
-    Log.debug true "Adding a new scope";
     Stack.push (get_new_scope m.mname) jprog.jvmstack;
     (* add method's arguments to the scope *)
     (add_vars_to_scope jprog (get_argument_list jprog m.margstype args []));
@@ -631,8 +630,8 @@ and execute_method (jprog : jvm) (m : astmethod) (args : expression list) =
 		execute_statements jprog m.mbody; 
 		(* if there is no return statement, it's void *)
 		VoidVal
-	with
-	| ReturnValue(v) -> v)
+	   with 
+        | ReturnValue(v) -> v)
 	in
     (* print the contents of the scope *)
     print_scope jprog;
