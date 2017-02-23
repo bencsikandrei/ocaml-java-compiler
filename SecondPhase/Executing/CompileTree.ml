@@ -257,7 +257,8 @@ let compile_tree (verb : bool) ast (fname : string) =
 	| Some pack -> AST.print_package pack );
   	(* List.iter (fun t -> AST.print_type "" t; print_newline()) ast.type_list *)
   	let jprog = { public_class_present = false; 
-  		public_class = ""; 
+  		public_class = "";
+  		scope_class = "";
   		methods = Hashtbl.create 10; 
   		classes = Hashtbl.create 10;
   		defaults = Hashtbl.create 10;

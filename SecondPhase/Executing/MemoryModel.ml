@@ -31,15 +31,12 @@ and valuetype =
 	| BoolVal of bool
 	| ArrayVal of array
 	(* TODO, chage this to take an address *)
-	| RefVal of newobject
+	| RefVal of int
 	| VoidVal 
 	| NullVal
 
 (* heap declared objects *)
 and newobject = {
-	(* TODO remove the name, makes no sense now *)
-	(* the object declaration name *)
-	oname: string;
 	(* the class it instantiates *)
 	oclass: javaclass;
 	(* its attributes *)
@@ -64,6 +61,8 @@ and jvm = {
 	mutable public_class_present: bool;
 	(* save the public class *)
 	mutable public_class: string;
+	(* current scope class *)
+	mutable scope_class: string;
 	(* method names and ast type given *)
 	methods: (string, astmethod) Hashtbl.t;
 	(* class names *)
@@ -89,7 +88,7 @@ let rec string_of_value v =
  	| FltVal(f) -> string_of_float f
  	| BoolVal(b) -> string_of_bool b
  	| ArrayVal(a) -> "["^ListII.concat_map "," string_of_value a.avals^"]"
-	| RefVal(nw) -> "Class "^nw.oclass.id
+	| RefVal(addr) -> " @ "^(sprintf "0x%08x" addr)
 	| NullVal -> "Null"
 	| _ -> ""
 
@@ -99,7 +98,7 @@ let print_scope jvm =
 	try 
 		match (Stack.top jvm.jvmstack) with 
 		| (s, v) -> print_endline s; 
-				Hashtbl.iter (fun key value -> print_string (key ^"="); 
+				Hashtbl.iter (fun key value -> print_string (key ^" = "); 
 										print_endline (string_of_value value)) v.visible
 	with
 	| _ -> print_endline "Program exited normally"
@@ -108,7 +107,7 @@ let print_scope jvm =
 let print_heap jvm =
 	print_endline "### The HEAP ###";
 	(* Hashtbl.iter (fun key value -> print_endline key; print_endline value.mname) jmc.methods; *)
-	Hashtbl.iter (fun key value -> print_endline (" Object: "^value.oname);
+	Hashtbl.iter (fun key value -> print_endline (" Object: "^value.oclass.id);
 									Printf.printf " @ address: 0x%08x" key
 										) jvm.jvmheap
 
