@@ -121,8 +121,7 @@ let rec remove_vars_from_scope (jprog : jvm) decls =
     in 
     match decls with
     | [] -> ()
-    | hd::tl -> let (n, v) = hd
-            in
+    | (n, v)::tl -> 
             (* print_endline "Some"; *)
             (* print_string n; print_endline(string_of_value v); *)
             Hashtbl.remove scope.visible n;
@@ -504,6 +503,9 @@ and execute_expression (jprog : jvm) expr =
                     execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) (Some obj) signature args;
             | (VoidVal, _) -> (* the return value of the method is given, the method needs the class *)
                     execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) None signature args;
+            | (NullVal, _) -> 
+                    raise NullPointerException
+                    
             end;
             
     | _ -> StrVal("Not yet implemented")
@@ -602,6 +604,48 @@ and execute_for (jprog : jvm) fortest forincr (stmt : statement) =
     | BoolVal(false) -> ()
     | _ -> raise (Exception "Illegal condition in while loop")
 
+and get_exception_object (jprog : jvm) (expn : exn) =
+    match expn with
+    | NullPointerException -> execute_new jprog "NullPointerException" []
+    | _ -> execute_new jprog "Exception" []
+
+(* execute try catch finally *)
+and execute_try (jprog : jvm) (trysl : statement list) 
+                (catchsl : (argument * statement list) list) (finsl : statement list) =
+    (* execute the statements in try *)
+    let tryvars = (
+    try 
+        execute_statements jprog trysl
+    with 
+    | _ as expn -> begin
+            let e = get_exception_object jprog expn 
+            in
+            execute_catches jprog catchsl e
+            end)
+    in
+    remove_vars_from_scope jprog tryvars;
+    (* execute the finally if it exists *)
+    execute_statements jprog finsl
+
+(* take each catch an execute it *)
+and execute_catches (jprog : jvm) (catchsl : (argument * statement list) list) (e : valuetype) =
+    (*  *)
+    match catchsl with
+    | [] -> []
+    | (arg, sl)::tl -> 
+            let argexp = (match arg.ptype with | Ref(rt) -> rt.tid)
+            in
+            let expn = get_object_from_heap jprog (match e with | RefVal(addr) -> addr)
+            in
+            if (expn.oclass.id = argexp || argexp = "Exception")
+            then begin
+                execute_statements jprog sl;
+                execute_catches jprog [] e
+            end
+            else 
+                execute_catches jprog tl e;
+            []
+
 (* execute all sorts of statements *)
 and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.valuetype) list = 
     match stmt with
@@ -665,6 +709,11 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
             | _ -> raise (Exception "Not throwable")
             end
 
+    (* try catch finally *)
+    | Try(trysl, catchsl, finsl) ->
+            begin
+            execute_try jprog trysl catchsl finsl
+            end
     | Return(eo) -> (* a return must pop the top of the stack *)
 			begin
             (* raise an event when we return something, to stop the execution *)

@@ -140,12 +140,19 @@ let exceptionclass = get_class { tpath = []; tid = "Object" }
 			[]
 			Location.none
 ;;
+let nullpointerexception = get_class { tpath = []; tid = "Exception" }
+		    [] [] 
+		    []
+		    []
+			[]
+			Location.none
+;;
 (* ----------------------------- END ----------------------------------------------- *)
 
 
 (* ----------------------------- AST.Type EXCEPTION ----------------------------------------------- *)
 let exceptiontype = get_asttype [] "Exception" (Class exceptionclass)
-
+let nullpointerexceptiontype = get_asttype [] "NullPointerException" (Class nullpointerexception)
 
 (* add the methods 
 	This takes the list of classes from JavaLang (defined above)
@@ -153,7 +160,7 @@ let exceptiontype = get_asttype [] "Exception" (Class exceptionclass)
 	This is going back to the main where it is actually compiled	
 *)
 let	add_default_classes ast =
-	let default_class_list = [ objecttype; exceptiontype ]
+	let default_class_list = [ objecttype; exceptiontype; nullpointerexceptiontype ]
 	in
 	print_endline "Adding defaults";
 	{
