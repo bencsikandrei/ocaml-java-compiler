@@ -18,7 +18,8 @@ let get_method (modifs : modifier list)
 		    margstype = argstype;
 		    mthrows = throws;
 		    mbody = body;
-		    mloc = Location.none
+		    mloc = Location.none;
+		    msemi = false;
 	}
 ;;
 

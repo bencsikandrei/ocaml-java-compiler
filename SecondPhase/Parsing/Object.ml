@@ -17,6 +17,7 @@ let objectInfo =
                 AST.mthrows = [{Type.tpath=[];Type.tid="CloneNotSupportedException"}];
                 AST.mbody = [];
                 AST.mloc = Location.none;
+                AST.msemi = false;
             };
             {
                 AST.mmodifiers = [Public];
@@ -33,6 +34,7 @@ let objectInfo =
                 AST.mthrows = [];
                 AST.mbody = [];
                 AST.mloc = Location.none;
+                AST.msemi = false;
             };
             {
                 AST.mmodifiers = [Protected];
@@ -42,6 +44,7 @@ let objectInfo =
                 AST.mthrows = [{Type.tpath=[];Type.tid="Throwable"}];
                 AST.mbody = [];
                 AST.mloc = Location.none;
+                AST.msemi = false;
             };
             {
                 AST.mmodifiers = [Public];
@@ -51,6 +54,7 @@ let objectInfo =
                 AST.mthrows = [];
                 AST.mbody = [];
                 AST.mloc = Location.none;
+                AST.msemi = false;
             };
             {
                 AST.mmodifiers = [Public; Final];
@@ -60,6 +64,7 @@ let objectInfo =
                 AST.mthrows = [];
                 AST.mbody = [];
                 AST.mloc = Location.none;
+                AST.msemi = false;
             };
             {
                 AST.mmodifiers = [Public; Final];
@@ -69,6 +74,7 @@ let objectInfo =
                 AST.mthrows = [];
                 AST.mbody = [];
                 AST.mloc = Location.none;
+                AST.msemi = false;
             };
             {
                 AST.mmodifiers = [Public];
@@ -78,6 +84,7 @@ let objectInfo =
                 AST.mthrows = [];
                 AST.mbody = [];
                 AST.mloc = Location.none;
+                AST.msemi = false;
             };
             {
                 AST.mmodifiers = [Public; Final];
@@ -87,6 +94,7 @@ let objectInfo =
                 AST.mthrows = [{Type.tpath=[];Type.tid="InterruptedException"}];
                 AST.mbody = [];
                 AST.mloc = Location.none;
+                AST.msemi = false;
             };
              {
                 AST.mmodifiers = [Public; Final];
@@ -103,6 +111,7 @@ let objectInfo =
                 AST.mthrows = [{Type.tpath=[];Type.tid="InterruptedException"}];
                 AST.mbody = [];
                 AST.mloc = Location.none;
+                AST.msemi = false;
             };
             {
                 AST.mmodifiers = [Public; Final];
@@ -125,6 +134,7 @@ let objectInfo =
                 AST.mthrows = [{Type.tpath=[];Type.tid="InterruptedException"}];
                 AST.mbody = [];
                 AST.mloc = Location.none;
+                AST.msemi = false;
             };
         ];
 
