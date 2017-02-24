@@ -496,6 +496,7 @@ and execute_expression (jprog : jvm) expr =
             (* get the signature *)
             let signature = name^(get_method_signature_from_expl jprog args "")
             in
+            Log.debug false signature;
             (* A method withoud an object *)
             match (obj, name) with
             | (_, "println") -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
@@ -506,14 +507,18 @@ and execute_expression (jprog : jvm) expr =
                     (* which class is the method from? *)
                     let mname = Hashtbl.find (obj.oclass.jcmethods) signature
                     in
-                    (* get scoped class *)
-                    let scoped = get_class_name_from_jvm_method mname
-                    in 
                     (* change the scoped class if it's an object *)
-                    jprog.scope_class <- scoped;
+                    let backupscope = jprog.scope_class
+                    in
+                    jprog.scope_class <- get_class_name_from_jvm_method mname;
                     (* the return value of the method is given, the method needs the class *)
-                    execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) (Some obj) signature args;
+                    let v = execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) (Some obj) signature args
+                    in
+                    jprog.scope_class <- backupscope;
+                    v
+                    
             | (VoidVal, _) -> (* the return value of the method is given, the method needs the class *)
+                    Log.debug false ("Class name "^jprog.scope_class);
                     execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) None signature args;
             | (NullVal, _) -> 
                     raise NullPointerException
@@ -527,6 +532,7 @@ and execute_call (jprog : jvm) (cls : javaclass) (obj : newobject option) (signa
     (* find the method and link it dynamicly *)
     let signaturejvm = try (Hashtbl.find cls.jcmethods signature) with | Not_found -> raise (Exception "Method not defined")
     in
+    Log.debug false signaturejvm;
     let meth = (Hashtbl.find jprog.methods signaturejvm)
     in
     (* get values of the arguments*)
@@ -625,7 +631,10 @@ and get_exception_object (jprog : jvm) (expn : exn) =
 and raise_exception (expn : string) =
     match expn with
     | "NullPointerException" -> raise NullPointerException
+    | "ArithmeticException" -> raise ArithmeticException
+    | "IndexOutOfBoundsException" -> raise IndexOutOfBoundsException
     | _ -> raise (Exception expn)
+
 (* execute try catch finally *)
 and execute_try (jprog : jvm) (trysl : statement list) 
                 (catchsl : (argument * statement list) list) (finsl : statement list) =
@@ -715,7 +724,7 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
     from Exception, direcly or not *)
     | Throw(e) -> begin
             (* when a java exn is thrown *) 
-            print_endline "an exception has been thrown";
+            Log.debug false "An excetion has been thrown";
             (* get the exception object *)
             let exnref = execute_expression jprog e
             in
@@ -726,7 +735,8 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
                     in
                     if (is_throwable jprog tro.oclass) 
                     then 
-                        [(tro.oclass.id, v)]
+                        (* [(tro.oclass.id, v)] *)
+                        raise_exception (tro.oclass.id)
                     else 
                         raise (Exception "Not throwable")
             | _ -> raise (Exception "Not throwable")
@@ -784,13 +794,13 @@ and execute_method (jprog : jvm) (m : astmethod) (args : (string * MemoryModel.v
     (* print the contents of the scope *)
     print_scope jprog;
     (* pop the stack *)
-    Log.debug true "Removing a scope";
+    Log.debug false "Removing a scope";
     begin
     try
         Stack.pop jprog.jvmstack;()
     with 
-    | _ -> Log.debug true "### --------- ###";
-            Log.debug true ("Exited with " ^ (string_of_value ret));
+    | _ -> Log.debug false "### --------- ###";
+            Log.debug false ("Exited with " ^ (string_of_value ret));
     end;
     ret
 
@@ -815,7 +825,7 @@ let execute_code (jprog : jvm) =
     AST.print_method "" startpoint;
     (* add the main mathods scope to the stack *)
     Stack.push (get_new_scope startpoint.mname) jprog.jvmstack;
-    Log.debug true "### Running ... ###";
+    Log.debug false "### Running ... ###";
     (* print_scope jprog; *)
     (* run the program *)
     let exitval = execute_method jprog startpoint []

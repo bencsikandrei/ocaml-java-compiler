@@ -5,6 +5,8 @@ open Type
 open Log
 open Printf
 
+let verbose = false;;
+
 type javaclass = {
 	(* a type to hold class methods, attributes, constructors,
 	name, paret class, etc
