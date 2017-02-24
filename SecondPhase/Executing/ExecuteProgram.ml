@@ -55,6 +55,28 @@ let rec is_superclass (jprog : jvm) (chld : javaclass) (prt : string) =
         else
             is_superclass jprog (Hashtbl.find jprog.classes prnt) prt
     end
+
+(* receives a valuetype and returns its Type.t equivalent *)
+let rec valuetype_to_t (value : valuetype) : Type.t =
+    match value with
+    | TypeVal(t) -> t
+    | ArrayVal(arr) -> Array((valuetype_to_t arr.atype),(valuetype_to_ocaml_int (List.nth arr.adim 0)))
+    | VoidVal -> Void 
+    | IntVal(i) -> Primitive(Int)
+    | FltVal(f) -> Primitive(Float)
+    | BoolVal(b) -> Primitive(Boolean)
+    (*| StrVal(s) -> 
+    | RefVal(rf) -> Ref({tpath=[];tid=}) (* empty path! TODO CHECK *)
+    | NullVal
+    *)
+
+(* checks that the elements of a list are of some valuetype, returns the type as TypeVal otherwise raises an exception *)
+let check_elements_type (l : valuetype list) : valuetype =
+    let ty = (TypeVal (valuetype_to_t (List.nth l 0)))
+    in
+    (List.iter (fun x -> if ((TypeVal (valuetype_to_t x)) <> ty) then (raise (Exception "Incompatible types in array"))) l);
+    ty
+
 (* build list of n lenght with the default value *)
 (* gives a list of valuetype of the given dimension with default values according to the type *)
 let rec build_list (jprog : jvm) (t : Type.t) (i : int) (dim : valuetype list) = 
@@ -265,7 +287,9 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
 and array_set_nth (arr : valuetype) (n : int) (result : valuetype) =
 match arr with
 | ArrayVal(a) -> if (n < (valuetype_to_ocaml_int (List.nth a.adim 0)))
-                then ArrayVal({adim=a.adim;aname=a.aname;avals=(List.mapi (fun i x -> if (i=n) then result else x) a.avals)})
+                then (if (a.atype=(TypeVal (valuetype_to_t result)))
+                    then ArrayVal({atype=a.atype;adim=a.adim;aname=a.aname;avals=(List.mapi (fun i x -> if (i=n) then result else x) a.avals)})
+                    else raise (Exception "Incompatible type"))
                 else raise IndexOutOfBoundsException
 
 (* variable linking *)
@@ -364,7 +388,7 @@ and execute_constructor (jprog : jvm) (c : astconst) (attrs : (string, valuetype
 and add_attr (jprog : jvm) (ht : (string, valuetype) Hashtbl.t) (attr : astattribute) =
     let init = (match attr.adefault with | Some(e) -> (execute_expression jprog e)
                                          | None -> (match (attr.atype) with
-                                                  | Array(ty,dim) -> ArrayVal({aname=None;avals=(build_list jprog ty 0 [IntVal(dim)]);adim=[IntVal(dim)]})
+                                                  | Array(ty,dim) -> ArrayVal({atype=(TypeVal ty);aname=None;avals=(build_list jprog ty 0 [IntVal(dim)]);adim=[IntVal(dim)]})
                                                   | Primitive(p) -> Hashtbl.find jprog.defaults p)
                                                   (*| Ref(r) -> RefVal({oclass=javaclass;oattributes=}))*))
     in
@@ -435,14 +459,16 @@ and execute_expression (jprog : jvm) expr =
     | AssignExp(e1, op, e2) -> execute_assign jprog e1 op e2
     | Op(e1, op, e2) -> execute_operator jprog e1 op e2
     | CondOp(e1, e2, e3) -> execute_ternary jprog e1 e2 e3
-    | ArrayInit(el) -> ArrayVal({aname=None;avals=(execute_expressions jprog el);adim=[IntVal(List.length el)]}) (* TODO check if all elems of same type *)
+    | ArrayInit(el) -> let vlist = (execute_expressions jprog el)
+                    in
+                    ArrayVal({atype=(check_elements_type vlist);aname=None;avals=vlist;adim=[IntVal(List.length el)]})
     | NewArray(t,expol,expo) -> (* type, dimension, initialization  *)
                                 let dim=(match expol with | [] ->  [IntVal(0)]
                                                            | _ -> (List.map (fun expo -> (match expo with 
                                                                                         | None -> IntVal(0)
                                                                                         | Some(e) -> (execute_expression jprog e))) expol))
                                 in
-                                let init=(match expo with   | None -> ArrayVal({aname=None;adim=dim;avals=(build_list jprog t 0 dim)})
+                                let init=(match expo with   | None -> ArrayVal({atype=(TypeVal t);aname=None;adim=dim;avals=(build_list jprog t 0 dim)})
                                                             | Some(e) -> execute_expression jprog e) (* overwrites the dimension *)
                                 in
                                 init
@@ -464,10 +490,9 @@ and execute_expression (jprog : jvm) expr =
                                                             | Some(e) -> (execute_expression jprog e) )) expol)
                                             in (* only checking one dimension *)
                                             let one_dim = (valuetype_to_ocaml_int (List.nth indx 0))
-                                            in (* check if index is inside the dimension limit *)
-                                            if (one_dim < (valuetype_to_ocaml_int (List.nth arr.adim 0)))
-                                            then (List.nth arr.avals one_dim)
-                                            else raise IndexOutOfBoundsException
+                                            in
+                                            try (List.nth arr.avals one_dim) with
+                                            | Failure(_) -> raise IndexOutOfBoundsException
                         | _ -> raise (Exception "Not an array")
                         end
     | Attr(exp,name) -> begin
@@ -561,7 +586,7 @@ and execute_vardecl (jprog : jvm) (decls : (Type.t * string * expression option)
                     in
                     execute_vardecl jprog tl (declpairs@[(n, v)]) (* return a list of tuple (name * value) *)
             | (Array(t,size), n, eo) -> 
-                    let v = (match eo with | None -> ArrayVal({aname=Some(n);adim=[IntVal(size)];avals=[]}) (* TODO initialize default according to size *)
+                    let v = (match eo with | None -> ArrayVal({atype=(TypeVal t);aname=Some(n);adim=[IntVal(size)];avals=(build_list jprog t 0 [IntVal size])})
                                            | Some(e) -> execute_expression jprog e)
                     in
                     execute_vardecl jprog tl (declpairs@[(n, v)])

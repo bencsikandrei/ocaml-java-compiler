@@ -32,7 +32,6 @@ and valuetype =
 	| FltVal of float
 	| BoolVal of bool
 	| ArrayVal of array
-	(* TODO, chage this to take an address *)
 	| RefVal of int
 	| VoidVal 
 	| NullVal
@@ -48,6 +47,7 @@ and newobject = {
 (* for arrays *)
 and array = {
 	aname: string option;
+	atype: valuetype;
 	adim: valuetype list;
 	avals: valuetype list;
 }
@@ -84,7 +84,8 @@ and jvm = {
 (* ------------------------------ TOSTRING ------------------------------------ *)
 (* string of valuetypes *)
 let rec string_of_value v =
-	match v with 
+	match v with
+	| TypeVal(t) -> stringOf t
 	| IntVal(i) -> string_of_int i 
 	| StrVal(s) -> s
  	| FltVal(f) -> string_of_float f
