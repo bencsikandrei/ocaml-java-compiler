@@ -43,6 +43,18 @@ let get_object_from_heap (jprog : jvm) (addr : int) =
 let get_current_scope (jprog : jvm) =
     Stack.top jprog.jvmstack
 
+(* is one class the child of the other *)
+let rec is_superclass (jprog : jvm) (chld : javaclass) (prt : string) =
+    let prnt = chld.cparent.tid
+    in
+    Log.debug false ("The parent is "^prnt);
+    Log.debug false ("The test is "^prt);
+    if (prnt = prt) then true
+    else begin
+        if (prnt = "Object") then false
+        else
+            is_superclass jprog (Hashtbl.find jprog.classes prnt) prt
+    end
 (* build list of n lenght with the default value *)
 (* gives a list of valuetype of the given dimension with default values according to the type *)
 let rec build_list (jprog : jvm) (t : Type.t) (i : int) (dim : valuetype list) = 
@@ -609,6 +621,11 @@ and get_exception_object (jprog : jvm) (expn : exn) =
     | NullPointerException -> execute_new jprog "NullPointerException" []
     | _ -> execute_new jprog "Exception" []
 
+(* raise an OCaml exception from a java object *)
+and raise_exception (expn : string) =
+    match expn with
+    | "NullPointerException" -> raise NullPointerException
+    | _ -> raise (Exception expn)
 (* execute try catch finally *)
 and execute_try (jprog : jvm) (trysl : statement list) 
                 (catchsl : (argument * statement list) list) (finsl : statement list) =
@@ -620,7 +637,7 @@ and execute_try (jprog : jvm) (trysl : statement list)
     | _ as expn -> begin
             let e = get_exception_object jprog expn 
             in
-            execute_catches jprog catchsl e
+            execute_catches jprog catchsl e false
             end)
     in
     remove_vars_from_scope jprog tryvars;
@@ -628,22 +645,28 @@ and execute_try (jprog : jvm) (trysl : statement list)
     execute_statements jprog finsl
 
 (* take each catch an execute it *)
-and execute_catches (jprog : jvm) (catchsl : (argument * statement list) list) (e : valuetype) =
-    (*  *)
-    match catchsl with
-    | [] -> []
-    | (arg, sl)::tl -> 
+and execute_catches (jprog : jvm) (catchsl : (argument * statement list) list) (e : valuetype) (caught : bool) =
+    (* take the list of catches and iterate over it *)
+                (* the exception has been put into the heap *)
+    let expn = get_object_from_heap jprog (match e with | RefVal(addr) -> addr)
+    in
+    match catchsl, caught with
+    (* if none left and exception was caugth we finished *)
+    | [], true -> []
+    (* if none left but exception not caught, we push it onwards *)
+    | [], false -> raise_exception expn.oclass.id
+    | (arg, sl)::tl, _ -> 
+            (* get the argument type *)
             let argexp = (match arg.ptype with | Ref(rt) -> rt.tid)
             in
-            let expn = get_object_from_heap jprog (match e with | RefVal(addr) -> addr)
-            in
-            if (expn.oclass.id = argexp || argexp = "Exception")
+            (* now, is it the exception in that catch ? or exc *)
+            if (expn.oclass.id = argexp || (is_superclass jprog (Hashtbl.find jprog.classes expn.oclass.id) argexp))
             then begin
                 execute_statements jprog sl;
-                execute_catches jprog [] e
+                execute_catches jprog [] e true
             end
             else 
-                execute_catches jprog tl e;
+                execute_catches jprog tl e false;
             []
 
 (* execute all sorts of statements *)
