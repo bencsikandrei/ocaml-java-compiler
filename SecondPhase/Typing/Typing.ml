@@ -308,8 +308,14 @@ let redefined (scope:AST.astclass list) (classMethods:AST.astmethod list) (fathe
 					let cmplist = List.map2 (fun (a1:AST.argument) (a2:AST.argument) -> cmptypes a1.ptype a2.ptype;) fatherMethod.margstype cm.margstype in
 					if (List.for_all (fun x -> x) cmplist) then
 					(
+						let fPub= inlist AST.Public fatherMethod.mmodifiers in
+						let fPrt= inlist AST.Protected fatherMethod.mmodifiers in
+						let cPrt= inlist AST.Protected cm.mmodifiers in
+						let cPrv= inlist AST.Private cm.mmodifiers in
 						let s1 = inlist AST.Static cm.mmodifiers in
 						let s2 = inlist AST.Static fatherMethod.mmodifiers in (
+							if ( (fPub && cPrt) || (fPub && cPrv) || (fPrt && cPrv)  ) 
+								then raise (InvalidMethodReDefinition ("method "^cm.mname^": cannot redefine method with reduced visibility."));
 							if ( (s1 && (not s2)) || (s2 && (not s1))  ) 
 								then raise (InvalidMethodReDefinition ("method "^cm.mname^" must have the same staticity in as defined by its father."));
 							if ( not (isSubClassOf scope cm.mreturntype fatherMethod.mreturntype) ) 
@@ -328,7 +334,7 @@ let rec checkRedefineInheritedMethods (aclass:AST.astclass) :AST.astmethod list 
 	else (
 		let res = checkRedefineInheritedMethods (searchClass aclass.cparent aclass.classScope) in
 		let noRedefined = List.filter (fun x -> (not (redefined aclass.classScope aclass.cmethods x));) res in
-		noRedefined@aclass.cmethods
+		noRedefined@(List.filter ( fun (x:AST.astmethod) -> not (inlist AST.Private x.mmodifiers)) aclass.cmethods)
 	)
 
 let rec verifyMethodRedefinition (aclass:AST.astclass) =
