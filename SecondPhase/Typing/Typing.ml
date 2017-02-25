@@ -8,7 +8,7 @@ exception DuplicatedArgumentName of string
 exception DuplicatedClassName of string
 exception InvalidMethodBody of string
 exception InvalidClassDefinition of string
-
+exception DuplicatedMethod of string
 
 
 (* ***********************
@@ -47,6 +47,9 @@ let rec getClasses (classes:AST.asttype list) : AST.astclass list =
 			|Inter ->  c
 		)
 
+let cmptypes (t1:Type.t) (t2:Type.t) =
+ 	(MemoryModel.TypeVal(t1)=MemoryModel.TypeVal(t2))
+ 	
 
 (* ***********************
 * Class Checking functions
@@ -127,10 +130,22 @@ and addScope (clid:string) (scope:AST.astclass list) (aclass:AST.astclass) =
 	else aclass
 
 let checkDuplicateMethod (methodslist:AST.astmethod list) (amethod:AST.astmethod) =
-	print_endline "TODO  Implement checkDuplicateMethod"
+	List.iter (
+		fun (m:AST.astmethod) -> if m.mname=amethod.mname then
+		(
+			if (List.length amethod.margstype)=(List.length m.margstype) then
+			(
+				print_endline (m.mname^" - "^amethod.mname);
+				let cmplist = List.map2 (fun (a1:AST.argument) (a2:AST.argument) -> cmptypes a1.ptype a2.ptype;) amethod.margstype m.margstype in
+				if (List.for_all (fun x -> x) cmplist) then raise (DuplicatedMethod ("Method "^m.mname^" is duplicated."))
+			)
+		);
+	    ) methodslist
 
-let verifyNoMethodDuplicates (methods:AST.astmethod list) = 
-	print_endline "TODO  Implement verifyNoMethodDuplicates"
+let rec verifyNoMethodDuplicates (methods:AST.astmethod list) =
+	match methods with
+	| [] -> ()
+	| hd::tl -> checkDuplicateMethod tl hd; verifyNoMethodDuplicates tl
 
 let rec checkNoClassDuplicates (name_class:string list) = 
 	match name_class with
@@ -232,22 +247,24 @@ let rec verifyClassMethods (aclass:AST.astclass) =
 	List.map verifyClassMethods (getClasses aclass.ctypes);
 	()
 
-let removeImplementedMethods (parentsmethods:AST.astmethod list) (classmethods:AST.astmethod list) =
-	(*List.filter ()*)
-	print_endline "TODO implement removeImplementedMethods"; []
+let checkImplementedMethod (parentsmethods:AST.astmethod list) (classmethod:AST.astmethod) =
+	try
+		checkDuplicateMethod parentsmethods classmethod;
+		true
+	with
+	| DuplicatedMethod e -> false
 
 let addAbstractMethods (parentsmethods:AST.astmethod list) (classmethods:AST.astmethod list) =
-	print_endline "TODO implement addAbstractMethods"; []
+	List.append parentsmethods (List.filter (fun (m:AST.astmethod) -> inlist AST.Abstract m.mmodifiers;) classmethods)
 
 (* returns a list of non implemented inherited abstract methods *)
 let rec checkAbstractInheritedMethods (aclass:AST.astclass) =
-	(*if aclass.clid="Object" then []
-	else
+	if aclass.clid="Object" then [] 
+	else (
 		let res = checkAbstractInheritedMethods (searchClass aclass.cparent aclass.classScope) in
-		let nonimplem = removeImplementedMethods res aclass.cmethods in
-		addAbstractMethods nonimplem aclass.cmethods*)
-	[]
-
+		let nonimplem = List.filter (checkImplementedMethod aclass.cmethods) res  in
+		addAbstractMethods nonimplem aclass.cmethods
+	)
 
 let rec verifyInheritedAbstract (aclass:AST.astclass) =
 	if not (inlist AST.Abstract aclass.clmodifiers) then
@@ -286,7 +303,7 @@ let rec createPckg (x:AST.qualified_name) (var:AST.astclass list) (id:string)=
 	| last::[] -> 	[{
 			AST.clid=id^last ;
 	    	AST.clname=last ;
-	    	AST.classScope=var;
+	    	AST.classScope=Object.objectInfo::var;
 	    	AST.clmodifiers=[];
 	    	AST.cparent = {tpath=[];tid="Object"} ;
 	    	AST.cattributes = [];
@@ -301,7 +318,7 @@ let rec createPckg (x:AST.qualified_name) (var:AST.astclass list) (id:string)=
 		[{
 			AST.clid=id^head ;
     		AST.clname=head ;
-    		AST.classScope=next;
+    		AST.classScope=Object.objectInfo::next;
     		AST.clmodifiers=[];
 	    	AST.cparent = {tpath=[];tid="Object"} ;
 	    	AST.cattributes = [];
