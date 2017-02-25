@@ -9,6 +9,7 @@ exception DuplicatedClassName of string
 exception InvalidMethodBody of string
 exception InvalidClassDefinition of string
 exception DuplicatedMethod of string
+exception InvalidMethodReDefinition of string
 
 
 (* ***********************
@@ -49,7 +50,8 @@ let rec getClasses (classes:AST.asttype list) : AST.astclass list =
 
 let cmptypes (t1:Type.t) (t2:Type.t) =
  	(MemoryModel.TypeVal(t1)=MemoryModel.TypeVal(t2))
- 	
+ 
+
 
 (* ***********************
 * Class Checking functions
@@ -92,6 +94,19 @@ let rec searchClass (clname:Type.ref_type) (scope:AST.astclass list) : AST.astcl
 					searchClass {tpath=others; tid=clname.tid} elem.classScope
 				else searchClass clname rest
 		)
+
+
+let rec isSubClassOf (scope:AST.astclass list) (son:Type.t) (father:Type.t) =
+	if (MemoryModel.TypeVal(son)=MemoryModel.TypeVal(father)) then true
+	else
+		match son with 
+		| Ref r ->
+			if (r = Type.object_type) then false
+			else 
+				let aclass = searchClass r scope in
+				isSubClassOf aclass.classScope (Ref aclass.cparent) father 
+		| _ -> false
+
 
 
 (* Verifies that the inheritance of a class is valclid *)
@@ -273,6 +288,43 @@ let rec verifyInheritedAbstract (aclass:AST.astclass) =
 	List.map verifyInheritedAbstract (getClasses aclass.ctypes);
 	()
 
+let redefined (scope:AST.astclass list) (classMethods:AST.astmethod list) (fatherMethod:AST.astmethod) = 
+	let res =List.filter (
+		fun (cm:AST.astmethod) -> 
+			if cm.mname=fatherMethod.mname then (
+				if (List.length fatherMethod.margstype)=(List.length cm.margstype) then (
+					let cmplist = List.map2 (fun (a1:AST.argument) (a2:AST.argument) -> cmptypes a1.ptype a2.ptype;) fatherMethod.margstype cm.margstype in
+					if (List.for_all (fun x -> x) cmplist) then
+					(
+						let s1 = inlist AST.Static cm.mmodifiers in
+						let s2 = inlist AST.Static fatherMethod.mmodifiers in (
+							if ( (s1 && (not s2)) || (s2 && (not s1))  ) 
+								then raise (InvalidMethodReDefinition ("method "^cm.mname^" must have the same staticity in as defined by its father."));
+							if ( not (isSubClassOf scope cm.mreturntype fatherMethod.mreturntype) ) 
+								then raise (InvalidMethodReDefinition ("method "^cm.mname^" must have same return type as defined by its father."))
+							else true
+						)
+					) else false
+				)else false
+			)else false
+	) classMethods in
+	(List.length res) > 0
+
+(* returns a list of methods from the fathers *)
+let rec checkRedefineInheritedMethods (aclass:AST.astclass) :AST.astmethod list =
+	if aclass.clid="Object" then aclass.cmethods
+	else (
+		let res = checkRedefineInheritedMethods (searchClass aclass.cparent aclass.classScope) in
+		let noRedefined = List.filter (fun x -> (not (redefined aclass.classScope aclass.cmethods x));) res in
+		noRedefined@aclass.cmethods
+	)
+
+let rec verifyMethodRedefinition (aclass:AST.astclass) =
+	checkRedefineInheritedMethods aclass;
+	List.map verifyMethodRedefinition (getClasses aclass.ctypes);
+	()
+
+
 (* Calls *)
 let verifyClasses (var:AST.t) (classes:AST.astclass list)  =
 	verifyNoClassDuplicates var.type_list;
@@ -282,6 +334,7 @@ let verifyClasses (var:AST.t) (classes:AST.astclass list)  =
 	List.map verifyClassAttributes classes;
 	List.map verifyClassMethods classes;
 	List.map verifyInheritedAbstract classes;
+	List.map verifyMethodRedefinition classes;
 	List.map verifyClassConstructors classes;
 	List.map verifyClassInitials classes
 
