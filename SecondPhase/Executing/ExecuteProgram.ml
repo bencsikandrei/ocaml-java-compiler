@@ -12,6 +12,7 @@ let verbose = ref true
 
 (* the return value *)
 exception ReturnValue of valuetype
+
 (* returns the value as ocaml primitive from valuetype *)
 let valuetype_to_ocaml_int (v : valuetype) =
     match v with
@@ -41,7 +42,7 @@ let add_object_to_heap (jprog : jvm) (newobj : newobject) =
     oldaddr
 
 (* reutrn the object at a certain address *)
-let get_object_from_heap (jprog : jvm) (addr : int) =
+let get_object_from_heap (jprog : jvm) (addr : int) : newobject =
     Hashtbl.find jprog.jvmheap addr
 
 (* get the scope *)
@@ -61,27 +62,6 @@ let rec is_superclass (jprog : jvm) (chld : javaclass) (prt : string) =
             is_superclass jprog (Hashtbl.find jprog.classes prnt) prt
     end
 
-(* receives a valuetype and returns its Type.t equivalent *)
-let rec valuetype_to_t (value : valuetype) : Type.t =
-    match value with
-    | TypeVal(t) -> t
-    | ArrayVal(arr) -> Array((valuetype_to_t arr.atype),(valuetype_to_ocaml_int (List.nth arr.adim 0)))
-    | VoidVal -> Void 
-    | IntVal(i) -> Primitive(Int)
-    | FltVal(f) -> Primitive(Float)
-    | BoolVal(b) -> Primitive(Boolean)
-    (*| StrVal(s) -> 
-    | RefVal(rf) -> Ref({tpath=[];tid=}) (* empty path! TODO CHECK *)
-    | NullVal
-    *)
-
-(* checks that the elements of a list are of some valuetype, returns the type as TypeVal otherwise raises an exception *)
-let check_elements_type (l : valuetype list) : valuetype =
-    let ty = (TypeVal (valuetype_to_t (List.nth l 0)))
-    in
-    (List.iter (fun x -> if ((TypeVal (valuetype_to_t x)) <> ty) then (raise (Exception "Incompatible types in array"))) l);
-    ty
-
 (* build list of n lenght with the default value *)
 (* gives a list of valuetype of the given dimension with default values according to the type *)
 let rec build_list (jprog : jvm) (t : Type.t) (i : int) (dim : valuetype list) = 
@@ -90,6 +70,7 @@ let rec build_list (jprog : jvm) (t : Type.t) (i : int) (dim : valuetype list) =
     in
     match t with
     | Primitive(p) -> if i < n then (Hashtbl.find jprog.defaults p)::(build_list jprog t (i+1) dim) else []
+    | Ref(rf) -> if i < n then NullVal::(build_list jprog t (i+1) dim) else []
 
 (* find the start point *)
 let get_main_method (jprog : jvm) =
@@ -124,23 +105,6 @@ let is_throwable (jprog : jvm) (jcls : javaclass) =
     in
     find_parent parent
 
-(* 
-let rec get_var_names (jprog : jvm) vardecls =
-    match vardecls with
-    | [] -> [] 
-    | hd::tl -> match hd with
-                (* type, name, optional initialization *)
-                | (Primitive(p), n, eo) -> 
-                        begin
-                        let (_, scope) = Stack.top jprog.jvmstack 
-                        in
-                        (* matched an  *)
-                        Hashtbl.add scope.visible n (match eo with 
-                                                    | None -> Hashtbl.find jprog.defaults p;
-                                                    (* we need type checks here*)
-                                                    | Some(e) -> execute_expression jprog e)
-                        end
- *)
 (* add vars to current scope *)
 let rec add_vars_to_scope (jprog : jvm) decls =
     let (_, scope) =  Stack.top jprog.jvmstack 
@@ -149,20 +113,16 @@ let rec add_vars_to_scope (jprog : jvm) decls =
     | [] -> ()
     | hd::tl -> let (n, v) = hd
             in
-            (* print_string n; print_endline( "= " ^(string_of_value v)); *)
             Hashtbl.add scope.visible n v;
             add_vars_to_scope jprog tl
 
 (* remove block variables *)
 let rec remove_vars_from_scope (jprog : jvm) decls =
-    (* print_endline "Any vars to remove from scope ?"; *)
     let (_, scope) =  Stack.top jprog.jvmstack 
     in 
     match decls with
     | [] -> ()
     | (n, v)::tl -> 
-            (* print_endline "Some"; *)
-            (* print_string n; print_endline(string_of_value v); *)
             Hashtbl.remove scope.visible n;
             remove_vars_from_scope jprog tl
 
@@ -208,17 +168,36 @@ let compute_value op val1 val2 =
     | ( _ as v1), StrVal(s) -> begin 
             StrVal((string_of_value v1)^s)
             end
-    | _,_ -> raise (Exception "Not yet implemented or incorrect operation")
+    | _,_ -> raise (Exception "Not implemented or incorrect operation")
+
+(* receives a valuetype and returns its Type.t equivalent *)
+let rec valuetype_to_t (jprog : jvm) (value : valuetype) : Type.t =
+    match value with
+    | TypeVal(t) -> t
+    | ArrayVal(arr) -> Array((valuetype_to_t jprog arr.atype),(valuetype_to_ocaml_int (List.nth arr.adim 0)))
+    | VoidVal -> Void 
+    | IntVal(i) -> Primitive(Int)
+    | FltVal(f) -> Primitive(Float)
+    | BoolVal(b) -> Primitive(Boolean)
+    | RefVal(rf) -> Ref({tpath=[];tid=(get_object_from_heap jprog rf).oclass.id}) (* empty path! TODO CHECK *)
+    | NullVal -> Ref({tpath=[];tid=""})
+    | StrVal(s) -> Array(Primitive(Char),(String.length s))
+
+(* checks that the elements of a list are of some valuetype, returns the type as TypeVal otherwise raises an exception *)
+and check_elements_type (jprog : jvm) (l : valuetype list) : valuetype =
+    let ty = (TypeVal (valuetype_to_t jprog (List.nth l 0)))
+    in
+    (List.iter (fun x -> if ((TypeVal (valuetype_to_t jprog x)) <> ty) then (raise (Exception "Incompatible types in array"))) l);
+    ty
 
 (* do var++ and var--*)
-let rec execute_postfix (jprog : jvm) (e : expression) postop =
+and execute_postfix (jprog : jvm) (e : expression) postop =
     (* see what type *) 
     let one = { edesc = Val(Int("1")); eloc = Location.none; etype = None }
     in
     match postop with
     | Incr -> execute_assign jprog e Ass_add one
     | Decr -> execute_assign jprog e Ass_sub one
-    
 
 (* do ++var and --var *)
 and execute_prefix (jprog : jvm) preop (e : expression) =
@@ -281,7 +260,7 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
                                             | IntVal(i) -> let var = (string_of_expression ex)
                                                         in (* check it array exists *)
                                                         if (Hashtbl.mem scope.visible var)
-                                                        then Hashtbl.replace scope.visible var (array_set_nth (Hashtbl.find scope.visible var) i result)
+                                                        then Hashtbl.replace scope.visible var (array_set_nth jprog (Hashtbl.find scope.visible var) i result)
                                                         else raise (Exception ("Variable not defined "^var))
                                             end
                                 | None -> raise (Exception "This should be accepted by the parser but it does. SHAME!")
@@ -289,10 +268,10 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
             | _ -> raise (Exception "Bad assignment")
 
 (* used to return a list with the nth element modified of the given array *)
-and array_set_nth (arr : valuetype) (n : int) (result : valuetype) =
+and array_set_nth (jprog : jvm) (arr : valuetype) (n : int) (result : valuetype) =
 match arr with
 | ArrayVal(a) -> if (n < (valuetype_to_ocaml_int (List.nth a.adim 0)))
-                then (if (a.atype=(TypeVal (valuetype_to_t result)))
+                then (if (a.atype=(TypeVal (valuetype_to_t jprog result)))
                     then ArrayVal({atype=a.atype;adim=a.adim;aname=a.aname;avals=(List.mapi (fun i x -> if (i=n) then result else x) a.avals)})
                     else raise (Exception "Incompatible type"))
                 else raise IndexOutOfBoundsException
@@ -466,7 +445,7 @@ and execute_expression (jprog : jvm) expr =
     | CondOp(e1, e2, e3) -> execute_ternary jprog e1 e2 e3
     | ArrayInit(el) -> let vlist = (execute_expressions jprog el)
                     in
-                    ArrayVal({atype=(check_elements_type vlist);aname=None;avals=vlist;adim=[IntVal(List.length el)]})
+                    ArrayVal({atype=(check_elements_type jprog vlist);aname=None;avals=vlist;adim=[IntVal(List.length el)]})
     | NewArray(t,expol,expo) -> (* type, dimension, initialization  *)
                                 let dim=(match expol with | [] ->  [IntVal(0)]
                                                            | _ -> (List.map (fun expo -> (match expo with 
@@ -474,16 +453,18 @@ and execute_expression (jprog : jvm) expr =
                                                                                         | Some(e) -> (execute_expression jprog e))) expol))
                                 in
                                 let init=(match expo with   | None -> ArrayVal({atype=(TypeVal t);aname=None;adim=dim;avals=(build_list jprog t 0 dim)})
-                                                            | Some(e) -> execute_expression jprog e) (* overwrites the dimension *)
+                                                            | Some(e) -> if (dim=[IntVal(0)]) 
+                                                                        then execute_expression jprog e (* only if dimension was not given *)
+                                                                        else raise (Exception "Cannot initialize array and give its dimension"))
                                 in
                                 init
     | Instanceof(e,t) -> begin 
                         match (execute_expression jprog e),t with
                         | RefVal(addr),Ref(r2) -> let r1 = get_object_from_heap jprog addr in
-                                if (r1.oclass.id = r2.tid) then BoolVal(true) else BoolVal(false) (* not considering path yet TODO *)
+                                if (r1.oclass.id = r2.tid) then BoolVal(true) else BoolVal(false) (* not considering path TODO *)
                         | _,_ -> BoolVal(false)
                         end
-    | New(stro,strl,expl) -> (* something ?? classname args *)
+    | New(stro,strl,expl) -> (* classwrapper classname args *)
                             let obj = (match stro with | None -> execute_new jprog (List.nth strl ((List.length strl)-1)) expl (* only local *)
                                                        | Some(s) -> (print_endline "Inner classes, not implemented"); NullVal)
                             in
@@ -720,8 +701,7 @@ and execute_catches (jprog : jvm) (catchsl : (argument * statement list) list) (
 and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.valuetype) list = 
     match stmt with
     (* treat all the expressions *)
-    | Expr(e) -> (* print_endline "Executing an expression"; *)
-                execute_expression jprog e; (* print_endline (AST.string_of_expression e) *)
+    | Expr(e) -> execute_expression jprog e;
                 []
     (* a variable declaration *)
     | VarDecl(vardecls) -> let declarations = execute_vardecl jprog vardecls []

@@ -92,8 +92,8 @@ let rec string_of_value v =
  	| BoolVal(b) -> string_of_bool b
  	| ArrayVal(a) -> "["^ListII.concat_map "," string_of_value a.avals^"]"
 	| RefVal(addr) -> " @ "^(sprintf "0x%08x" addr)
-	| NullVal -> "Null"
-	| _ -> ""
+	| NullVal -> "null"
+	| VoidVal -> "void"
 
 (* ------------------------------ PRINTS ------------------------------------ *)
 let print_scope jvm = 

@@ -6,6 +6,7 @@ public class TestArray4 {
 		int[] a = new int[3];
 		a[0] = true;
 		System.out.println("this should not be seen");
+
 	}
 
 }
