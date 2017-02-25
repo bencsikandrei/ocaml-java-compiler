@@ -219,7 +219,7 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
     (* see what type *)
     let right = (execute_expression jprog e2)
     in
-    let (_, scope) = Stack.top jprog.jvmstack 
+    let (sname, scope) = Stack.top jprog.jvmstack 
     in
     let result = begin
                 match op with
@@ -241,6 +241,13 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
             | Name(n) -> begin
                         match (Hashtbl.mem scope.visible n) with
                         | true -> Hashtbl.replace scope.visible n result;
+                                (* see if the variable is part of the object *)
+                                (try 
+                                    let attrs = (get_object_from_heap jprog (int_of_string (String.sub sname 0 (String.rindex sname '.')))).oattributes
+                                    in
+                                    Hashtbl.iter (fun k v -> if (Hashtbl.mem attrs k) then Hashtbl.replace attrs k v) scope.visible
+                                with 
+                                    | _ -> ());
                                 Hashtbl.find scope.visible n
                         | false -> raise (Exception ("Variable not defined "^n))
                         end
@@ -345,8 +352,6 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     (* run non-static block from class *)
     let st_vals = (List.map (fun x -> if (x.static=false) then (execute_statements jprog x.block) else []) jcls.cinits)
     in
-    (* apply attribute changes to return the object *)
-    List.iter (fun v -> apply_attrs_modification jprog attrs v) st_vals;
     (* run constructor *)
     (execute_constructor jprog constructor attrs arg_vals);
     (* take out of scope *)
@@ -411,10 +416,6 @@ and get_argument_list (jprog : jvm) (arglist : argument list) (params : expressi
     | hd::tl,hd2::tl2 -> get_argument_list jprog tl tl2 (paraml@[hd.pident,(execute_expression jprog hd2)])
     (* temporary fix for main method, we don't treat the String[] args yet *)
     | _, [] -> []
-(* receives the attributes from a class with a list of values
- searches in this list the ones that are attributes modifications and overwrites the values in attrs *)
-and apply_attrs_modification (jprog : jvm) (attrs : (string, valuetype) Hashtbl.t) (vars : (string * MemoryModel.valuetype) list) =
-    List.iter (fun (name, value) -> if (Hashtbl.mem attrs name) then (Hashtbl.replace attrs name value) else ()) vars
 
 (* casting, just to have an structure, because typing is supossed to do by the other group *)
 and execute_cast (jprog : jvm) (ty : Type.t) (exp : expression) =
