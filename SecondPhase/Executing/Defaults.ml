@@ -140,22 +140,51 @@ let exceptionclass = get_class { tpath = []; tid = "Object" }
 			[]
 			Location.none
 ;;
+let nullpointerexception = get_class { tpath = []; tid = "Exception" }
+		    [] [] 
+		    []
+		    []
+			[]
+			Location.none
+;;
+let arithmeticexception = get_class { tpath = []; tid = "Exception" }
+		    [] [] 
+		    []
+		    []
+			[]
+			Location.none
+;;
+let arrayindexoutofboundsexception = get_class { tpath = []; tid = "Exception" }
+		    [] [] 
+		    []
+		    []
+			[]
+			Location.none
+;;
+
 (* ----------------------------- END ----------------------------------------------- *)
 
 
 (* ----------------------------- AST.Type EXCEPTION ----------------------------------------------- *)
 let exceptiontype = get_asttype [] "Exception" (Class exceptionclass)
-
+let nullpointerexceptiontype = get_asttype [] "NullPointerException" (Class nullpointerexception)
+let arithmeticexceptiontype = get_asttype [] "ArithmeticException" (Class arithmeticexception)
+let arrayindexoutofboundsexceptiontype = get_asttype [] "ArrayIndexOutOfBoundsException" (Class arrayindexoutofboundsexception)
 
 (* add the methods 
 	This takes the list of classes from JavaLang (defined above)
 	and puts them into a new AST.
 	This is going back to the main where it is actually compiled	
 *)
-let	add_default_classes ast =
-	let default_class_list = [ objecttype; exceptiontype ]
+let	add_default_classes (verb : bool) ast =
+	let default_class_list = [ objecttype; 
+							exceptiontype; 
+							nullpointerexceptiontype; 
+							arithmeticexceptiontype; 
+							arrayindexoutofboundsexceptiontype 
+							]
 	in
-	print_endline "Adding defaults";
+	Log.info "Adding defaults";
 	{
 		package = ast.package;
 		type_list = (List.append default_class_list ast.type_list)

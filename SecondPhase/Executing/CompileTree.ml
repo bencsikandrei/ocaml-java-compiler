@@ -99,7 +99,7 @@ let add_method_from_parent (jprog : jvm) clsmeth (methname : string) (methfullna
 	(* check for the method in the JVM table *)
 	(* print_endline "in add method from parents "; *)
 	(* print_jvm jprog; *)
-	Log.debug !verbose "Adding methods from parent";
+	Log.debug "Adding methods from parent";
 	let m = Hashtbl.find jprog.methods methfullname
 	in
 	(* print_endline "after the find "; *)
@@ -120,7 +120,7 @@ let add_methods (jprog : jvm) (c : AST.astclass) (clsname : string)=
 		take only classes (since interfaces are not supported)
 		for classes, loop through their methods
 		add the methods *)
-	Log.debug !verbose "Adding methods from the class";
+	Log.debug "Adding methods from the class";
 	let methods = Hashtbl.create 20 
 	in
 	List.iter (add_method jprog methods clsname) c.cmethods;
@@ -157,7 +157,7 @@ let add_constructors (c : AST.astclass) (classname : string) =
 	(* get every constructor, put it
 	into the hashtable, also put signature
 	permits overloading *)
-	Log.debug !verbose "Adding constructors";
+	Log.debug "Adding constructors";
 	let constructors = Hashtbl.create 10
 	in
 	(* check if there is a constructor defined *)
@@ -188,7 +188,7 @@ let rec get_parent_attributes (pattributes : astattribute list) (attrlst :  asta
 (* add all attributes to that class, including the ones from the parent *)
 let add_attributes (jprog : jvm) (c : AST.astclass) =
 	(* Object is not taken care of *)
-	Log.debug !verbose "Adding attributes";
+	Log.debug "Adding attributes";
 	if c.cparent.tid <> ""
 	then begin
 		let parent = Hashtbl.find jprog.classes c.cparent.tid
@@ -220,7 +220,7 @@ let rec add_class (jprog : jvm) ast (fname : string) (cls : AST.asttype) =
 			(* if the parent has not already been added *)
 			if (class_added jprog c.cparent.tid) = false 
 			then begin
-				Log.debug !verbose ("Checking parent " ^ c.cparent.tid);
+				Log.debug ("Checking parent " ^ c.cparent.tid);
 				(* add the parent *)
 				try 
 					add_class jprog ast fname (get_parent ast.type_list c.cparent.tid)
@@ -229,7 +229,7 @@ let rec add_class (jprog : jvm) ast (fname : string) (cls : AST.asttype) =
 				| Exceptions.UnknownSymbol(e) -> print_endline e; Location.print c.cloc; exit (-1)
 			end;
 			(* now that all parents are added, add the class *)
-			Log.debug !verbose ("Adding class now " ^ cls.id);
+			Log.debug ("Adding class now " ^ cls.id);
 			let javacls = {		id =  cls.id; 
 								cparent = c.cparent;
 							    jattributes = (add_attributes jprog c);
@@ -268,16 +268,18 @@ let compile_tree (verb : bool) ast (fname : string) =
   		} 
   	in
   	(* the jvm automatically includes javalang *)
-  	let enhancedast = Defaults.add_default_classes ast
+  	let enhancedast = Defaults.add_default_classes verb ast
   	in
   	(* add the classes *)
   	add_classes jprog enhancedast fname;
   	(* once we have classes, find methods *)
   	(* add_methods jprog; *)
   	(* print the current state *)
-  	Log.debug !verbose "----- Printing JVM contents -----";
+  	Log.debug "----- Printing JVM contents -----";
+  	(* initiate logs with verbosity level *)
+    MemoryModel.initiate_logs verb;
   	print_jvm jprog;
   	(* print classes *)
-  	Log.debug !verbose "----- Printing each class contents -----";
+  	Log.debug "----- Printing each class contents -----";
   	Hashtbl.iter (fun key value -> print_jclass value) jprog.classes;
   	jprog
