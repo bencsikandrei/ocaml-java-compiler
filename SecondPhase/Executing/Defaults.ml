@@ -176,7 +176,7 @@ let arrayindexoutofboundsexceptiontype = get_asttype [] "ArrayIndexOutOfBoundsEx
 	and puts them into a new AST.
 	This is going back to the main where it is actually compiled	
 *)
-let	add_default_classes ast =
+let	add_default_classes (verb : bool) ast =
 	let default_class_list = [ objecttype; 
 							exceptiontype; 
 							nullpointerexceptiontype; 
@@ -184,7 +184,7 @@ let	add_default_classes ast =
 							arrayindexoutofboundsexceptiontype 
 							]
 	in
-	print_endline "Adding defaults";
+	Log.info "Adding defaults";
 	{
 		package = ast.package;
 		type_list = (List.append default_class_list ast.type_list)

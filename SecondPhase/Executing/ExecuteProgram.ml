@@ -5,6 +5,11 @@ open Exceptions
 open MemoryModel
 open Log
 
+(* for the logs 
+    if true, logs print, else they are mutted
+*)
+let verbose = ref true
+
 (* the return value *)
 exception ReturnValue of valuetype
 (* returns the value as ocaml primitive from valuetype *)
@@ -47,8 +52,8 @@ let get_current_scope (jprog : jvm) =
 let rec is_superclass (jprog : jvm) (chld : javaclass) (prt : string) =
     let prnt = chld.cparent.tid
     in
-    Log.debug false ("The parent is "^prnt);
-    Log.debug false ("The test is "^prt);
+    Log.debug ("The parent is "^prnt);
+    Log.debug ("The test is "^prt);
     if (prnt = prt) then true
     else begin
         if (prnt = "Object") then false
@@ -511,17 +516,17 @@ and execute_expression (jprog : jvm) expr =
     | Call(expo, name, args) -> begin
 
             let obj = match expo with | None -> VoidVal
-                                    | Some({ edesc = Name(id) }) -> Log.debug false ("Just id: "^id);
+                                    | Some({ edesc = Name(id) }) -> Log.debug ("Just id: "^id);
                                             let (_,scope) = get_current_scope jprog
                                             in
                                             Hashtbl.find scope.visible id
-                                    | Some({ edesc = Attr(o, id)}) -> Log.debug false ("Object name: "^id); NullVal
+                                    | Some({ edesc = Attr(o, id)}) -> Log.debug ("Class name: "^id); TypeVal(Ref({tpath=[]; tid=id}))
             (* after we have the jvmheap made, we can actually try for NULL object exception *)
             in
             (* get the signature *)
             let signature = name^(get_method_signature_from_expl jprog args "")
             in
-            Log.debug false signature;
+            Log.debug signature;
             (* A method withoud an object *)
             match (obj, name) with
             | (_, "println") -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
@@ -541,9 +546,17 @@ and execute_expression (jprog : jvm) expr =
                     in
                     jprog.scope_class <- backupscope;
                     v
-                    
+            | (TypeVal(Ref{tpath = tpth; tid = id}), name) ->
+                    Log.debug ("Static method from class "^id);
+                    let backupscope = jprog.scope_class
+                    in
+                    jprog.scope_class <- id;
+                    let v = execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) None signature args
+                    in
+                    jprog.scope_class <- backupscope;
+                    v
             | (VoidVal, _) -> (* the return value of the method is given, the method needs the class *)
-                    Log.debug false ("Class name "^jprog.scope_class);
+                    Log.debug ("Class name "^jprog.scope_class);
                     execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) None signature args;
             | (NullVal, _) -> 
                     raise NullPointerException
@@ -557,7 +570,7 @@ and execute_call (jprog : jvm) (cls : javaclass) (obj : newobject option) (signa
     (* find the method and link it dynamicly *)
     let signaturejvm = try (Hashtbl.find cls.jcmethods signature) with | Not_found -> raise (Exception "Method not defined")
     in
-    Log.debug false signaturejvm;
+    Log.debug signaturejvm;
     let meth = (Hashtbl.find jprog.methods signaturejvm)
     in
     (* get values of the arguments*)
@@ -749,7 +762,7 @@ and execute_statement (jprog : jvm) (stmt : statement) : (string * MemoryModel.v
     from Exception, direcly or not *)
     | Throw(e) -> begin
             (* when a java exn is thrown *) 
-            Log.debug false "An excetion has been thrown";
+            Log.debug "An excetion has been thrown";
             (* get the exception object *)
             let exnref = execute_expression jprog e
             in
@@ -819,13 +832,13 @@ and execute_method (jprog : jvm) (m : astmethod) (args : (string * MemoryModel.v
     (* print the contents of the scope *)
     print_scope jprog;
     (* pop the stack *)
-    Log.debug false "Removing a scope";
+    Log.debug "Removing a scope";
     begin
     try
         Stack.pop jprog.jvmstack;()
     with 
-    | _ -> Log.debug false "### --------- ###";
-            Log.debug false ("Exited with " ^ (string_of_value ret));
+    | _ -> Log.debug "### --------- ###";
+            Log.debug ("Exited with " ^ (string_of_value ret));
     end;
     ret
 
@@ -839,7 +852,9 @@ let add_defaults (jprog : jvm) =
 
 (* Make a structure that contains the whole program, its heap
 stack .. *)
-let execute_code (jprog : jvm) =
+let execute_code (verb : bool) (jprog : jvm) =
+    (* set verbosity *)
+    verbose := verb;
     (* setup the JVM *)
     add_defaults jprog;
     let startpoint = get_main_method jprog 
@@ -847,13 +862,12 @@ let execute_code (jprog : jvm) =
     (* first scope class *)
     jprog.scope_class <- jprog.public_class;
     (* the main method *)
-    AST.print_method "" startpoint;
+    (* AST.print_method "" startpoint; *)
     (* add the main mathods scope to the stack *)
     Stack.push (get_new_scope startpoint.mname) jprog.jvmstack;
-    Log.debug false "### Running ... ###";
+    Log.debug "### Running ... ###";
     (* print_scope jprog; *)
     (* run the program *)
     let exitval = execute_method jprog startpoint []
 	in
-	
     print_heap jprog

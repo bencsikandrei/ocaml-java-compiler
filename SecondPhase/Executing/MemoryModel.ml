@@ -5,7 +5,7 @@ open Type
 open Log
 open Printf
 
-let verbose = false;;
+let verbose = ref true;;
 
 type javaclass = {
 	(* a type to hold class methods, attributes, constructors,
@@ -97,43 +97,48 @@ let rec string_of_value v =
 
 (* ------------------------------ PRINTS ------------------------------------ *)
 let print_scope jvm = 
-	print_endline "# Printing scope #";
+	Log.info "# Printing scope #";
 	try 
 		match (Stack.top jvm.jvmstack) with 
-		| (s, v) -> print_endline s; 
-				Hashtbl.iter (fun key value -> print_string (key ^" = "); 
-										print_endline (string_of_value value)) v.visible
+		| (s, v) -> Log.info s; 
+				Hashtbl.iter (fun key value -> Log.info (key ^" = "); 
+										Log.info (string_of_value value)) v.visible
 	with
 	| _ -> print_endline "Program exited normally"
 
 (* contents of heap *)
 let print_heap jvm =
-	print_endline "### The HEAP ###";
+	Log.info "### The HEAP ###";
 	(* Hashtbl.iter (fun key value -> print_endline key; print_endline value.mname) jmc.methods; *)
-	Hashtbl.iter (fun key value -> print_endline (" Object: "^value.oclass.id);
-									Printf.printf " @ address: 0x%08x\n" key
+	Hashtbl.iter (fun key value -> Log.info (" Object: "^value.oclass.id);
+									Log.info (Printf.sprintf " @ address: 0x%08x\n" key)
 										) jvm.jvmheap
 
 (* the whole content of it *)
 let print_jvm jvm = 
 	(* Hashtbl.iter (fun key value -> print_endline key; print_endline value.mname) jmc.methods; *)
-	Hashtbl.iter (fun key value -> print_string ("class name: "^key); 
-									print_endline (" class in jvm: "^value.id)) jvm.classes;
+	Hashtbl.iter (fun key value -> Log.info ("class name: "^key); 
+									Log.info (" class in jvm: "^value.id)) jvm.classes;
 
-	Hashtbl.iter (fun key value -> print_string ("method name: "^key); 
-									print_endline (" method in jvm: "^value.mname)) jvm.methods;
+	Hashtbl.iter (fun key value -> Log.info ("method name: "^key); 
+									Log.info (" method in jvm: "^value.mname)) jvm.methods;
 
-	print_endline ("Public class present: " ^ (string_of_bool jvm.public_class_present));
+	Log.info ("Public class present: " ^ (string_of_bool jvm.public_class_present));
 
-	print_endline ("The public class is: " ^ jvm.public_class)
+	Log.info ("The public class is: " ^ jvm.public_class)
 
 let print_jclass jclass =
-	print_endline ("### Class " ^ jclass.id ^ " ###");
+	Log.info ("### Class " ^ jclass.id ^ " ###");
 	(* print all attributes *)
 	List.iter (fun t -> AST.print_attribute "" t) jclass.jattributes; 
 	(* print the class constructors *)
-	Hashtbl.iter (fun key value -> print_string ("constructor: " ^ key);
-									print_endline (" | constructor full name: " ^value.cname)) jclass.jconsts;
+	Hashtbl.iter (fun key value -> Log.info ("constructor: " ^ key);
+									Log.info (" | constructor full name: " ^value.cname)) jclass.jconsts;
 	(* print the class methods and attributes *)
-	Hashtbl.iter (fun key value -> print_string ("method: " ^ key);
-									print_endline (" | method in jvm table: " ^value)) jclass.jcmethods
+	Hashtbl.iter (fun key value -> Log.info ("method: " ^ key);
+									Log.info (" | method in jvm table: " ^value)) jclass.jcmethods
+
+(* initiate logs *)
+let initiate_logs (verb : bool) =
+	(* set verbosity *)
+	verbose := verb
