@@ -150,7 +150,6 @@ let checkDuplicateMethod (methodslist:AST.astmethod list) (amethod:AST.astmethod
 		(
 			if (List.length amethod.margstype)=(List.length m.margstype) then
 			(
-				print_endline (m.mname^" - "^amethod.mname);
 				let cmplist = List.map2 (fun (a1:AST.argument) (a2:AST.argument) -> cmptypes a1.ptype a2.ptype;) amethod.margstype m.margstype in
 				if (List.for_all (fun x -> x) cmplist) then raise (DuplicatedMethod ("Method "^m.mname^" is duplicated."))
 			)
@@ -186,8 +185,21 @@ let rec verifyClassModifiers (aclass:AST.astclass) =
 	List.map verifyClassModifiers (getClasses aclass.ctypes);
 	() (*leave this unit to prevent recursive map problems*)
 
+let rec verifyMemberClassModifiersInner (allowstatic:bool)  (aclass:AST.astclass) =
+	if (not allowstatic) && (inlist AST.Static aclass.clmodifiers) then raise (InvalidModifier ("Static types can only be declared in static or top level types."));
+	List.map (verifyMemberClassModifiersInner (inlist AST.Static aclass.clmodifiers)) (getClasses aclass.ctypes);
+	()
+
 let verifyMemberClassModifiers (aclass:AST.astclass) = 
-	print_endline "TODO  Implement verifyMemberClassModifiers (inner/outter mod rules)"
+	if (inlist AST.Private aclass.clmodifiers) then raise (InvalidModifier ("Private modifier is not allowed in top level classes."));
+	if (inlist AST.Protected aclass.clmodifiers) then raise (InvalidModifier ("Protected modifier is not allowed in top level classes."));
+	if (inlist AST.Static aclass.clmodifiers) then raise (InvalidModifier ("Static modifier is not allowed in top level classes."));
+	List.map (fun (c:AST.asttype) -> 
+				match c.info with
+				 | AST.Class cl -> verifyMemberClassModifiersInner true cl
+				 | _ -> ()
+			) aclass.ctypes;
+	()
 
 
 let rec checkNoAttributesDuplicates (name_att:string list) = 
@@ -329,7 +341,7 @@ let rec verifyMethodRedefinition (aclass:AST.astclass) =
 let verifyClasses (var:AST.t) (classes:AST.astclass list)  =
 	verifyNoClassDuplicates var.type_list;
 	List.map verifyClassModifiers classes;
-	List.map verifyMemberClassModifiers classes;
+	List.map verifyMemberClassModifiers (getClasses var.type_list);
 	List.map verifyClassDependencyInit classes;
 	List.map verifyClassAttributes classes;
 	List.map verifyClassMethods classes;

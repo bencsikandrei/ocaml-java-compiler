@@ -59,5 +59,5 @@ abstract class B extends C {
 
     Int matt4() { this.ab; }
 }
-static private class C extends A {}
+public class C extends A {}
 
