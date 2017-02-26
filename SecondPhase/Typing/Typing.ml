@@ -204,7 +204,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 				(
 					let (hd,tl) =  getLast strList in
 					exp.etype <- Some (Type.Ref ({ Type.tpath = hd  ; Type.tid = tl }));
-					checkContrstuctor aclass args { Type.tpath = hd  ; Type.tid = tl } (List.map (solveExpression aclass args locals) expList);
+					checkContrstuctor aclass { Type.tpath = hd  ; Type.tid = tl } (List.map (solveExpression aclass args locals) expList);
 					Type.Ref { Type.tpath = hd  ; Type.tid = tl }
 				)
 			| AST.NewArray (t, expOptList, expOpt) -> 
