@@ -331,6 +331,7 @@ and execute_expressions (jprog : jvm) exps =
 
 (* create a new instance *)
 and execute_new (jprog : jvm) (classname : string) (params : expression list) =
+    (* TODO inner and nested classes add attributes of wrapper class *)
     (* check if the constructor exists for the class *)
     let jcls = try (Hashtbl.find jprog.classes classname) with | Not_found -> raise ClassNotFoundException
     in
@@ -471,10 +472,19 @@ and execute_expression (jprog : jvm) expr =
                         | _,_ -> BoolVal(false)
                         end
     | New(stro,strl,expl) -> (* classwrapper classname args *)
-                            let obj = (match stro with | None -> execute_new jprog (List.nth strl ((List.length strl)-1)) expl (* only local *)
-                                                       | Some(s) -> (print_endline "Inner classes, not implemented"); NullVal)
+                            let obj = (match stro with | None -> List.nth strl ((List.length strl)-1) (* only local *)
+                                                       | Some(s) -> (let wrapper = (if (Hashtbl.mem jprog.classes s) 
+                                                                                    then s (* nested class *)
+                                                                                    else (let addr = (match (execute_expression jprog {etype=None;eloc=Location.none;edesc=(Name s)}) 
+                                                                                                    with 
+                                                                                                    | RefVal(a) -> a
+                                                                                                    | _ -> raise (Exception "Trying to make a new out of not object"))
+                                                                                        in
+                                                                                        (get_object_from_heap jprog addr).oclass.id)) (* inner class *)
+                                                                    in
+                                                                    wrapper^"."^(List.nth strl ((List.length strl)-1))))
                             in
-                            obj
+                            execute_new jprog obj expl
     | Array(exp,expol) -> begin
                         match (execute_expression jprog exp) with 
                         | ArrayVal(arr) -> let indx = (List.map (fun expo -> (match expo with
