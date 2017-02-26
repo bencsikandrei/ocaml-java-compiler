@@ -140,6 +140,8 @@ let rec getFirstComonRepetition (l1:Type.ref_type list) (l2:Type.ref_type list) 
 
 
 let rec inferType  (scope:AST.astclass list)  (types:Type.t list) : Type.t*(Type.ref_type list) =
+	List.map (fun x -> print_string (Type.stringOf x)) types;
+	print_string "\n";
 	match types with 
 	| [] -> raise (NonImplemented "empty arrayInit")
 	| last::[] -> ( 
@@ -153,6 +155,27 @@ let rec inferType  (scope:AST.astclass list)  (types:Type.t list) : Type.t*(Type
 			(t,parents)
 		else (
 			match t with
+			| Array (tailType,tailDims) ->(
+					match head with
+					| Array (headType,headDims) ->
+						if (tailDims <> headDims) then
+							raise (InvalidExpression("Dimension mismatch in array initialization."))
+						else (				
+							match tailType with
+							| Ref tailObjectType -> (
+								match headType with
+								| Ref headObjectType ->(
+									let l1 = getParents (searchClass tailObjectType scope) in
+									let l2 = getParents (searchClass headObjectType scope) in
+									let (res1,res2) = getFirstComonRepetition l1 l2 in
+									(Type.Array(Type.Ref res1,headDims),[])
+								)
+								| _ -> raise (InvalidExpression("Type mismatch in array initialization."))
+							)
+							| _ -> raise (InvalidExpression("Type mismatch in array initialization."))
+						)
+					| _ ->  raise (InvalidExpression("Type mismatch in array initialization."))
+			)
 			| Ref ft -> (
 				match head with
 				| Ref fhead -> (
@@ -193,21 +216,23 @@ let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:
 						| None -> ()
 						| Some x ->( 
 							match x.edesc with
-							| _ -> raise (InvalidExpression("*************invalid new array-should not happen."))
 							| AST.ArrayInit l-> 
 								if(dimsDeclared>0) then 
 									raise (InvalidExpression("Cannot define array dimension expression when initializer is provided."))
 								else
 									let res = solveExpression aclass locals x in 
-									match res with
-									| Type.Array (at,d) ->
-										( 
-											if (d<>dims) then 
-												raise (InvalidExpression("Array size definition does not match the initialization."));
-											if not ( isSubClassOf aclass.classScope at t) then 
-													raise  (InvalidExpression("Array type definition does not match the initialization"));
-										)  
-									| _ -> raise (InvalidExpression("*************invalid new array-should not happen."))
+									(
+										match res with
+										| Type.Array (at,d) ->
+											( 
+												if (d<>dims) then 
+													raise (InvalidExpression("Array size definition does not match the initialization."));
+												if not ( isSubClassOf aclass.classScope at t) then 
+														raise  (InvalidExpression("Array type definition does not match the initialization"));
+											)  
+										| _ -> raise (InvalidExpression("*************invalid new array-should not happen2."))
+									)
+							| _ -> raise (InvalidExpression("*************invalid new array-should not happen1."))
 						)
 					);
 					Type.Array (t,dims)
@@ -226,7 +251,7 @@ let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:
 				);
 				match exp.etype with
 					| Some x -> x
-					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen."))
+					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen3."))
 			)
 			| AST.Name n ->  raise (NonImplemented "Name??") 
 			| AST.ArrayInit expList -> (
@@ -237,7 +262,7 @@ let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:
 				);
 				match exp.etype with
 					| Some x -> x
-					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen."))
+					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen4."))
 			)
 			| AST.Array (exp ,expOptList) -> print_endline "TODO  Implement Array"; Type.Void
 			| AST.AssignExp (exp1 ,a_op, exp2) -> print_endline "TODO  Implement AssignExp"; Type.Void
