@@ -180,7 +180,24 @@ let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:
 	)
 
 and checkContrstuctor (aclass:AST.astclass) (constuctClass:Type.ref_type) (args:Type.t list)=
-	print_endline "TODO  Implement checkContrstuctor"
+	let classtoinst = searchClass constuctClass aclass.classScope in
+	let matchingconst = List.map (
+		fun (c:AST.astconst) -> if (List.length c.cargstype)=(List.length args) then
+			(
+				let cmplist = List.map2 (fun (a1:AST.argument) (a2:Type.t) -> isSubClassOf classtoinst.classScope a1.ptype a2;) c.cargstype args in
+				if (List.for_all (fun x -> x) cmplist) then None
+				else Some c				
+			) else None;
+	) classtoinst.cconsts in
+	if List.for_all (fun (c:AST.astconst option) -> match c with
+					| None -> true
+					| Some c -> (
+						if (inlist AST.Private c.cmodifiers) && c.cname <> aclass.clname then true else false;
+						if (inlist AST.Protected c.cmodifiers) && not 
+						(isSubClassOf aclass.classScope {Type.tpath=(getPath aclass.clid) ; Type.tid=aclass.clname} {Type.tpath=(getPath classtoinst.clid) ; Type.tid=classtoinst.clname}) 
+							then true else false								
+					)
+				) matchingconst then raise (InvalidConstructor ("Can't find accessible constructor for "^classtoinst.clname^" with those arguments."))
 
 and checkArrayDimensions (aclass:AST.astclass) (locals:AST.statement list) (l: (AST.expression option) list):int*int =
 	(* check the amount of dimensions, that the expressions returns ints and that ther are not "Some x" after the first None*)
@@ -212,11 +229,10 @@ let rec checkOneAccessModif (mods:AST.modifier list) =
 	let res = List.filter (fun x -> (x=AST.Public || x=AST.Protected || x=AST.Private);) mods in
 	if List.length res > 1 then raise (InvalidAccessModifiers ("Can't have "^(flatlistDot (List.map AST.stringOf_modifier res))^" at the same time."))
 
-(* Checkes if a class/method/variable has valid modifiers *)
+(* Checks if a class/method/variable has valid modifiers *)
 let checkModifs (mods:AST.modifier list) =
 	checkNoDuplicates(mods);
 	checkOneAccessModif(mods)
-
 
 (* Verifies that the inheritance of a class is valclid *)
 let rec verifyClassDependency (chain:string list) (cl:AST.astclass) =
