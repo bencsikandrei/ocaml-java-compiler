@@ -127,7 +127,7 @@ let rec remove_vars_from_scope (jprog : jvm) decls =
             remove_vars_from_scope jprog tl
 
 (* compute the value of an expression with operators *)
-let compute_value op val1 val2 =
+let rec compute_value op val1 val2 =
     match val1,val2 with
     | IntVal(v1),IntVal(v2) -> begin
             match op with
@@ -156,6 +156,8 @@ let compute_value op val1 val2 =
             | Op_mul -> FltVal(v1 *. v2)
             | Op_div -> FltVal(v1 /. v2) (* exception when v2 is 0 *)
             end
+    | FltVal(v1),IntVal(v2) -> compute_value op (FltVal v1) (FltVal (float_of_int v2))
+    | IntVal(v1),FltVal(v2) -> compute_value op (FltVal (float_of_int v1)) (FltVal v2)
     | BoolVal(v1),BoolVal(v2) -> begin
             match op with 
             | Op_cand -> BoolVal(v1 && v2)
@@ -382,8 +384,9 @@ and add_attr (jprog : jvm) (ht : (string, valuetype) Hashtbl.t) (attr : astattri
     let init = (match attr.adefault with | Some(e) -> (execute_expression jprog e)
                                          | None -> (match (attr.atype) with
                                                   | Array(ty,dim) -> ArrayVal({atype=(TypeVal ty);aname=None;avals=(build_list jprog ty 0 [IntVal(dim)]);adim=[IntVal(dim)]})
-                                                  | Primitive(p) -> Hashtbl.find jprog.defaults p)
-                                                  (*| Ref(r) -> RefVal({oclass=javaclass;oattributes=}))*))
+                                                  | Primitive(p) -> Hashtbl.find jprog.defaults p
+                                                  | Ref(r) -> NullVal
+                                                  | Void -> VoidVal))
     in
     Hashtbl.add ht (attr.aname) init
 
@@ -398,10 +401,8 @@ and get_method_signature_from_expl (jprog : jvm) (params : expression list) (str
                                             in
                                             get_method_signature_from_expl jprog tl (strparams^"_"^ob.oclass.id)
                             | FltVal(_) -> get_method_signature_from_expl jprog tl (strparams^"_float")
+                            | ArrayVal(arr) -> get_method_signature_from_expl jprog tl (strparams^"_"^(string_of_value arr.atype)^"[]")
                             | _ -> ""
-                            (*| Array(t, int) -> match t with 
-                                                | Primitive(Int) -> get_method_signature tl (strparams^"_int[]")
-                                                | Ref(rt) -> get_method_signature tl (strparams^"_"^rt.tid^"[]")*)
     in
     if (spars = "")
         then 
@@ -417,7 +418,7 @@ and get_argument_list (jprog : jvm) (arglist : argument list) (params : expressi
     (* temporary fix for main method, we don't treat the String[] args yet *)
     | _, [] -> []
 
-(* casting, just to have an structure, because typing is supossed to do by the other group *)
+(* casting, just to have an structure *)
 and execute_cast (jprog : jvm) (ty : Type.t) (exp : expression) =
     match (execute_expression jprog exp) with
     | IntVal(i) -> begin
@@ -514,8 +515,7 @@ and execute_expression (jprog : jvm) expr =
             Log.debug signature;
             (* A method withoud an object *)
             match (obj, name) with
-            | (_, "println") -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
-                    VoidVal 
+            | (v, "println") -> print_endline (string_of_value (execute_expression jprog (List.hd args))); VoidVal 
             | (RefVal(addr), name) -> (* we need to the the object *)
                     let obj = get_object_from_heap jprog addr
                     in
@@ -526,7 +526,9 @@ and execute_expression (jprog : jvm) expr =
                     in
                     jprog.scope_class <- get_class_name_from_jvm_method mname;
                     (* the return value of the method is given, the method needs the object!!! *)
-                    let v = execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) (Some addr) signature args
+                    let cls = try (Hashtbl.find jprog.classes jprog.scope_class) with | Not_found -> raise ClassNotFoundException
+                    in
+                    let v = execute_call jprog cls (Some addr) signature args
                     in
                     jprog.scope_class <- backupscope;
                     v
@@ -535,7 +537,7 @@ and execute_expression (jprog : jvm) expr =
                     let backupscope = jprog.scope_class
                     in
                     jprog.scope_class <- id;
-                    let cls = try (Hashtbl.find jprog.classes jprog.scope_class) with | Not_found -> raise NoSuchMethodException
+                    let cls = try (Hashtbl.find jprog.classes jprog.scope_class) with | Not_found -> raise ClassNotFoundException
                     in
                     let v = execute_call jprog cls None signature args
                     in
@@ -544,7 +546,7 @@ and execute_expression (jprog : jvm) expr =
             | (VoidVal, _) -> (* the return value of the method is given, the method needs the class *)
                     Log.debug ("Class name "^jprog.scope_class);
                     execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) None signature args;
-            | (ArrayVal(arr), n) -> (match n with | "length" -> IntVal(List.length arr.avals) | _ -> print_endline "Not implemented";VoidVal)
+            | (ArrayVal(arr), n) -> (match n with | "length" -> IntVal(List.length arr.avals) | _ -> print_endline ("Method of array "^n^" not implemented");VoidVal)
             | (NullVal, _) -> 
                     raise NullPointerException      
             end;
