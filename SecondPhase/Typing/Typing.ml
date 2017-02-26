@@ -13,6 +13,7 @@ exception NonImplemented of string
 exception InvalidExpression of string
 exception InvalidConstructor of string
 exception InvalidStatement of string
+exception IdentifierNotFound of string
 
 
 (* ***********************
@@ -119,6 +120,12 @@ let rec getParents (aclass:AST.astclass) : Type.ref_type list=
 		let father = searchClass aclass.cparent aclass.classScope in
 		{Type.tpath=(getPath aclass.clid) ; Type.tid=aclass.clname}::(getParents father)
 
+let rec getParentsClasses (aclass:AST.astclass) : AST.astclass list=
+	if aclass.clid="Object" then [aclass]
+	else 
+		let father = searchClass aclass.cparent aclass.classScope in
+		aclass::(getParentsClasses father)
+
 let rec getFirstRepetiton  (elem:Type.ref_type) (l2:Type.ref_type list) : bool*Type.ref_type*(Type.ref_type list) =
 	match l2 with
 	| [] -> (false,elem,l2)
@@ -189,6 +196,64 @@ let rec inferType  (scope:AST.astclass list)  (types:Type.t list) : Type.t*(Type
 
 		)
 
+
+let rec findVariableInStatement (id:string) (statements:AST.statement list) : Type.t option =
+	match statements with
+	| [] -> None
+	| hd::tl -> (
+		match hd with
+		| VarDecl l -> findVariableInVarDecl id tl l
+		| _ -> findVariableInStatement id tl
+	)
+
+and findVariableInVarDecl id tl l =
+	match l with
+	| [] -> findVariableInStatement id tl
+	| (t,name,exp)::tail -> if name=id then Some t else findVariableInVarDecl id tl tail
+
+let rec findVariableInArgs (id:string) (args:AST.argument list) : Type.t option =
+	match args with
+	| [] -> None
+	| arg::largs -> if arg.pident=id then Some arg.ptype else findVariableInArgs id largs
+
+let findVariableAttribute (att:AST.astattribute) (id:string) (base:bool) : Type.t option =
+	if base then (if att.aname=id then Some att.atype else None)
+	else (
+		if (inlist AST.Public att.amodifiers) || (inlist AST.Protected att.amodifiers) then (
+			if att.aname=id then Some att.atype else None
+		)
+		else None
+	)
+	
+let rec findVariableAttributeList (atts:AST.astattribute list) (id:string) (base:bool) : Type.t option =
+	match atts with
+	| [] -> None
+	| att::tail -> (findVariableAttribute att id base; findVariableAttributeList tail id base)
+
+let rec findVariableAttributeParents (classes:AST.astclass list) (id:string) (base:bool) : Type.t option =
+	match classes with
+	| [] -> None
+	| cl::tail -> findVariableAttributeList cl.cattributes id base; findVariableAttributeParents tail id base
+
+let findVariableInClass (id:string) (aclass:AST.astclass) : Type.t option =
+	let found = findVariableAttributeList aclass.cattributes id true in
+	match found with
+	| Some t -> Some t
+	| None -> findVariableAttributeParents (getParentsClasses aclass) id false
+
+let findVariable (id:string) (aclass:AST.astclass) (args:AST.argument list) (statements:AST.statement list) : Type.t =
+	let varS = findVariableInStatement id statements in
+	match varS with
+	| Some t -> t
+	| None -> (
+		match (findVariableInArgs id args) with
+			| Some t -> t
+			| None -> (
+				match findVariableInClass id aclass with
+				 | Some t -> t
+				 | None -> raise (IdentifierNotFound ("The idenfier "^id^" is not declared in this scope."))
+				)
+		)
 
 (* ***********************
 * Class Checking functions
@@ -289,7 +354,6 @@ and checkContrstuctor (aclass:AST.astclass) (constuctClass:Type.ref_type) (args:
 					else None				
 				) else None;
 		) classtoinst.cconsts in
-		List.map (fun c -> match c with | None -> print_endline "none" | Some c -> (AST.print_const "-" c)) matchingconst; 
 		if List.for_all (fun (c:AST.astconst option) -> match c with
 						| None -> true
 						| Some c -> (

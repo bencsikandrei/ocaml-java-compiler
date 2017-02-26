@@ -6,16 +6,13 @@ class A {
 		A a = new A();
 	}
 	
-	private A(){};
+	private A(){}
 	
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
 	}
-
-}
-
 
 	void x(int y){
 	}
