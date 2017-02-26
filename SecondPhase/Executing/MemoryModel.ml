@@ -131,7 +131,7 @@ let print_jvm jvm =
 let print_jclass jclass =
 	Log.info ("### Class " ^ jclass.id ^ " ###");
 	(* print all attributes *)
-	List.iter (fun t -> AST.print_attribute "" t) jclass.jattributes; 
+	List.iter (fun t -> if( !verbose = true ) then AST.print_attribute "" t) jclass.jattributes; 
 	(* print the class constructors *)
 	Hashtbl.iter (fun key value -> Log.info ("constructor: " ^ key);
 									Log.info (" | constructor full name: " ^value.cname)) jclass.jconsts;

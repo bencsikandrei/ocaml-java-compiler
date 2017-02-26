@@ -30,7 +30,7 @@ credentials:
 To be able to run the first phase, please go to PROJECT_ROOT/SecondPhase,
 and do:
 
-	ocamlbuild ./Main.native
+	ocamlbuild ./Main.native (or Main.byte - as you wish)
 
 This will compile all the necessary files and move them to the build folder
 
@@ -42,7 +42,7 @@ This will compile all the necessary files and move them to the build folder
 
 *******************************************************************************
 
-3.1 Testing the compilator
+3.1 Testing the compiler
 
 After the (2) Installation, you can test the compiler by running :
 
@@ -54,6 +54,8 @@ same name as the file, and has a main method; option can be one or more of :
 	-v verbose
 	-r for seeing the execution even if typing fails
 
+	Example: ./Main.native -v tests/IfElseTestClass.java 
+
 You can run the script to test typing by running:
 
 	python test.py
@@ -61,7 +63,10 @@ You can run the script to test typing by running:
 It will test all the files in the folders "tests/Fail", which are supposed 
 to fail and the ones in "tests/Good" which are supposed to pass.
 
-The tests in "tests/" are tests for execution and may throw exceptions.
+The tests in "tests/" are tests for execution and may throw exceptions. 
+Check their output by yourself to see correctness.
+You can always provide your own tests, but please be sure to check the known
+issues and the not implemented list before trying anything exotic.
 
 *******************************************************************************
 
@@ -71,7 +76,7 @@ The tests in "tests/" are tests for execution and may throw exceptions.
  file to the corresponding directory.
  	/tests/Good/	for typing test that should pass
  	/tests/Fail/	for typing test that should fail
- 	/tests/			for execution tests
+ 	/tests/			for execution tests # NOTE: these are not auto-executed
 
 *******************************************************************************
 
@@ -89,6 +94,21 @@ From the execution part
  	- String class : only contains two constructors (empty and string given),
  	and two hardcoded methods (length, isEmpty and toString).
  	- ClassOf expression : could not find out what it was.
+ 	- Try - Catch - Finally: has a bug with scope, where the scope is not cleared
+ 	when an exception occurs 
+ 	- Types: only int, float and boolean operations are supported. 
+ 	- Static methods: please specify the fully qualified name when calling them,
+ 	won't work otherwise
+ 	- System.out.println: is hardcoded, please don't use another method called 
+ 	*.prinln()
+ 	- Defaults: some of the default classes are added, some aren't
+ 	List of defaults: Object, String, Exception, Integer, Float, Boolean
+ 	 (and some subclasses of Exception) - wrappers have no methods! nor attributes
+ 	 they are just there for completion
+ 	They do NOT have their methods implemented! (except toString and hardcoded ones
+ 	from String)
+ 	- Checking it twice: some parts that are already checked in the Typing are double
+ 	checked in execution :)
 
 
 *******************************************************************************
