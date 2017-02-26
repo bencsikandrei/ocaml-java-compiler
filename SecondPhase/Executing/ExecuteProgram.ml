@@ -219,7 +219,7 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
     (* see what type *)
     let right = (execute_expression jprog e2)
     in
-    let (_, scope) = Stack.top jprog.jvmstack 
+    let (sname, scope) = Stack.top jprog.jvmstack 
     in
     let result = begin
                 match op with
@@ -241,6 +241,13 @@ and execute_assign (jprog : jvm) e1 (op : assign_op) e2 =
             | Name(n) -> begin
                         match (Hashtbl.mem scope.visible n) with
                         | true -> Hashtbl.replace scope.visible n result;
+                                (* see if the variable is part of the object *)
+                                (try 
+                                    let attrs = (get_object_from_heap jprog (int_of_string (String.sub sname 0 (String.rindex sname '.')))).oattributes
+                                    in
+                                    Hashtbl.iter (fun k v -> if (Hashtbl.mem attrs k) then Hashtbl.replace attrs k v) scope.visible
+                                with 
+                                    | _ -> ());
                                 Hashtbl.find scope.visible n
                         | false -> raise (Exception ("Variable not defined "^n))
                         end
@@ -278,13 +285,15 @@ match arr with
 
 (* variable linking *)
 and execute_name (jprog : jvm) (name : string) =
-    if (name="this") then print_endline "this" else (); (* TODO define this *)
-    let (_, scope) = Stack.top jprog.jvmstack 
+    let (sname, scope) = Stack.top jprog.jvmstack 
     in
-    try 
-        Hashtbl.find scope.visible name
-    with
-    | Not_found -> raise (Exception ("Variable not defined "^name ))
+    if (name="this") 
+    then RefVal (int_of_string (String.sub sname 0 (String.rindex sname '.')))
+    else 
+        try 
+            Hashtbl.find scope.visible name
+        with
+        | Not_found -> raise (Exception ("Variable not defined "^name ))
 
 (* execute operation *)
 and execute_operator (jprog : jvm) e1 (op : infix_op) e2 =
@@ -334,15 +343,15 @@ and execute_new (jprog : jvm) (classname : string) (params : expression list) =
     (* get the values of the arguments *)
     let arg_vals = (get_argument_list jprog constructor.cargstype params [])
     in
+    let (sname, _) = Stack.top jprog.jvmstack 
+    in
     (* new scope required *)
-    Stack.push (get_new_scope constructor.cname) jprog.jvmstack;
+    Stack.push (get_new_scope (sname^"."^constructor.cname)) jprog.jvmstack;
     (* add attributes to scope *)
     (add_vars_to_scope jprog (Hashtbl.fold (fun k v acc -> (k, v)::acc) attrs []));
     (* run non-static block from class *)
     let st_vals = (List.map (fun x -> if (x.static=false) then (execute_statements jprog x.block) else []) jcls.cinits)
     in
-    (* apply attribute changes to return the object *)
-    List.iter (fun v -> apply_attrs_modification jprog attrs v) st_vals;
     (* run constructor *)
     (execute_constructor jprog constructor attrs arg_vals);
     (* take out of scope *)
@@ -407,10 +416,6 @@ and get_argument_list (jprog : jvm) (arglist : argument list) (params : expressi
     | hd::tl,hd2::tl2 -> get_argument_list jprog tl tl2 (paraml@[hd.pident,(execute_expression jprog hd2)])
     (* temporary fix for main method, we don't treat the String[] args yet *)
     | _, [] -> []
-(* receives the attributes from a class with a list of values
- searches in this list the ones that are attributes modifications and overwrites the values in attrs *)
-and apply_attrs_modification (jprog : jvm) (attrs : (string, valuetype) Hashtbl.t) (vars : (string * MemoryModel.valuetype) list) =
-    List.iter (fun (name, value) -> if (Hashtbl.mem attrs name) then (Hashtbl.replace attrs name value) else ()) vars
 
 (* casting, just to have an structure, because typing is supossed to do by the other group *)
 and execute_cast (jprog : jvm) (ty : Type.t) (exp : expression) =
@@ -522,8 +527,8 @@ and execute_expression (jprog : jvm) expr =
                     let backupscope = jprog.scope_class
                     in
                     jprog.scope_class <- get_class_name_from_jvm_method mname;
-                    (* the return value of the method is given, the method needs the class *)
-                    let v = execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) (Some obj) signature args
+                    (* the return value of the method is given, the method needs the object!!! *)
+                    let v = execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) (Some addr) signature args
                     in
                     jprog.scope_class <- backupscope;
                     v
@@ -547,7 +552,7 @@ and execute_expression (jprog : jvm) expr =
     | _ -> StrVal("Not yet implemented")
 
 (* execute a function call *)
-and execute_call (jprog : jvm) (cls : javaclass) (obj : newobject option) (signature : string) (args : expression list) = 
+and execute_call (jprog : jvm) (cls : javaclass) (addr : int option) (signature : string) (args : expression list) = 
     (* find the method and link it dynamicly *)
     let signaturejvm = try (Hashtbl.find cls.jcmethods signature) with | Not_found -> raise (Exception "Method not defined")
     in
@@ -557,11 +562,13 @@ and execute_call (jprog : jvm) (cls : javaclass) (obj : newobject option) (signa
     (* get values of the arguments*)
     let arg_vals = (get_argument_list jprog meth.margstype args [])
     in
+    let addr_scope = match addr with | Some(a) -> (string_of_int a)^"." | None -> ""
+    in
     (* add the main mathods scope to the stack *)
-    Stack.push (get_new_scope meth.mname) jprog.jvmstack;
+    Stack.push (get_new_scope (addr_scope^meth.mname)) jprog.jvmstack;
     (* add the object's attributes to scope *)
-    (add_vars_to_scope jprog (match obj with 
-            | Some(o) -> (Hashtbl.fold (fun k v acc -> (k, v)::acc) o.oattributes []) 
+    (add_vars_to_scope jprog (match addr with 
+            | Some(a) -> (Hashtbl.fold (fun k v acc -> (k, v)::acc) (get_object_from_heap jprog a).oattributes []) 
             | None -> []));
     (* use the method in the JVM to run it *)
     execute_method jprog meth arg_vals
@@ -844,7 +851,7 @@ let execute_code (verb : bool) (jprog : jvm) =
     (* the main method *)
     (* AST.print_method "" startpoint; *)
     (* add the main mathods scope to the stack *)
-    Stack.push (get_new_scope startpoint.mname) jprog.jvmstack;
+    Stack.push (get_new_scope (jprog.public_class^"."^startpoint.mname)) jprog.jvmstack;
     Log.debug "### Running ... ###";
     (* print_scope jprog; *)
     (* run the program *)

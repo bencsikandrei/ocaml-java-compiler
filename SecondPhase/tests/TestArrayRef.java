@@ -7,5 +7,8 @@ public class TestArrayRef {
 		System.out.println(arr[0]);
 		arr[0] = new TestArrayRef();
 		System.out.println(arr[0].a);
+
+		TestArrayRef cc = new TestArrayRef();
+		TypeArrayRef[] arreglito = new TestArrayRef[] {cc};
 	}
 }
