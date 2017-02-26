@@ -1,4 +1,3 @@
-
 exception Recursive_inheritance of string
 exception Invalid_inheritance of string
 exception DuplicatedModifier of string
@@ -13,12 +12,29 @@ exception InvalidMethodReDefinition of string
 exception NonImplemented of string
 exception InvalidExpression of string
 exception InvalidConstructor of string
-
+exception InvalidStatement of string
 
 
 (* ***********************
 * AUX FUNCTIONS
 * ************************ *)
+
+let rec splitInner (str:string) (c:char) (strSize:int) (currentPos:int) (current:string) : string list=
+	if currentPos = strSize then
+		if current="" then
+			[]
+		else
+			current::[]
+	else
+		if str.[currentPos] = c  then
+			current::(splitInner str c strSize (currentPos+1) "")
+		else 
+			splitInner str c strSize (currentPos+1) (current^(String.make 1 str.[currentPos]))
+
+let split (str:string) (c:char):string list =
+	splitInner str c (String.length str) 0 ""
+
+
 let rec inlist elem arr = 
 	match arr with
 	| [] -> false
@@ -93,6 +109,86 @@ let rec isSubClassOf (scope:AST.astclass list) (son:Type.t) (father:Type.t) =
 		| _ -> false
 
 
+let getPath (path:string):string list=
+	let (first,last)=getLast (split path '.' )in 
+	first
+
+let rec getParents (aclass:AST.astclass) : Type.ref_type list=
+	if aclass.clid="Object" then [Type.object_type]
+	else 
+		let father = searchClass aclass.cparent aclass.classScope in
+		{Type.tpath=(getPath aclass.clid) ; Type.tid=aclass.clname}::(getParents father)
+
+let rec getFirstRepetiton  (elem:Type.ref_type) (l2:Type.ref_type list) : bool*Type.ref_type*(Type.ref_type list) =
+	match l2 with
+	| [] -> (false,elem,l2)
+	| head::tail -> 
+		if cmptypes (Type.Ref elem) (Type.Ref head) then
+			(true,elem,tail)
+		else
+			getFirstRepetiton elem tail
+
+let rec getFirstComonRepetition (l1:Type.ref_type list) (l2:Type.ref_type list) :  Type.ref_type*(Type.ref_type list)=
+	match l1 with
+	| [] ->   raise (InvalidExpression("*****classes do not share inheritances!!!-Should not happen."))
+	| head::tail ->
+		let (found,elem,rest) = getFirstRepetiton head l2 in
+		if (found) then
+			(elem,rest)
+		else 
+			getFirstComonRepetition tail l2
+
+
+let rec inferType  (scope:AST.astclass list)  (types:Type.t list) : Type.t*(Type.ref_type list) =
+	List.map (fun x -> print_string (Type.stringOf x)) types;
+	print_string "\n";
+	match types with 
+	| [] -> raise (NonImplemented "empty arrayInit")
+	| last::[] -> ( 
+		match last with 
+		| Ref f -> (last,(getParents (searchClass f scope)))
+		| _ -> (last,[])
+	)
+	| head::tail -> 
+		let t,parents=inferType scope tail in
+		if cmptypes head t then
+			(t,parents)
+		else (
+			match t with
+			| Array (tailType,tailDims) ->(
+					match head with
+					| Array (headType,headDims) ->
+						if (tailDims <> headDims) then
+							raise (InvalidExpression("Dimension mismatch in array initialization."))
+						else (				
+							match tailType with
+							| Ref tailObjectType -> (
+								match headType with
+								| Ref headObjectType ->(
+									let l1 = getParents (searchClass tailObjectType scope) in
+									let l2 = getParents (searchClass headObjectType scope) in
+									let (res1,res2) = getFirstComonRepetition l1 l2 in
+									(Type.Array(Type.Ref res1,headDims),[])
+								)
+								| _ -> raise (InvalidExpression("Type mismatch in array initialization."))
+							)
+							| _ -> raise (InvalidExpression("Type mismatch in array initialization."))
+						)
+					| _ ->  raise (InvalidExpression("Type mismatch in array initialization."))
+			)
+			| Ref ft -> (
+				match head with
+				| Ref fhead -> (
+					let l1 = getParents (searchClass fhead scope) in
+					let (res1,res2) = getFirstComonRepetition l1 parents in
+					(Type.Ref res1,res2)
+				)
+				| _ ->  raise (InvalidExpression("Type mismatch in array initialization."))
+			)
+			| _ ->  raise (InvalidExpression("Type mismatch in array initialization."))
+
+		)
+
 
 (* ***********************
 * Class Checking functions
@@ -120,21 +216,23 @@ let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:
 						| None -> ()
 						| Some x ->( 
 							match x.edesc with
-							| _ -> raise (InvalidExpression("*************invalid new array-should not happen."))
 							| AST.ArrayInit l-> 
 								if(dimsDeclared>0) then 
 									raise (InvalidExpression("Cannot define array dimension expression when initializer is provided."))
 								else
 									let res = solveExpression aclass locals x in 
-									match res with
-									| Type.Array (at,d) ->
-										( 
-											if (d<>dims) then 
-												raise (InvalidExpression("Array size definition does not match the initialization."));
-											if not ( isSubClassOf aclass.classScope at t) then 
-													raise  (InvalidExpression("Array type definition does not match the initialization"));
-										)  
-									| _ -> raise (InvalidExpression("*************invalid new array-should not happen."))
+									(
+										match res with
+										| Type.Array (at,d) ->
+											( 
+												if (d<>dims) then 
+													raise (InvalidExpression("Array size definition does not match the initialization."));
+												if not ( isSubClassOf aclass.classScope at t) then 
+														raise  (InvalidExpression("Array type definition does not match the initialization"));
+											)  
+										| _ -> raise (InvalidExpression("*************invalid new array-should not happen2."))
+									)
+							| _ -> raise (InvalidExpression("*************invalid new array-should not happen1."))
 						)
 					);
 					Type.Array (t,dims)
@@ -153,18 +251,18 @@ let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:
 				);
 				match exp.etype with
 					| Some x -> x
-					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen."))
+					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen3."))
 			)
 			| AST.Name n ->  raise (NonImplemented "Name??") 
 			| AST.ArrayInit expList -> (
-				let t = inferType aclass.classScope (List.map (solveExpression aclass locals) expList) in 
+				let (t,parents) = inferType aclass.classScope (List.map (solveExpression aclass locals) expList) in 
 				(match t with 
 				| Type.Array (at,dims) -> exp.etype <- Some (Type.Array (at,dims+1)); 
 				| _ -> exp.etype <- Some (Type.Array (t,1)) 
 				);
 				match exp.etype with
 					| Some x -> x
-					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen."))
+					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen4."))
 			)
 			| AST.Array (exp ,expOptList) -> print_endline "TODO  Implement Array"; Type.Void
 			| AST.AssignExp (exp1 ,a_op, exp2) -> print_endline "TODO  Implement AssignExp"; Type.Void
@@ -183,24 +281,68 @@ and checkContrstuctor (aclass:AST.astclass) (constuctClass:Type.ref_type) (args:
 	print_endline "TODO  Implement checkContrstuctor"
 
 and checkArrayDimensions (aclass:AST.astclass) (locals:AST.statement list) (l: (AST.expression option) list):int*int =
-	(* check the amount of dimensions, that the expressions returns ints and that ther are not "Some x" after the first None*)
-	print_endline "TODO  Implement checkContrstuctor";(0,0)
+	let res = List.map (
+		fun (x:AST.expression option)-> 
+		match x with 
+			| None -> false
+			| Some y -> 
+				let aType = solveExpression aclass locals y  in
+				match aType with 
+				|Primitive p -> (
+					match p with
+					| Int -> true
+					| _ ->  raise (InvalidExpression("Array dimensions must be ints."))
+				)
+				| _ -> raise (InvalidExpression("Array dimensions must be ints."))
+			) l in
+	((List.length res),(completedInOrder res 0 true))
 
-and inferType  (scope:AST.astclass list)  (types:Type.t list) : Type.t =
-	print_endline "TODO  Implement checkContrstuctor"; Type.Void
+and completedInOrder (res:bool list) (completed:int) (v:bool) :int=
+	match res with
+	| [] -> (completed)
+	| some::rest -> 
+		if v then
+			if some then completedInOrder rest (completed+1) true
+			else completedInOrder rest completed false
+		else 
+			if some then raise (InvalidExpression("Array dimensions must be cannot be filled after empty ones."))
+			else completedInOrder rest completed false
 
-let rec solveStatement (aclass:AST.astclass) (treated:AST.statement list) (nonTreated:AST.statement list) (statement:AST.statement) =
-	match statement with 
-	| AST.VarDecl tStrExp_optList ->  print_endline "TODO"
-	| AST.Block stateList -> print_endline "TODO"
-	| AST.Nop -> ()
-	| AST.While (exp, state) -> print_endline "TODO"
-	| AST.For (t_optStrExp_optList, expOpt, expList,  stat) -> print_endline "TODO"
-	| AST.If (exp, state, stateOpt) -> print_endline "TODO"
-	| AST.Return expOpt -> print_endline "TODO"
-	| AST.Throw exp -> print_endline "TODO"
-	| AST.Try (stateList1, argState_ListList, stateList2) -> print_endline "TODO"
-	| AST.Expr exp -> (solveExpression aclass treated exp ; ())
+let rec solveStatements (aclass:AST.astclass) (treated:AST.statement list) (nonTreated:AST.statement list) =
+	match nonTreated with
+	| [] -> ()
+	| head::tail ->	(
+		(
+			match head with 
+			| AST.VarDecl v ->  checkVarDecl aclass treated v
+			| AST.Block stateList -> print_endline "TODO"
+			| AST.Nop -> ()
+			| AST.While (exp, state) -> print_endline "TODO"
+			| AST.For (t_optStrExp_optList, expOpt, expList,  stat) -> print_endline "TODO"
+			| AST.If (exp, state, stateOpt) -> print_endline "TODO"
+			| AST.Return expOpt -> print_endline "TODO"
+			| AST.Throw exp -> print_endline "TODO"
+			| AST.Try (stateList1, argState_ListList, stateList2) -> print_endline "TODO"
+			| AST.Expr exp -> (solveExpression aclass treated exp ; ())
+		);
+		solveStatements aclass (treated@[head]) tail
+	)
+
+and checkVarDecl (aclass:AST.astclass) (treated:AST.statement list) (varDecls:(Type.t * string * AST.expression option) list)=
+	match varDecls with 
+	| [] -> ()
+	| (t,id,exp)::rest -> (
+		match exp with
+		| None -> ()
+		| Some e -> 
+			let resType = solveExpression aclass treated e in
+			if ( isSubClassOf aclass.classScope resType t)then
+				 checkVarDecl aclass treated rest
+			else
+				raise (InvalidStatement("invalid intialization of variable "^id^" -> "^(Type.stringOf t)^" != "^(Type.stringOf resType)))
+	)
+
+
 
 let rec checkNoDuplicates (mods:AST.modifier list) =
 	match mods with
@@ -352,8 +494,11 @@ let verifyMethodBody (aclass:AST.astclass) (themethod:AST.astmethod) =
 	if ( (inlist AST.Abstract themethod.mmodifiers) && not (inlist AST.Abstract aclass.clmodifiers) ) then raise (InvalidModifier ("Method: "^themethod.mname^". Can't a define an abstract method in a non-abstract class."));
 	print_endline "TODO  Implement verifyMethodBody"
 
+
+
+
 let verifyConstructorBody (aclass:AST.astclass) (cons:AST.astconst) =
-	print_endline "TODO  Implement verifyConstructorBody"
+	solveStatements aclass [] cons.cbody
 
 
 let checkDuplicateConstructor (constrlist:AST.astconst list) (acosntructor:AST.astconst) =
