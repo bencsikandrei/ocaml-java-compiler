@@ -90,7 +90,10 @@ let equals : AST.astmethod = get_method [Public] "equals" (Primitive Boolean)
 (* the to string *)
 let toString : AST.astmethod = get_method [Public] "toString" 
 			(Ref { tpath = []; tid = "String" }) 
-			[] [] []
+			[] []
+			[ 
+				Return (Some {edesc=(Name "this");eloc=Location.none;etype=None})
+			]
 ;;
 (* ----------------------------- END ----------------------------------------------- *)
 
