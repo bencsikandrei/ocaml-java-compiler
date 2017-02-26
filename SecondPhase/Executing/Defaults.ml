@@ -108,9 +108,94 @@ let objectclass = get_class { tpath = []; tid = "" }
 (* ----------------------------- END ----------------------------------------------- *)
 
 
-
 (* ----------------------------- AST.Type OBJECT ----------------------------------------------- *)
 let objecttype = get_asttype [] "Object" (Class objectclass)
+
+
+(* ----------------------------- Methods STRING ----------------------------------------------- *)
+(* modifier name return throws statements *)
+(* empty constructor that does nothing :) *)
+let string_empty_constructor = get_constructor [Public] "String" 
+			[] [] []
+;;
+(* simple constructor that receives a string *)
+let string_constructor = get_constructor [Public] "String" 
+			[{
+		    	final = false ;
+    			vararg = false ;
+    			ptype = Array ((Primitive Char),1);
+    			pident = "s"
+			}] 
+			[] 
+			[
+				(Expr {
+					edesc=(AssignExp ({edesc=(Name "value");eloc=Location.none;etype=None}, Assign, {edesc=(Name "s");eloc=Location.none;etype=None}));
+					eloc=Location.none;
+					etype=None})
+			]
+;;
+
+let string_toString : AST.astmethod = get_method [Public] "toString" 
+			(Array ((Primitive Char),1)) 
+			[] 
+			[] 
+			[ 
+				Return (Some {edesc=(Name "value");eloc=Location.none;etype=None})
+			]
+;;
+
+let string_length : AST.astmethod = get_method [Public] "length" 
+			Void
+			[] 
+			[] 
+			[ 
+				Return (Some {edesc=(Val (Int "0"));
+							eloc=Location.none;
+							etype=None})
+			]
+;;
+
+let string_isEmpty : AST.astmethod = get_method [Public] "isEmpty" 
+			Void
+			[] 
+			[] 
+			[ 
+				Return (Some {edesc=(Val (Boolean false));
+							eloc=Location.none;
+							etype=None})
+			]
+;;
+
+(* ----------------------------- END ----------------------------------------------- *)
+
+(* ----------------------------- Class STRING ----------------------------------------------- *)
+let stringmethods = [
+		string_toString; string_length; string_isEmpty
+	]
+;;
+let stringconstructors = [
+		string_empty_constructor; string_constructor
+	]
+;;
+let stringclass = get_class { tpath = []; tid = "Object" }
+		    [{
+      			amodifiers=[Public; Static; Final];
+		      	aname="value";
+		      	atype=Array ((Primitive Char),1);
+		      	adefault=Some({edesc=(Val (String ""));eloc=Location.none;etype=None});
+		      	aloc=Location.none
+		    }] 
+		    [] 
+		    stringconstructors
+		    stringmethods
+			[]
+			Location.none
+;;
+(* ----------------------------- END ----------------------------------------------- *)
+
+(* ----------------------------- AST.Type STRING ----------------------------------------------- *)
+let stringtype = get_asttype [] "String" (Class stringclass)
+
 
 (* ----------------------------- Constructors EXCEPTION ----------------------------------------------- *)
 (* the to string *)
@@ -177,7 +262,8 @@ let arrayindexoutofboundsexceptiontype = get_asttype [] "ArrayIndexOutOfBoundsEx
 	This is going back to the main where it is actually compiled	
 *)
 let	add_default_classes (verb : bool) ast =
-	let default_class_list = [ objecttype; 
+	let default_class_list = [ objecttype;
+							stringtype;
 							exceptiontype; 
 							nullpointerexceptiontype; 
 							arithmeticexceptiontype; 

@@ -228,19 +228,36 @@ let rec add_class (jprog : jvm) ast (fname : string) (cls : AST.asttype) =
 				(* raise an exception if not found *)
 				| Exceptions.UnknownSymbol(e) -> print_endline e; Location.print c.cloc; exit (-1)
 			end;
+			(* run inner classes and add them as wrapper.innerclass *)
+			(List.iter (fun x -> match x.info with 
+							| Class(c) -> (add_class jprog ast fname ({modifiers=x.modifiers;
+									id=cls.id^"."^x.id;
+									info=(Class {clid=c.clid;
+										clname=c.clname;
+										classScope=c.classScope;
+										clmodifiers=c.clmodifiers;
+										cparent=c.cparent;
+										cattributes=c.cattributes;
+										cinits=c.cinits;
+										cconsts=c.cconsts;
+										cmethods=c.cmethods;
+										ctypes=c.ctypes;
+										cloc=c.cloc})
+									}))
+							| _ -> ()) c.ctypes);
 			(* now that all parents are added, add the class *)
 			Log.debug ("Adding class now " ^ cls.id);
 			let javacls = {		id =  cls.id; 
 								cparent = c.cparent;
 							    jattributes = (add_attributes jprog c);
 							    cinits = c.cinits;
+							    ctypes = List.map (fun (x : AST.asttype) -> x.id) c.ctypes;
 							    jconsts = (add_constructors c cls.id);
 							    jcmethods = (add_methods jprog c cls.id)
 								}				
 			in
 			(* add the class to the programm classes *)
 			Hashtbl.add jprog.classes cls.id javacls;
-			
 		| _ -> ()
 	end
 

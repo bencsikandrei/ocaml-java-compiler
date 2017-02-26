@@ -15,6 +15,7 @@ type javaclass = {
 	cparent : Type.ref_type;
     jattributes : astattribute list;
     cinits : initial list;
+    ctypes : string list; (* list ids of inner classes *)
     jconsts : (string, astconst) Hashtbl.t;
     jcmethods : (string, string) Hashtbl.t
 }
@@ -136,7 +137,10 @@ let print_jclass jclass =
 									Log.info (" | constructor full name: " ^value.cname)) jclass.jconsts;
 	(* print the class methods and attributes *)
 	Hashtbl.iter (fun key value -> Log.info ("method: " ^ key);
-									Log.info (" | method in jvm table: " ^value)) jclass.jcmethods
+									Log.info (" | method in jvm table: " ^value)) jclass.jcmethods;
+	(* print the class methods and attributes *)
+	List.iter (fun x -> Log.info ("inner classes:");
+									Log.info (" | inner class in jvm table: " ^x)) jclass.ctypes
 
 (* initiate logs *)
 let initiate_logs (verb : bool) =
