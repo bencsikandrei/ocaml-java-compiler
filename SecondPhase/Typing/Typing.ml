@@ -194,7 +194,7 @@ let rec inferType  (scope:AST.astclass list)  (types:Type.t list) : Type.t*(Type
 * Class Checking functions
 * ************************ *)
 
-let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:AST.expression)  :Type.t = 
+let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:AST.statement list)  (exp:AST.expression)  :Type.t = 
 
 	match exp.etype with
 	| Some x -> x
@@ -204,12 +204,12 @@ let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:
 				(
 					let (hd,tl) =  getLast strList in
 					exp.etype <- Some (Type.Ref ({ Type.tpath = hd  ; Type.tid = tl }));
-					checkContrstuctor aclass { Type.tpath = hd  ; Type.tid = tl } (List.map (solveExpression aclass locals) expList);
+					checkContrstuctor aclass { Type.tpath = hd  ; Type.tid = tl } (List.map (solveExpression aclass args locals) expList);
 					Type.Ref { Type.tpath = hd  ; Type.tid = tl }
 				)
 			| AST.NewArray (t, expOptList, expOpt) -> 
 				(
-					let dims, dimsDeclared = checkArrayDimensions aclass locals expOptList in
+					let dims, dimsDeclared = checkArrayDimensions aclass args locals expOptList in
 					(
 						exp.etype <- Some(Type.Array (t,dims));
 						match expOpt with
@@ -220,7 +220,7 @@ let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:
 								if(dimsDeclared>0) then 
 									raise (InvalidExpression("Cannot define array dimension expression when initializer is provided."))
 								else
-									let res = solveExpression aclass locals x in 
+									let res = solveExpression aclass args locals x in 
 									(
 										match res with
 										| Type.Array (at,d) ->
@@ -255,7 +255,7 @@ let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:
 			)
 			| AST.Name n ->  raise (NonImplemented "Name??") 
 			| AST.ArrayInit expList -> (
-				let (t,parents) = inferType aclass.classScope (List.map (solveExpression aclass locals) expList) in 
+				let (t,parents) = inferType aclass.classScope (List.map (solveExpression aclass args locals) expList) in 
 				(match t with 
 				| Type.Array (at,dims) -> exp.etype <- Some (Type.Array (at,dims+1)); 
 				| _ -> exp.etype <- Some (Type.Array (t,1)) 
@@ -277,16 +277,39 @@ let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:
 			| AST.VoidClass -> Location.print exp.eloc ; raise (NonImplemented "VoidClass??")(*TODO ???*)
 	)
 
-and checkContrstuctor (aclass:AST.astclass) (constuctClass:Type.ref_type) (args:Type.t list)=
-	print_endline "TODO  Implement checkContrstuctor"
 
-and checkArrayDimensions (aclass:AST.astclass) (locals:AST.statement list) (l: (AST.expression option) list):int*int =
+and checkContrstuctor (aclass:AST.astclass) (constuctClass:Type.ref_type) (args:Type.t list)=
+	let classtoinst = searchClass constuctClass aclass.classScope in
+	if (List.length args = 0) && (List.length classtoinst.cconsts = 0) then () else
+	(
+		let matchingconst = List.map (
+			fun (c:AST.astconst) -> if (List.length c.cargstype)=(List.length args) then
+				(
+					let cmplist = List.map2 (fun (a1:AST.argument) (a2:Type.t) -> isSubClassOf classtoinst.classScope a1.ptype a2;) c.cargstype args in
+					if (List.for_all (fun x -> x) cmplist) then Some c
+					else None				
+				) else None;
+		) classtoinst.cconsts in
+		List.map (fun c -> match c with | None -> print_endline "none" | Some c -> (AST.print_const "-" c)) matchingconst; 
+		if List.for_all (fun (c:AST.astconst option) -> match c with
+						| None -> true
+						| Some c -> (
+							if (inlist AST.Private c.cmodifiers) && c.cname <> aclass.clname then true else false;
+							if (inlist AST.Protected c.cmodifiers) && not 
+							(isSubClassOf aclass.classScope (Type.Ref({Type.tpath=(getPath aclass.clid) ; Type.tid=aclass.clname})) (Type.Ref({Type.tpath=(getPath classtoinst.clid) ; Type.tid=classtoinst.clname}))) 
+								then true else false								
+						)
+					) matchingconst then raise (InvalidConstructor ("Can't find accessible constructor for "^classtoinst.clname^" with those arguments."))
+	)
+
+
+and checkArrayDimensions (aclass:AST.astclass) (args:AST.argument list) (locals:AST.statement list) (l: (AST.expression option) list):int*int =
 	let res = List.map (
 		fun (x:AST.expression option)-> 
 		match x with 
 			| None -> false
 			| Some y -> 
-				let aType = solveExpression aclass locals y  in
+				let aType = solveExpression aclass args locals y  in
 				match aType with 
 				|Primitive p -> (
 					match p with
@@ -308,36 +331,53 @@ and completedInOrder (res:bool list) (completed:int) (v:bool) :int=
 			if some then raise (InvalidExpression("Array dimensions must be cannot be filled after empty ones."))
 			else completedInOrder rest completed false
 
-let rec solveStatements (aclass:AST.astclass) (treated:AST.statement list) (nonTreated:AST.statement list) =
+let rec solveStatements (aclass:AST.astclass) (args:AST.argument list) (treated:AST.statement list) (nonTreated:AST.statement list) =
 	match nonTreated with
 	| [] -> ()
 	| head::tail ->	(
 		(
 			match head with 
-			| AST.VarDecl v ->  checkVarDecl aclass treated v
-			| AST.Block stateList -> print_endline "TODO"
+			| AST.VarDecl v ->  checkVarDecl aclass args treated v
+			| AST.Block stateList -> solveStatements aclass args treated stateList
 			| AST.Nop -> ()
-			| AST.While (exp, state) -> print_endline "TODO"
-			| AST.For (t_optStrExp_optList, expOpt, expList,  stat) -> print_endline "TODO"
-			| AST.If (exp, state, stateOpt) -> print_endline "TODO"
+			| AST.While (exp, state) -> (
+				if not (cmptypes (solveExpression aclass args treated exp) (Type.Primitive Type.Boolean)) then
+					 raise (InvalidExpression("While statements cannot be resolved without a boolean expression."))
+				else 
+					solveStatements aclass args treated [state]
+			)
+			| AST.For (t_optStrExp_optList, expOpt, expList,  state) -> (
+				solveStatements aclass args treated [state]; print_endline "TODO implement FOR"
+			)
+			| AST.If (exp, state, stateOpt) ->(
+				if not (cmptypes (solveExpression aclass args treated exp) (Type.Primitive Type.Boolean)) then
+					 raise (InvalidExpression("While statements cannot be resolved without a boolean expression."))
+				else 
+					(
+						solveStatements aclass args treated [state];
+						match stateOpt with
+						|None -> ()
+						|Some state -> solveStatements aclass args treated [state]
+					)
+			)
 			| AST.Return expOpt -> print_endline "TODO"
 			| AST.Throw exp -> print_endline "TODO"
 			| AST.Try (stateList1, argState_ListList, stateList2) -> print_endline "TODO"
-			| AST.Expr exp -> (solveExpression aclass treated exp ; ())
+			| AST.Expr exp -> (solveExpression aclass args treated exp ; ())
 		);
-		solveStatements aclass (treated@[head]) tail
+		solveStatements aclass args (treated@[head]) tail
 	)
 
-and checkVarDecl (aclass:AST.astclass) (treated:AST.statement list) (varDecls:(Type.t * string * AST.expression option) list)=
+and checkVarDecl (aclass:AST.astclass) (args:AST.argument list) (treated:AST.statement list) (varDecls:(Type.t * string * AST.expression option) list)=
 	match varDecls with 
 	| [] -> ()
 	| (t,id,exp)::rest -> (
 		match exp with
 		| None -> ()
 		| Some e -> 
-			let resType = solveExpression aclass treated e in
+			let resType = solveExpression aclass args treated e in
 			if ( isSubClassOf aclass.classScope resType t)then
-				 checkVarDecl aclass treated rest
+				 checkVarDecl aclass args treated rest
 			else
 				raise (InvalidStatement("invalid intialization of variable "^id^" -> "^(Type.stringOf t)^" != "^(Type.stringOf resType)))
 	)
@@ -354,11 +394,10 @@ let rec checkOneAccessModif (mods:AST.modifier list) =
 	let res = List.filter (fun x -> (x=AST.Public || x=AST.Protected || x=AST.Private);) mods in
 	if List.length res > 1 then raise (InvalidAccessModifiers ("Can't have "^(flatlistDot (List.map AST.stringOf_modifier res))^" at the same time."))
 
-(* Checkes if a class/method/variable has valid modifiers *)
+(* Checks if a class/method/variable has valid modifiers *)
 let checkModifs (mods:AST.modifier list) =
 	checkNoDuplicates(mods);
 	checkOneAccessModif(mods)
-
 
 (* Verifies that the inheritance of a class is valclid *)
 let rec verifyClassDependency (chain:string list) (cl:AST.astclass) =
@@ -498,7 +537,7 @@ let verifyMethodBody (aclass:AST.astclass) (themethod:AST.astmethod) =
 
 
 let verifyConstructorBody (aclass:AST.astclass) (cons:AST.astconst) =
-	solveStatements aclass [] cons.cbody
+	solveStatements aclass cons.cargstype [] cons.cbody
 
 
 let checkDuplicateConstructor (constrlist:AST.astconst list) (acosntructor:AST.astconst) =

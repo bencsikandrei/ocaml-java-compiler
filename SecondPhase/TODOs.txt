@@ -1,0 +1,5 @@
+- expression.new qualified_name
+- final modifier (in variables -arguments- and attributes)
+- Error "Implicit super constructor A() is not visible. Must explicitly invoke another constructor" in son's constructor when parent's constructor is private.
+- Two dimension arrays
+
