@@ -10,6 +10,8 @@ exception InvalidMethodBody of string
 exception InvalidClassDefinition of string
 exception DuplicatedMethod of string
 exception InvalidMethodReDefinition of string
+exception NonImplemented of string
+exception InvalidExpression of string
 
 
 (* ***********************
@@ -48,34 +50,15 @@ let rec getClasses (classes:AST.asttype list) : AST.astclass list =
 			|Inter ->  c
 		)
 
+let rec getLast (l:string list) : (string list) string=
+	match l with
+	| [] -> ""
+	| one::[] -> [] one
+	| head::tail -> let h t = getLast tail in head::h t
+
 let cmptypes (t1:Type.t) (t2:Type.t) =
  	(MemoryModel.TypeVal(t1)=MemoryModel.TypeVal(t2))
  
-
-
-(* ***********************
-* Class Checking functions
-* ************************ *)
-
-let rec checkNoDuplicates (mods:AST.modifier list) =
-	match mods with
-	| [] -> ()
-	| hd::tl -> if (inlist hd tl) then raise (DuplicatedModifier ("Modifier "^(AST.stringOf_modifier hd)^" duplicated.")); 
-				checkNoDuplicates tl
-
-let rec checkOneAccessModif (mods:AST.modifier list) =
-	let res = List.filter (fun x -> (x=AST.Public || x=AST.Protected || x=AST.Private);) mods in
-	if List.length res > 1 then raise (InvalidAccessModifiers ("Can't have "^(flatlistDot (List.map AST.stringOf_modifier res))^" at the same time."))
-
-(* Checkes if a class/method/variable has valid modifiers *)
-let checkModifs (mods:AST.modifier list) =
-	checkNoDuplicates(mods);
-	checkOneAccessModif(mods)
-
-
-let verifyClassInterior (var:AST.astclass) (classesScope:AST.astclass list) chain =
-	[]
-
 
 (* Checkes in a list if a class with clid "clname" exists *)
 let rec searchClass (clname:Type.ref_type) (scope:AST.astclass list) : AST.astclass=
@@ -106,6 +89,123 @@ let rec isSubClassOf (scope:AST.astclass list) (son:Type.t) (father:Type.t) =
 				let aclass = searchClass r scope in
 				isSubClassOf aclass.classScope (Ref aclass.cparent) father 
 		| _ -> false
+
+
+
+let rec solveExpression (aclass:AST.astclass) (locals:AST.statement list)  (exp:AST.expression)  :Type.t = 
+	match exp.etype with
+	| Some x -> x
+	| None -> ((
+		match exp.edesc with 
+			| New strOpt strList expList -> (*TODO find what this strOpt is for*)
+				(
+					let hd tl =  getLast strList;
+					exp.etype <- Type.Ref { tpath = hd  ; tid = tl };
+					checkContrstuctor { tpath = hd  ; tid = tl } (List.map (solveExpression aclass locals) expList)
+				)	
+			| NewArray t expOptList expOpt -> 
+				(
+					let dims, dimsDeclared = checkArrayDimensions aclass locals expOptList;
+					exp.etype <- Type.Array (t dims);
+					match expOpt with
+					| None -> ()
+					| Some x ->( 
+						match x.edesc with
+						| AST.ArrayInit l-> 
+							if(dimsDeclared>0) then 
+								raise (InvalidExpression("Cannot define array dimension expression when initializer is provided."))
+							else
+								let res = solveExpression x in 
+								match res with
+								| Type.Array at d ->( 
+									if (d<>dims) then Type.Array
+										raise (InvalidExpression("Array size definition does not match the initialization."));
+									if not ( isSubClassOf at t) then 
+											raise  (InvalidExpression("Array type definition does not match the initialization");
+								
+									)  
+								| _ -> raise (InvalidExpression("*************invalid new array-should not happen."))
+						)
+					)
+				)
+			| Call expOpt str expList -> print_endline "TODO  Implement Call"
+			| Attr exp str -> print_endline "TODO  Implement Attr"
+			| If exp1 exp2 exp3 -> print_endline "TODO  Implement If"
+			| Val v -> (
+				match v with
+					| String s -> exp.etype <- Type.Ref { tpath = [] ; tid = "String" }
+					| Int i -> exp.etype <- Type.Primitive Int
+					| Float f -> exp.etype <- Type.Primitive Float
+					| Char c -> exp.etype <- Type.Primitive Char
+					| Null -> exp.etype <- Type.Ref { tpath = [] ; tid = "Null" }
+					| Boolean b -> exp.etype <- Type.Primitive Boolean
+			)
+			| Name n ->  raise (NonImplemented "Name??") 
+			| ArrayInit expList -> (
+				print_endline "TODO  Implement ArrayInit";
+				List.map (solveExpression aclass locals) expList
+				exp.etype <- Type.Array (t dims);
+			)
+			| Array exp expOptList -> print_endline "TODO  Implement Array"
+			| AssignExp exp a_op exp -> print_endline "TODO  Implement AssignExp"
+			| Post exp postfix_op  -> print_endline "TODO  Implement Post"
+			| Pre prefix_op  exp -> print_endline "TODO  Implement Pre"
+			| Op exp i_op * exp -> print_endline "TODO  Implement Op"
+			| CondOp exp * exp * exp -> print_endline "TODO  Implement CondOp"
+			| Cast t exp -> print_endline "TODO  Implement Cast"
+			| Type t -> print_endline "TODO  Implement Type"
+			| ClassOf t -> print_endline "TODO  Implement ClassOf"
+			| Instanceof exp t -> print_endline "TODO  Implement Instanceof"
+			| VoidClass -> Location.prin exp.eloc ; raise (NonImplemented "VoidClass??")(*TODO ???*)
+
+		);solveExpression exp scope)
+
+and let checkContrstuctor (aclass:Type.ref_type) (scope:AST.astclass list) (exp:AST.expression list)=
+	print_endline "TODO  Implement checkContrstuctor"
+
+and checkArrayDimensions (aclass:AST.astclass) (locals:AST.statement list) (l: (AST.expression option) list):int int =
+	(* check the amount of dimensions, that the expressions returns ints and that ther are not "Some x" after the first None*)
+	print_endline "TODO  Implement checkContrstuctor"
+
+let rec solveStatement (aclass:AST.astclass) (trated:AST.statement list) (nonTreated:AST.statement list) (statement:AST.statement) =
+	match statement with (
+	| VarDecl tStrExp_optList -> 
+	| Block stateList ->
+	| Nop -> ()
+	| While exp state ->
+	| For t_optStrExp_optList expOpt expList  stat ->
+	| If exp state stateOpt ->
+	| Return expOpt ->
+	| Throw exp ->
+	| Try stateList argState_ListList stateList ->
+	| Expr exp -> (solveExpression aclass locals exp
+	)
+
+
+(* ***********************
+* Class Checking functions
+* ************************ *)
+
+let rec checkNoDuplicates (mods:AST.modifier list) =
+	match mods with
+	| [] -> ()
+	| hd::tl -> if (inlist hd tl) then raise (DuplicatedModifier ("Modifier "^(AST.stringOf_modifier hd)^" duplicated.")); 
+				checkNoDuplicates tl
+
+let rec checkOneAccessModif (mods:AST.modifier list) =
+	let res = List.filter (fun x -> (x=AST.Public || x=AST.Protected || x=AST.Private);) mods in
+	if List.length res > 1 then raise (InvalidAccessModifiers ("Can't have "^(flatlistDot (List.map AST.stringOf_modifier res))^" at the same time."))
+
+(* Checkes if a class/method/variable has valid modifiers *)
+let checkModifs (mods:AST.modifier list) =
+	checkNoDuplicates(mods);
+	checkOneAccessModif(mods)
+
+
+let verifyClassInterior (var:AST.astclass) (classesScope:AST.astclass list) chain =
+	[]
+
+
 
 
 
