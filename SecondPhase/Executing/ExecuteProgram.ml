@@ -525,7 +525,20 @@ and execute_expression (jprog : jvm) expr =
             Log.debug signature;
             (* A method withoud an object *)
             match (obj, name) with
-            | (v, "println") -> print_endline (string_of_value (execute_expression jprog (List.hd args))); VoidVal 
+            | (v, "println") -> 
+            		print_endline (string_of_value (
+            		begin
+					match (execute_expression jprog (List.hd args)) with
+            		| RefVal(addr) as refr -> let obj = get_object_from_heap jprog addr 
+            				in
+            				let toStringMeth = ("toString_void") 
+            				in
+            				(* print_endline toStringMeth; *)
+            				execute_call jprog obj.oclass (Some addr) toStringMeth []
+            		| _ as va -> va
+            		end));
+            		VoidVal
+            		 
             | (RefVal(addr), name) -> (* we need to the the object *)
                     let obj = get_object_from_heap jprog addr
                     in
