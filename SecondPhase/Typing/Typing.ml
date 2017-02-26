@@ -331,41 +331,53 @@ and completedInOrder (res:bool list) (completed:int) (v:bool) :int=
 			if some then raise (InvalidExpression("Array dimensions must be cannot be filled after empty ones."))
 			else completedInOrder rest completed false
 
-let rec solveStatements (aclass:AST.astclass) (args:AST.argument list) (treated:AST.statement list) (nonTreated:AST.statement list) =
+let rec solveStatements (aclass:AST.astclass) (args:AST.argument list) (rType:Type.t) (treated:AST.statement list) (nonTreated:AST.statement list) =
 	match nonTreated with
 	| [] -> ()
 	| head::tail ->	(
 		(
 			match head with 
 			| AST.VarDecl v ->  checkVarDecl aclass args treated v
-			| AST.Block stateList -> solveStatements aclass args treated stateList
+			| AST.Block stateList -> solveStatements aclass args rType treated stateList
 			| AST.Nop -> ()
 			| AST.While (exp, state) -> (
 				if not (cmptypes (solveExpression aclass args treated exp) (Type.Primitive Type.Boolean)) then
 					 raise (InvalidExpression("While statements cannot be resolved without a boolean expression."))
 				else 
-					solveStatements aclass args treated [state]
+					solveStatements aclass args rType treated [state]
 			)
 			| AST.For (t_optStrExp_optList, expOpt, expList,  state) -> (
-				solveStatements aclass args treated [state]; print_endline "TODO implement FOR"
+				solveStatements aclass args rType treated [state]; print_endline "TODO implement FOR"
 			)
 			| AST.If (exp, state, stateOpt) ->(
 				if not (cmptypes (solveExpression aclass args treated exp) (Type.Primitive Type.Boolean)) then
 					 raise (InvalidExpression("While statements cannot be resolved without a boolean expression."))
 				else 
 					(
-						solveStatements aclass args treated [state];
+						solveStatements aclass args rType treated [state];
 						match stateOpt with
 						|None -> ()
-						|Some state -> solveStatements aclass args treated [state]
+						|Some state -> solveStatements aclass args rType treated [state]
 					)
 			)
-			| AST.Return expOpt -> print_endline "TODO"
+			| AST.Return expOpt -> (
+				match expOpt with
+				| None -> 
+					if cmptypes rType Type.Void then 
+						() 
+					else 
+						raise (InvalidStatement("Return type must be empty."))
+				| Some x -> 
+					if isSubClassOf aclass.classScope (solveExpression aclass args treated x) rType  then 
+						() 
+					else 
+						raise (InvalidStatement("Return type must be of "^(Type.stringOf rType)))
+			)
 			| AST.Throw exp -> print_endline "TODO"
 			| AST.Try (stateList1, argState_ListList, stateList2) -> print_endline "TODO"
 			| AST.Expr exp -> (solveExpression aclass args treated exp ; ())
 		);
-		solveStatements aclass args (treated@[head]) tail
+		solveStatements aclass args rType (treated@[head]) tail
 	)
 
 and checkVarDecl (aclass:AST.astclass) (args:AST.argument list) (treated:AST.statement list) (varDecls:(Type.t * string * AST.expression option) list)=
@@ -510,8 +522,12 @@ let rec checkNoAttributesDuplicates (name_att:string list) =
 let verifyNoAttributesDuplicated (args:AST.astattribute list) = 
 	let name_att = List.map (fun (x:AST.astattribute) -> x.aname;) args in checkNoAttributesDuplicates name_att
 
-let verifyAttributeCoherence (args:AST.astattribute) = 
-	print_endline "TODO  Implement verifyAttributeCoherence - asignacion (adefault)"
+let verifyAttributeCoherence (aclass:AST.astclass) (arg:AST.astattribute) = 
+	match arg.adefault with
+	| None -> ()
+	| Some x -> 
+		if isSubClassOf aclass.classScope (solveExpression aclass [] [] x ) arg.atype then ()
+		else raise (InvalidStatement("Invalid attribute initalization of type: "^(Type.stringOf arg.atype)^" != "^(Type.stringOf (solveExpression aclass [] [] x ))))
 
 let verifyAttributeModifiers (att:AST.astattribute) = 
 	checkModifs(att.amodifiers);
@@ -521,7 +537,7 @@ let verifyAttributeModifiers (att:AST.astattribute) =
 let rec verifyClassAttributes (aclass:AST.astclass) = 
 	verifyNoAttributesDuplicated aclass.cattributes;
 	List.map verifyAttributeModifiers aclass.cattributes;
-	List.map verifyAttributeCoherence aclass.cattributes;
+	List.map (verifyAttributeCoherence aclass ) aclass.cattributes;
 	List.map verifyClassAttributes (getClasses aclass.ctypes);
 	()
 
@@ -531,13 +547,13 @@ let verifyMethodBody (aclass:AST.astclass) (themethod:AST.astmethod) =
 	if ( ( (inlist AST.Abstract themethod.mmodifiers)||(inlist AST.Native themethod.mmodifiers) ) && (not themethod.msemi) ) 
 		then raise (InvalidMethodBody ("Abstract or native methods can't define a body."));
 	if ( (inlist AST.Abstract themethod.mmodifiers) && not (inlist AST.Abstract aclass.clmodifiers) ) then raise (InvalidModifier ("Method: "^themethod.mname^". Can't a define an abstract method in a non-abstract class."));
-	print_endline "TODO  Implement verifyMethodBody"
+	solveStatements aclass themethod.margstype themethod.mreturntype [] themethod.mbody
 
 
 
 
 let verifyConstructorBody (aclass:AST.astclass) (cons:AST.astconst) =
-	solveStatements aclass cons.cargstype [] cons.cbody
+	solveStatements aclass cons.cargstype Type.Void [] cons.cbody
 
 
 let checkDuplicateConstructor (constrlist:AST.astconst list) (acosntructor:AST.astconst) =
@@ -572,8 +588,9 @@ let rec verifyClassConstructors (aclass:AST.astclass) =
 	() (*leave this unit to prevent recursive map problems*)
 
 let rec verifyClassInitials (aclass:AST.astclass) = 
-	print_endline "TODO  Implement verifyClassInitials";
-	() (*leave this unit to prevent recursive map problems*)
+	List.map (fun (x:AST.initial)-> solveStatements aclass [] Type.Void [] x.block) aclass.cinits;
+	List.map verifyClassInitials (getClasses aclass.ctypes);
+	()
 
 let verifyMethodModfier (mods:AST.modifier list) = 
 	checkModifs(mods);
