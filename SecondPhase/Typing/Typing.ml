@@ -238,7 +238,9 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 					Type.Array (t,dims)
 				)
 			| AST.Call (expOpt, str, expList) -> print_endline "TODO  Implement Call"; Type.Void
-			| AST.Attr (exp ,str) -> print_endline "TODO  Implement Attr"; Type.Void
+			| AST.Attr (exp ,str) -> (
+				print_endline "TODO  Implement Attr"; Type.Void
+			)
 			| AST.If (exp1, exp2, exp3) -> print_endline "TODO  Implement If"; Type.Void
 			| AST.Val v -> (
 				(match v with
@@ -265,7 +267,22 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen4."))
 			)
 			| AST.Array (exp ,expOptList) -> print_endline "TODO  Implement Array"; Type.Void
-			| AST.AssignExp (exp1 ,a_op, exp2) -> print_endline "TODO  Implement AssignExp"; Type.Void
+			| AST.AssignExp (exp1 ,a_op, exp2) -> (
+				let t1=solveExpression aclass args locals exp1 in
+				let t2=solveExpression aclass args locals exp2 in
+				if (isSubClassOf aclass.classScope t2 t1) then
+					t1
+				else 
+					match a_op with
+					| Ass_add -> 
+						if isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"})then
+							match t2 with
+							| Type.Primitive p -> t1
+							| _ -> raise (InvalidExpression("assign type mismatch"^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
+						else
+							raise (InvalidExpression("assign type mismatch"^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
+					| _ -> raise (InvalidExpression("assign type mismatch"^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
+			)
 			| AST.Post (exp, postfix_op)  -> print_endline "TODO  Implement Post"; Type.Void
 			| AST.Pre (prefix_op ,exp) -> print_endline "TODO  Implement Pre"; Type.Void
 			| AST.Op (exp, i_op , exp2) -> print_endline "TODO  Implement Op"; Type.Void
