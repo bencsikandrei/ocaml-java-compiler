@@ -10,6 +10,7 @@ exception InvalidMethodBody of string
 exception InvalidClassDefinition of string
 exception DuplicatedMethod of string
 exception InvalidMethodReDefinition of string
+exception InvalidConstructor of string
 
 
 (* ***********************
@@ -265,9 +266,12 @@ let rec verifyNoConstructorDuplicates (constrs:AST.astconst list) =
 	| hd::tl -> checkDuplicateConstructor tl hd; verifyNoConstructorDuplicates tl
 
 let rec verifyConstructorModifiers (mods:AST.modifier list) =
-	print_endline "TODO verifyConstructorModifiers"
+	checkModifs(mods);
+	if not (List.for_all (fun m -> inlist m [AST.Public;AST.Private;AST.Protected];) mods)
+		then raise (InvalidModifier ("Invalid modifier for a constructor."))
 
 let rec verifyClassConstructors (aclass:AST.astclass) =
+	List.map (fun (c:AST.astconst) -> if c.cname <> aclass.clname then raise (InvalidConstructor ("The name of the constructor must be the same as the class ("^aclass.clname^")."));) aclass.cconsts;
 	verifyNoConstructorDuplicates aclass.cconsts;
 	List.map (fun (c:AST.astconst) -> verifyConstructorModifiers c.cmodifiers) aclass.cconsts;
 	List.map (fun (c:AST.astconst) -> verifyMethodDuplicatedArguments c.cargstype) aclass.cconsts;
