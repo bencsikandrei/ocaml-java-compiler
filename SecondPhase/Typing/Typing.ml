@@ -144,6 +144,15 @@ and addScope (clid:string) (scope:AST.astclass list) (aclass:AST.astclass) =
 		aclass
 	else aclass
 
+let rec checkNoArgDuplicates (name_args:string list) = 
+	match name_args with
+	| [] -> ()
+	| hd::tl -> if (inlist hd tl) then raise (DuplicatedArgumentName ("Argument name "^hd^" duplicated.")); 
+				checkNoArgDuplicates tl
+
+let verifyMethodDuplicatedArguments (args:AST.argument list) = 
+	let name_args = List.map (fun (x:AST.argument) -> x.pident;) args in checkNoArgDuplicates name_args
+
 let checkDuplicateMethod (methodslist:AST.astmethod list) (amethod:AST.astmethod) =
 	List.iter (
 		fun (m:AST.astmethod) -> if m.mname=amethod.mname then
@@ -226,9 +235,44 @@ let rec verifyClassAttributes (aclass:AST.astclass) =
 	List.map verifyClassAttributes (getClasses aclass.ctypes);
 	()
 
-let rec verifyClassConstructors (aclass:AST.astclass) =
+let verifyMethodBody (aclass:AST.astclass) (themethod:AST.astmethod) =
+	if ( (themethod.msemi) && (not( (inlist AST.Abstract themethod.mmodifiers)||(inlist AST.Native themethod.mmodifiers) )) ) 
+		then raise (InvalidMethodBody ("Only abstract or native methods can't define a body."));
+	if ( ( (inlist AST.Abstract themethod.mmodifiers)||(inlist AST.Native themethod.mmodifiers) ) && (not themethod.msemi) ) 
+		then raise (InvalidMethodBody ("Abstract or native methods can't define a body."));
+	if ( (inlist AST.Abstract themethod.mmodifiers) && not (inlist AST.Abstract aclass.clmodifiers) ) then raise (InvalidModifier ("Method: "^themethod.mname^". Can't a define an abstract method in a non-abstract class."));
+	print_endline "TODO  Implement verifyMethodBody"
 
-	print_endline "TODO  Implement verifyClassConstructors";
+let verifyConstructorBody (aclass:AST.astclass) (cons:AST.astconst) =
+	print_endline "TODO  Implement verifyConstructorBody"
+
+
+let checkDuplicateConstructor (constrlist:AST.astconst list) (acosntructor:AST.astconst) =
+	List.iter (
+		fun (c:AST.astconst) -> if c.cname=acosntructor.cname then
+		(
+			if (List.length acosntructor.cargstype)=(List.length c.cargstype) then
+			(
+				let cmplist = List.map2 (fun (a1:AST.argument) (a2:AST.argument) -> cmptypes a1.ptype a2.ptype;) acosntructor.cargstype c.cargstype in
+				if (List.for_all (fun x -> x) cmplist) then raise (DuplicatedMethod ("Constructor "^c.cname^" is duplicated."))
+			)
+		);
+	    ) constrlist
+
+let rec verifyNoConstructorDuplicates (constrs:AST.astconst list) =
+	match constrs with
+	| [] -> ()
+	| hd::tl -> checkDuplicateConstructor tl hd; verifyNoConstructorDuplicates tl
+
+let rec verifyConstructorModifiers (mods:AST.modifier list) =
+	print_endline "TODO verifyConstructorModifiers"
+
+let rec verifyClassConstructors (aclass:AST.astclass) =
+	verifyNoConstructorDuplicates aclass.cconsts;
+	List.map (fun (c:AST.astconst) -> verifyConstructorModifiers c.cmodifiers) aclass.cconsts;
+	List.map (fun (c:AST.astconst) -> verifyMethodDuplicatedArguments c.cargstype) aclass.cconsts;
+	List.map (verifyConstructorBody aclass) aclass.cconsts;
+	List.map verifyClassConstructors (getClasses aclass.ctypes);
 	() (*leave this unit to prevent recursive map problems*)
 
 let rec verifyClassInitials (aclass:AST.astclass) = 
@@ -243,23 +287,6 @@ let verifyMethodModfier (mods:AST.modifier list) =
 	if (both mods AST.Private AST.Abstract) then raise (InvalidModifier ("Both modifiers abstract and private can't be present at the same time."));
 	if (both mods AST.Abstract AST.Static) then raise (InvalidModifier ("Both modifiers abstract and static can't be present at the same time."));
 	if (both mods AST.Abstract AST.Final) then raise (InvalidModifier ("Both modifiers abstract and final can't be present at the same time."))
-	
-let rec checkNoArgDuplicates (name_args:string list) = 
-	match name_args with
-	| [] -> ()
-	| hd::tl -> if (inlist hd tl) then raise (DuplicatedArgumentName ("Argument name "^hd^" duplicated.")); 
-				checkNoArgDuplicates tl
-
-let verifyMethodDuplicatedArguments (args:AST.argument list) = 
-	let name_args = List.map (fun (x:AST.argument) -> x.pident;) args in checkNoArgDuplicates name_args
-	
-let verifyMethodBody (aclass:AST.astclass) (themethod:AST.astmethod) =
-	if ( (themethod.msemi) && (not( (inlist AST.Abstract themethod.mmodifiers)||(inlist AST.Native themethod.mmodifiers) )) ) 
-		then raise (InvalidMethodBody ("Only abstract or native methods can't define a body."));
-	if ( ( (inlist AST.Abstract themethod.mmodifiers)||(inlist AST.Native themethod.mmodifiers) ) && (not themethod.msemi) ) 
-		then raise (InvalidMethodBody ("Abstract or native methods can't define a body."));
-	if ( (inlist AST.Abstract themethod.mmodifiers) && not (inlist AST.Abstract aclass.clmodifiers) ) then raise (InvalidModifier ("Method: "^themethod.mname^". Can't a define an abstract method in a non-abstract class."));
-	print_endline "TODO  Implement verifyMethodBody"
 
 
 let verifyClassMethod (aclass:AST.astclass) (amethod:AST.astmethod) = 
