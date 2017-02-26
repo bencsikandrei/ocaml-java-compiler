@@ -500,7 +500,6 @@ and execute_expression (jprog : jvm) expr =
     | VoidClass -> VoidVal
     | Cast(ty,exp) -> execute_cast jprog ty exp
     | Call(expo, name, args) -> begin
-
             let obj = match expo with | None -> VoidVal
                                     | Some({ edesc = Name(id) }) -> Log.debug ("Just id: "^id);
                                             let (_,scope) = get_current_scope jprog
@@ -516,12 +515,11 @@ and execute_expression (jprog : jvm) expr =
             (* A method withoud an object *)
             match (obj, name) with
             | (_, "println") -> print_endline (string_of_value (execute_expression jprog (List.hd args))); 
-                    VoidVal
-            | (RefVal(addr), n) -> (* we need to the the object *)
+                    VoidVal 
+            | (RefVal(addr), name) -> (* we need to the the object *)
                     let obj = get_object_from_heap jprog addr
                     in
-                    (* which class is the method from? *)
-                    let mname = Hashtbl.find (obj.oclass.jcmethods) signature
+                    let mname = try (Hashtbl.find (obj.oclass.jcmethods) signature) with | Not_found -> raise NoSuchMethodException
                     in
                     (* change the scoped class if it's an object *)
                     let backupscope = jprog.scope_class
@@ -537,16 +535,18 @@ and execute_expression (jprog : jvm) expr =
                     let backupscope = jprog.scope_class
                     in
                     jprog.scope_class <- id;
-                    let v = execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) None signature args
+                    let cls = try (Hashtbl.find jprog.classes jprog.scope_class) with | Not_found -> raise NoSuchMethodException
+                    in
+                    let v = execute_call jprog cls None signature args
                     in
                     jprog.scope_class <- backupscope;
                     v
             | (VoidVal, _) -> (* the return value of the method is given, the method needs the class *)
                     Log.debug ("Class name "^jprog.scope_class);
                     execute_call jprog (Hashtbl.find jprog.classes jprog.scope_class) None signature args;
+            | (ArrayVal(arr), n) -> (match n with | "length" -> IntVal(List.length arr.avals) | _ -> print_endline "Not implemented";VoidVal)
             | (NullVal, _) -> 
-                    raise NullPointerException
-                    
+                    raise NullPointerException      
             end;
             
     | _ -> StrVal("Not yet implemented")
@@ -832,10 +832,9 @@ and execute_method (jprog : jvm) (m : astmethod) (args : (string * MemoryModel.v
 (* add default initializer variables *)
 let add_defaults (jprog : jvm) =
     Hashtbl.add jprog.defaults Int (IntVal 0);
-    (* Hashtbl.add jprog.defaults Int StrVal(""); 
-    *)
     Hashtbl.add jprog.defaults Float (FltVal 0.0);
-    Hashtbl.add jprog.defaults Boolean (BoolVal false)
+    Hashtbl.add jprog.defaults Boolean (BoolVal false);
+    Hashtbl.add jprog.defaults Char (StrVal "")
 
 (* Make a structure that contains the whole program, its heap
 stack .. *)
