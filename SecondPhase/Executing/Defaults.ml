@@ -114,6 +114,50 @@ let objectclass = get_class { tpath = []; tid = "" }
 (* ----------------------------- AST.Type OBJECT ----------------------------------------------- *)
 let objecttype = get_asttype [] "Object" (Class objectclass)
 
+(* ----------------------------- Methods INTEGER ----------------------------------------------- *)
+
+(* ----------------------------- END ----------------------------------------------- *)
+
+(* ----------------------------- Class INTEGER ----------------------------------------------- *)
+let integerclass = get_class { tpath = []; tid = "Object" }
+		    [] [] []
+		    []
+			[]
+			Location.none
+;;
+(* ----------------------------- END ----------------------------------------------- *)
+
+
+(* ----------------------------- AST.Type INTEGER ----------------------------------------------- *)
+let integertype = get_asttype [] "Integer" (Class integerclass)
+
+
+(* ----------------------------- Class BOOLEAN ----------------------------------------------- *)
+let booleanclass = get_class { tpath = []; tid = "Object" }
+		    [] [] []
+		    []
+			[]
+			Location.none
+;;
+(* ----------------------------- END ----------------------------------------------- *)
+
+
+(* ----------------------------- AST.Type BOOLEAN ----------------------------------------------- *)
+let booleantype = get_asttype [] "Boolean" (Class booleanclass)
+
+
+(* ----------------------------- Class FLOAT ----------------------------------------------- *)
+let floatclass = get_class { tpath = []; tid = "Object" }
+		    [] [] []
+		    []
+			[]
+			Location.none
+;;
+(* ----------------------------- END ----------------------------------------------- *)
+
+
+(* ----------------------------- AST.Type FLOAT ----------------------------------------------- *)
+let floattype = get_asttype [] "Float" (Class floatclass)
 
 (* ----------------------------- Methods STRING ----------------------------------------------- *)
 (* modifier name return throws statements *)
@@ -267,6 +311,9 @@ let arrayindexoutofboundsexceptiontype = get_asttype [] "ArrayIndexOutOfBoundsEx
 let	add_default_classes (verb : bool) ast =
 	let default_class_list = [ objecttype;
 							stringtype;
+							integertype;
+							floattype;
+							booleantype;
 							exceptiontype; 
 							nullpointerexceptiontype; 
 							arithmeticexceptiontype; 
