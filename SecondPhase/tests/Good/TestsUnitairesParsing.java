@@ -25,10 +25,11 @@ abstract class B extends C {
 
 	return new A();
 	try {
+		a=1;
 	} catch (E e) {
-	    toto;
+	    a=2;
 	} finally {
-	    tutu;
+		a=3;    
 	}
 
     }

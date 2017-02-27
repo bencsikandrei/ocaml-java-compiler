@@ -389,12 +389,11 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 
 	match exp.etype with
 	| Some x -> x
-	| None -> (
+	| None -> ( let res = (
 		match exp.edesc with 
 			| AST.New (strOpt, strList, expList) ->  (*TODO find what this strOpt is for*)
 				(
 					let (hd,tl) =  getLast strList in
-					exp.etype <- Some (Type.Ref ({ Type.tpath = hd  ; Type.tid = tl }));
 					checkContrstuctor aclass { Type.tpath = hd  ; Type.tid = tl } (List.map (solveExpression aclass args locals) expList);
 					Type.Ref { Type.tpath = hd  ; Type.tid = tl }
 				)
@@ -402,9 +401,8 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 				(
 					let dims, dimsDeclared = checkArrayDimensions aclass args locals expOptList in
 					(
-						exp.etype <- Some(Type.Array (t,dims));
 						match expOpt with
-						| None -> ()
+						| None -> if dimsDeclared = 0 then raise (InvalidExpression("Cannot define array dimension without dimensions or initializer.")) else ()
 						| Some x ->( 
 							match x.edesc with
 							| AST.ArrayInit l-> 
@@ -446,32 +444,46 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 				| Ref r -> findVariable str (searchClass r aclass.classScope) args locals
 				| _ -> raise (InvalidExpression("Reference type expected - Found: "^(Type.stringOf r)))
 			)
-			| AST.If (exp1, exp2, exp3) -> print_endline "TODO  Implement If"; Type.Void
+			| AST.If (exp1, exp2, exp3) -> (
+				let t1=solveExpression aclass args locals exp1 in 
+				let t2=solveExpression aclass args locals exp2 in 
+				let t3=solveExpression aclass args locals exp3 in 
+				if( not (cmptypes t1 (Type.Primitive Type.Boolean))) then 
+					raise (InvalidExpression("If statements cannot be resolved without a boolean expression."))
+				else 
+					let (t,p) = inferType aclass.classScope (t2::t3::[]) in t
+			)
 			| AST.Val v -> (
 				(match v with
-					| String s -> exp.etype <- Some (Type.Ref { tpath = [] ; tid = "String" })
-					| Int i -> exp.etype <- Some (Type.Primitive Int)
-					| Float f -> exp.etype <- Some (Type.Primitive Float)
-					| Char c -> exp.etype <- Some (Type.Primitive Char)
-					| Null -> exp.etype <- Some ( Type.Ref { tpath = [] ; tid = "Null" })
-					| Boolean b -> exp.etype <- Some (Type.Primitive Boolean)
-				);
-				match exp.etype with
-					| Some x -> x
-					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen3."))
+					| String s -> (Type.Ref { tpath = [] ; tid = "String" })
+					| Int i -> (Type.Primitive Int)
+					| Float f -> (Type.Primitive Float)
+					| Char c -> (Type.Primitive Char)
+					| Null -> ( Type.Ref { tpath = [] ; tid = "Null" })
+					| Boolean b -> (Type.Primitive Boolean)
+				)
 			)
 			| AST.Name n -> findVariable n aclass args locals
 			| AST.ArrayInit expList -> (
 				let (t,parents) = inferType aclass.classScope (List.map (solveExpression aclass args locals) expList) in 
 				(match t with 
-				| Type.Array (at,dims) -> exp.etype <- Some (Type.Array (at,dims+1)); 
-				| _ -> exp.etype <- Some (Type.Array (t,1)) 
-				);
-				match exp.etype with
-					| Some x -> x
-					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen4."))
+				| Type.Array (at,dims) -> (Type.Array (at,dims+1)); 
+				| _ -> (Type.Array (t,1)) 
+				)
 			)
-			| AST.Array (exp ,expOptList) -> print_endline "TODO  Implement Array"; Type.Void
+			| AST.Array (exp ,expOptList) -> (
+				let r = solveExpression aclass args locals exp in
+				match r with
+				|Type.Array (a,b) -> (
+					let (dims,dimsDeclared) = checkArrayDimensions aclass args locals expOptList in
+						(
+							if dims<>dimsDeclared then raise(InvalidExpression("cannot access an empty slot of an array"));
+							if dims>b then raise(InvalidExpression("dimension mismatch"));
+							Array (a,b-dims)
+						)
+					)
+				| _ -> raise (InvalidExpression("cannot acces class "^(Type.stringOf r)^" as an array"))
+			)
 			| AST.AssignExp (exp1 ,a_op, exp2) -> (
 				let t1=solveExpression aclass args locals exp1 in
 				let t2=solveExpression aclass args locals exp2 in
@@ -493,10 +505,20 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 			| AST.Op (exp, i_op , exp2) -> print_endline "TODO  Implement Op"; Type.Void
 			| AST.CondOp (exp1 , exp2, exp3) -> print_endline "TODO  Implement CondOp"; Type.Void
 			| AST.Cast (t, exp) -> print_endline "TODO  Implement Cast"; Type.Void
-			| AST.Type t -> print_endline "TODO  Implement Type"; Type.Void
-			| AST.ClassOf t -> print_endline "TODO  Implement ClassOf"; Type.Void
-			| AST.Instanceof (exp, t) -> print_endline "TODO  Implement Instanceof"; Type.Void
+			| AST.Type t -> t
+			| AST.ClassOf t -> (
+				Type.Ref {Type.tpath=[];Type.tid="Class"}
+			)
+			| AST.Instanceof (exp, t) -> (
+				let t1=solveExpression aclass args locals exp in
+				Type.Primitive Type.Boolean
+			)
 			| AST.VoidClass -> Location.print exp.eloc ; raise (NonImplemented "VoidClass??")(*TODO ???*)
+	) in 
+		(
+			exp.etype <- Some res; res
+		)
+
 	)
 
 
@@ -594,8 +616,13 @@ let rec solveStatements (aclass:AST.astclass) (args:AST.argument list) (rType:Ty
 					else 
 						raise (InvalidStatement("Return type must be of "^(Type.stringOf rType)))
 			)
-			| AST.Throw exp -> print_endline "TODO"
-			| AST.Try (stateList1, argState_ListList, stateList2) -> print_endline "TODO"
+			| AST.Throw exp -> (solveExpression aclass args treated exp ; ())
+			| AST.Try (stateList1, argState_ListList, stateList2) -> (
+				solveStatements aclass args rType treated stateList1;
+				List.iter (fun (x,y) -> solveStatements aclass args rType treated y ) argState_ListList;
+				solveStatements aclass args rType treated stateList2;
+			)
+
 			| AST.Expr exp -> (solveExpression aclass args treated exp ; ())
 		);
 		solveStatements aclass args rType (treated@[head]) tail
