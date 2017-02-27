@@ -304,7 +304,9 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 				)
 			| AST.Call (expOpt, str, expList) -> print_endline "TODO  Implement Call"; Type.Void
 			| AST.Attr (exp ,str) -> (
-				print_endline "TODO  Implement Attr"; Type.Void
+				print_endline ("Attr "^(AST.string_of_expression exp )^str);
+				findVariable str aclass args locals
+				
 			)
 			| AST.If (exp1, exp2, exp3) -> print_endline "TODO  Implement If"; Type.Void
 			| AST.Val v -> (
@@ -320,7 +322,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 					| Some x -> x
 					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen3."))
 			)
-			| AST.Name n ->  raise (NonImplemented "Name??") 
+			| AST.Name n ->  raise (NonImplemented ("Name?? "^n)) 
 			| AST.ArrayInit expList -> (
 				let (t,parents) = inferType aclass.classScope (List.map (solveExpression aclass args locals) expList) in 
 				(match t with 

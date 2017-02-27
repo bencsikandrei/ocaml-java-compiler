@@ -4,42 +4,25 @@ class I {}
 
 
 public class A {
-    int a1 = 1;
+    static int a1 = 1;
     int[] a = { 3,4,5 };
-    boolean a2 = false;
+    public boolean a2 = false;
     String a6 = "jsdjkndjk\njdsdjkf";
     
 }
 abstract class B extends C {
     B() { super(); }
-    private A mthis () throws tuty.A, tre.tr.b {
+
+    int ab;
+    
+    private A mthis () throws tutu.titi.toto.A{
 	int a, b;
-	{
-		if(true) {
-			if(false) { ; }
-			}
-		else {
-			;
-		}
-	    int c = 18;
-	    { ; }
-	    new A();
-	    A.m();
-	    a[2].m();
-	    a[2][6].m();
-	    B.A.m();
-	    this.m();
-	    super();
-	    this();
-	    super.m();
-	    m();
-	    for (int c; c > 6 ; c++) { }
-	}
-	tutu.tyty.a = 1;
-	final tutu.tyty.a op;
-	a(B.this);
-	tutu.a op;
-	a = b = 1;
+
+	final tutu.tyty.A op;
+	a(A.a1);
+	tutu.titi.toto.A op;
+	op.a2=false;
+
 	return new A();
 	try {
 	} catch (E e) {
@@ -47,15 +30,10 @@ abstract class B extends C {
 	} finally {
 	    tutu;
 	}
-	try {
-	} finally {
-	    tutu;
-	}
-	try {
-	} catch (E e) {
-	    toto;
-	}
+
     }
+	
+    void a(int v){}
 
     Int matt4() { this.ab; }
 }
