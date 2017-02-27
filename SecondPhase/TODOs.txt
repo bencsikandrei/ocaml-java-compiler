@@ -2,4 +2,9 @@
 - final modifier (in variables -arguments- and attributes)
 - Error "Implicit super constructor A() is not visible. Must explicitly invoke another constructor" in son's constructor when parent's constructor is private.
 - Two dimension arrays
+- verify not calling a protected or private attribute of an object -> obj.var
+- check constructor for primitive types
+- classOf
+- instanceOf
+
 
