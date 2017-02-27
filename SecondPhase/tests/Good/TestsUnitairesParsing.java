@@ -18,7 +18,7 @@ abstract class B extends C {
     private A mthis () throws tutu.titi.toto.A{
 	int a, b;
 
-	final tutu.tyty.A op;
+	final tutu.titi.toto.A op;
 	a(A.a1);
 	tutu.titi.toto.A op;
 	op.a2=false;

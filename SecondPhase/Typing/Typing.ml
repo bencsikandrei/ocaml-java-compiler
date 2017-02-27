@@ -147,8 +147,8 @@ let rec getFirstComonRepetition (l1:Type.ref_type list) (l2:Type.ref_type list) 
 
 
 let rec inferType  (scope:AST.astclass list)  (types:Type.t list) : Type.t*(Type.ref_type list) =
-	List.map (fun x -> print_string (Type.stringOf x)) types;
-	print_string "\n";
+	(*List.map (fun x -> print_string (Type.stringOf x)) types;
+	print_string "\n";*)
 	match types with 
 	| [] -> raise (NonImplemented "empty arrayInit")
 	| last::[] -> ( 
@@ -219,7 +219,7 @@ let rec findVariableInArgs (id:string) (args:AST.argument list) : Type.t option 
 let findVariableAttribute (att:AST.astattribute) (id:string) (base:bool) : Type.t option =
 	if base then (if att.aname=id then Some att.atype else None)
 	else (
-		if (inlist AST.Public att.amodifiers) || (inlist AST.Protected att.amodifiers) then (
+		if (not (inlist AST.Private att.amodifiers)) || (inlist AST.Protected att.amodifiers) then (
 			if att.aname=id then Some att.atype else None
 		)
 		else None
@@ -228,12 +228,25 @@ let findVariableAttribute (att:AST.astattribute) (id:string) (base:bool) : Type.
 let rec findVariableAttributeList (atts:AST.astattribute list) (id:string) (base:bool) : Type.t option =
 	match atts with
 	| [] -> None
-	| att::tail -> (findVariableAttribute att id base; findVariableAttributeList tail id base)
+	| att::tail -> (
+		let res = findVariableAttribute att id base in 
+		match res with
+		|None -> findVariableAttributeList tail id base
+		|Some x -> Some x
+	)
 
 let rec findVariableAttributeParents (classes:AST.astclass list) (id:string) (base:bool) : Type.t option =
 	match classes with
 	| [] -> None
-	| cl::tail -> findVariableAttributeList cl.cattributes id base; findVariableAttributeParents tail id base
+	| cl::tail -> (
+		print_string "searching";
+		List.iter (fun (x:AST.astattribute)-> print_string (" "^x.aname)) cl.cattributes;
+		print_endline "";
+		let res = findVariableAttributeList cl.cattributes id base in 
+		match res with 
+		| None -> findVariableAttributeParents tail id base
+		| Some x -> Some x
+	)
 
 let findVariableInClass (id:string) (aclass:AST.astclass) : Type.t option =
 	let found = findVariableAttributeList aclass.cattributes id true in
@@ -242,6 +255,10 @@ let findVariableInClass (id:string) (aclass:AST.astclass) : Type.t option =
 	| None -> findVariableAttributeParents (getParentsClasses aclass) id false
 
 let findVariable (id:string) (aclass:AST.astclass) (args:AST.argument list) (statements:AST.statement list) : Type.t =
+	if (id="this") then Type.Ref {Type.tpath=getPath(aclass.clid);Type.tid=aclass.clname}
+	else 
+		if (id="super") then Type.Ref aclass.cparent
+		else 
 	let varS = findVariableInStatement id statements in
 	match varS with
 	| Some t -> t
@@ -251,7 +268,13 @@ let findVariable (id:string) (aclass:AST.astclass) (args:AST.argument list) (sta
 			| None -> (
 				match findVariableInClass id aclass with
 				 | Some t -> t
-				 | None -> raise (IdentifierNotFound ("The idenfier "^id^" is not declared in this scope."))
+				 | None ->( 
+				 	try
+				 		let res = searchClass {Type.tpath=[];Type.tid=id} aclass.classScope in
+				 		Type.Ref {Type.tpath=getPath(res.clid);Type.tid=id}
+				 	with
+				 	| _ -> raise (IdentifierNotFound ("The idenfier "^id^" is not declared in this scope."))
+				 	)
 				)
 		)
 
@@ -293,6 +316,27 @@ let rec checkConstructors (caller:AST.astclass) (cons:AST.astconst list) (id:str
 			checkConstructors caller tail id args
 
 let rec findMethod (caller:AST.astclass) (called:AST.astclass) (id:string) (args:Type.t list) : Type.t =
+	if id ="super" then
+		let father = searchClass caller.cparent called.classScope in
+		let father_t =Type.Ref {Type.tpath=(getPath father.clid);Type.tid=father.clname} in
+		if ((List.length father.cconsts)=0) && ((List.length args)=0) then
+			father_t
+		else
+		let res = checkConstructors caller father.cconsts father.clname args in 
+		(
+			match res with 
+			| Some res -> (
+				if (inlist AST.Private res.cmodifiers) then 
+					raise (InvalidExpression("constructor is private"))
+				else 
+					father_t
+			)
+			| None -> 
+				raise (InvalidExpression("constructor not found "))
+
+
+		)
+	else
 	let caller_t = Type.Ref {Type.tpath=(getPath caller.clid);Type.tid=caller.clname} in
 	let called_t = Type.Ref {Type.tpath=(getPath called.clid);Type.tid=called.clname} in 	
 	let res = checkMethods caller called.cmethods id args in 
@@ -925,7 +969,7 @@ let pckgInfo (pckgname:AST.qualified_name option) (var:AST.astclass list) =
 
 let addBasics (pckgname:AST.qualified_name option) (var:AST.astclass list) :AST.astclass list = 
 	let lis = pckgInfo pckgname var in 
-    Object.objectInfo::lis
+    Object.objectInfo::System.systemInfo::lis
    
 
 (* ***********************
