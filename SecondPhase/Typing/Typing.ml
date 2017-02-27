@@ -400,7 +400,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 				let r = solveExpression aclass args locals exp in 
 				match r with
 				| Ref r -> findVariable str (searchClass r aclass.classScope) args locals
-				| None -> raise (InvalidExpression("Reference type expected - Found: "^(Type.stringOf t)))
+				| _ -> raise (InvalidExpression("Reference type expected - Found: "^(Type.stringOf r)))
 			)
 			| AST.If (exp1, exp2, exp3) -> print_endline "TODO  Implement If"; Type.Void
 			| AST.Val v -> (
@@ -416,7 +416,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 					| Some x -> x
 					| None -> raise (InvalidExpression("*************invalid new empty type-should not happen3."))
 			)
-			| AST.Name n ->  raise (NonImplemented ("Name?? "^n)) 
+			| AST.Name n -> findVariable n aclass args locals
 			| AST.ArrayInit expList -> (
 				let (t,parents) = inferType aclass.classScope (List.map (solveExpression aclass args locals) expList) in 
 				(match t with 
@@ -439,10 +439,10 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 						if isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"})then
 							match t2 with
 							| Type.Primitive p -> t1
-							| _ -> raise (InvalidExpression("assign type mismatch"^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
+							| _ -> raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
 						else
-							raise (InvalidExpression("assign type mismatch"^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
-					| _ -> raise (InvalidExpression("assign type mismatch"^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
+							raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
+					| _ -> raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
 			)
 			| AST.Post (exp, postfix_op)  -> print_endline "TODO  Implement Post"; Type.Void
 			| AST.Pre (prefix_op ,exp) -> print_endline "TODO  Implement Pre"; Type.Void
