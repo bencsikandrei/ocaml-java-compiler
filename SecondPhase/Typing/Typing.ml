@@ -278,6 +278,15 @@ let findVariable (id:string) (aclass:AST.astclass) (args:AST.argument list) (sta
 				)
 		)
 
+let bigger t1 t2 : Type.t =
+	if t1=Type.Primitive Boolean || t2=Type.Primitive Boolean then raise (InvalidExpression ("Incompatible types."))
+	else if t1=Type.Primitive Double || t2=Type.Primitive Double then Type.Primitive Double
+	else if t1=Type.Primitive Float || t2=Type.Primitive Float then Type.Primitive Float
+	else if t1=Type.Primitive Long || t2=Type.Primitive Long then Type.Primitive Long
+	else if t1=Type.Primitive Int || t2=Type.Primitive Int then Type.Primitive Int
+	else if t1=Type.Primitive Short || t2=Type.Primitive Short then Type.Primitive Short
+	else if t1=Type.Primitive Char || t2=Type.Primitive Char then Type.Primitive Char
+	else Type.Primitive Byte
 
 let checkMethod (scope:AST.astclass list) (id:string) (args:Type.t list) (meth:AST.astmethod) : bool=
 	if meth.mname = id then
@@ -379,7 +388,6 @@ let rec findMethod (caller:AST.astclass) (called:AST.astclass) (id:string) (args
 				raise (InvalidExpression("method "^id^" not found"))
 			else 
 				findMethod caller (searchClass called.cparent called.classScope) id args
-
 
 (* ***********************
 * Class Checking functions
@@ -484,7 +492,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 					)
 				| _ -> raise (InvalidExpression("cannot acces class "^(Type.stringOf r)^" as an array"))
 			)
-			| AST.AssignExp (exp1 ,a_op, exp2) -> (
+			| AST.AssignExp (exp1 ,a_op, exp2) -> ( (*TODO FIXME*)
 				let t1=solveExpression aclass args locals exp1 in
 				let t2=solveExpression aclass args locals exp2 in
 				if (isSubClassOf aclass.classScope t2 t1) then
@@ -500,9 +508,84 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 							raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
 					| _ -> raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
 			)
-			| AST.Post (exp, postfix_op)  -> print_endline "TODO  Implement Post"; Type.Void
-			| AST.Pre (prefix_op ,exp) -> print_endline "TODO  Implement Pre"; Type.Void
-			| AST.Op (exp, i_op , exp2) -> print_endline "TODO  Implement Op"; Type.Void
+			| AST.Post (exp, postfix_op)  -> (
+				let t1 = solveExpression aclass args locals exp in
+				match t1 with
+				| Type.Primitive t -> (
+					match t with
+					| Boolean -> raise (InvalidExpression ("Postfix invalid for type boolean."))
+					| _ -> t1
+				)
+				| _ -> raise (InvalidExpression ("Postfix invalid for type "^Type.stringOf t1^"."))
+			)
+			| AST.Pre (prefix_op ,exp) -> (
+				let t1 = solveExpression aclass args locals exp in
+				match prefix_op with
+				| Op_not -> (
+					match t1 with
+					| Type.Primitive Boolean -> t1
+					| _ -> raise (InvalidExpression ("Prefix not invalid for type "^Type.stringOf t1^"."))
+				)
+			 	| Op_neg -> (
+			 		match t1 with
+			 		| Type.Primitive Boolean -> raise (InvalidExpression ("Prefix neg invalid for type "^Type.stringOf t1^"."))
+			 		| Type.Primitive Char -> raise (InvalidExpression ("Prefix neg invalid for type "^Type.stringOf t1^"."))
+			 		| _ -> t1
+			 	)
+			  	| Op_incr -> (
+			 		match t1 with
+			 		| Type.Primitive Boolean -> raise (InvalidExpression ("Prefix incr invalid for type "^Type.stringOf t1^"."))
+			 		| _ -> t1
+			 	)
+			  	| Op_decr -> (
+			 		match t1 with
+			 		| Type.Primitive Boolean -> raise (InvalidExpression ("Prefix decr invalid for type "^Type.stringOf t1^"."))
+			 		| Type.Primitive Double -> raise (InvalidExpression ("Prefix decr invalid for type "^Type.stringOf t1^"."))
+			 		| Type.Primitive Float -> raise (InvalidExpression ("Prefix decr invalid for type "^Type.stringOf t1^"."))
+			 		| Type.Primitive Char -> raise (InvalidExpression ("Prefix decr invalid for type "^Type.stringOf t1^"."))
+			 		| _ -> t1
+			 	)
+			  	| Op_bnot -> (
+			 		match t1 with
+			 		| Type.Primitive Boolean -> raise (InvalidExpression ("Prefix bnot invalid for type "^Type.stringOf t1^"."))
+			 		| _ -> t1
+			 	)
+			  	| Op_plus -> (
+			 		match t1 with
+			 		| Type.Primitive Boolean -> raise (InvalidExpression ("Prefix plus invalid for type "^Type.stringOf t1^"."))
+			 		| Type.Primitive Char -> raise (InvalidExpression ("Prefix plus invalid for type "^Type.stringOf t1^"."))
+			 		| _ -> t1
+			 	)
+			)
+			| AST.Op (exp, i_op , exp2) -> (
+				let t1=solveExpression aclass args locals exp in
+				let t2=solveExpression aclass args locals exp2 in
+				if t1=(Type.Primitive Boolean) && t2=(Type.Primitive Boolean) then  (
+					if inlist i_op [Op_cor;Op_cand;Op_or;Op_and;Op_xor;Op_eq;Op_ne] then (
+						t1
+					) else (
+						raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
+					)
+				) else (
+					let nl = [Type.Primitive Char;Type.Primitive Byte;Type.Primitive Short;Type.Primitive Int;Type.Primitive Long;Type.Primitive Float;Type.Primitive Double] in
+					if (inlist t1 nl) && (inlist t2 nl) then (
+						if inlist i_op [Op_ne;Op_gt;Op_lt;Op_ge;Op_le;Op_shl;Op_shr;Op_shrr;Op_add;Op_sub;Op_mul;Op_div;Op_mod] then (
+							bigger t1 t2
+						) else (
+							raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
+						)
+					) else (
+						if isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"}) && isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"}) then (
+							if i_op=Op_add then Type.Ref {tpath=[];tid="String"}
+							else raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
+						) else (
+							raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
+						)
+					)
+				) 
+
+
+			)
 			| AST.CondOp (exp1 , exp2, exp3) -> print_endline "TODO  Implement CondOp"; Type.Void
 			| AST.Cast (t, exp) -> print_endline "TODO  Implement Cast"; Type.Void
 			| AST.Type t -> t
@@ -621,7 +704,7 @@ let rec solveStatements (aclass:AST.astclass) (args:AST.argument list) (rType:Ty
 			)
 			| AST.If (exp, state, stateOpt) ->(
 				if not (cmptypes (solveExpression aclass args treated exp) (Type.Primitive Type.Boolean)) then
-					 raise (InvalidExpression("While statements cannot be resolved without a boolean expression."))
+					 raise (InvalidExpression("If statements cannot be resolved without a boolean expression."))
 				else 
 					(
 						solveStatements aclass args rType treated [state];
