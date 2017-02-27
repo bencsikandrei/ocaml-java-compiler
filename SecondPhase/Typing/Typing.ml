@@ -255,6 +255,88 @@ let findVariable (id:string) (aclass:AST.astclass) (args:AST.argument list) (sta
 				)
 		)
 
+
+let checkMethod (scope:AST.astclass list) (id:string) (args:Type.t list) (meth:AST.astmethod) : bool=
+	if meth.mname = id then
+		if (List.length args) = (List.length meth.margstype) then
+			let res = List.map2 (fun x (y:AST.argument) -> isSubClassOf scope x y.ptype ) args meth.margstype in 
+			List.for_all (fun x->x) res
+		else false
+	else
+		false 
+
+let checkConsts (scope:AST.astclass list) (id:string) (args:Type.t list) (cons:AST.astconst) : bool=
+	if cons.cname = id then
+		if (List.length args) = (List.length cons.cargstype) then
+			let res = List.map2 (fun x (y:AST.argument) -> isSubClassOf scope x y.ptype ) args cons.cargstype in 
+			List.for_all (fun x->x) res
+		else false
+	else
+		false 
+
+let rec checkMethods (caller:AST.astclass) (methods:AST.astmethod list) (id:string) (args:Type.t list) : AST.astmethod option = 
+	match methods with
+	| [] -> None
+	| head::tail -> 
+		if checkMethod caller.classScope id args head then
+			Some head
+		else 
+			checkMethods caller tail id args
+
+let rec checkConstructors (caller:AST.astclass) (cons:AST.astconst list) (id:string) (args:Type.t list) : AST.astconst option = 
+	match cons with
+	| [] -> None
+	| head::tail -> 
+		if checkConsts caller.classScope id args head then
+			Some head
+		else 
+			checkConstructors caller tail id args
+
+let rec findMethod (caller:AST.astclass) (called:AST.astclass) (id:string) (args:Type.t list) : Type.t =
+	let caller_t = Type.Ref {Type.tpath=(getPath caller.clid);Type.tid=caller.clname} in
+	let called_t = Type.Ref {Type.tpath=(getPath called.clid);Type.tid=called.clname} in 	
+	let res = checkMethods caller called.cmethods id args in 
+	match res with
+	| Some res ->( 
+		if (inlist AST.Private res.mmodifiers) then 
+			if cmptypes caller_t called_t then
+				called_t
+			else 
+				raise (InvalidExpression("method "^id^" is private"))
+		else 
+			if (inlist AST.Protected res.mmodifiers) then 
+				if isSubClassOf caller.classScope caller_t called_t then
+					called_t
+				else 
+					raise (InvalidExpression("method "^id^" is protected"))
+			else 
+				called_t
+	)
+	| None ->  
+		let res = checkConstructors caller called.cconsts id args in
+		match res with 
+		| Some res -> (
+			if (inlist AST.Private res.cmodifiers) then 
+				if cmptypes caller_t called_t then
+					called_t
+				else 
+					raise (InvalidExpression("constructor "^id^" is private"))
+			else 
+				if (inlist AST.Protected res.cmodifiers) then 
+					if isSubClassOf caller.classScope caller_t called_t then
+						called_t
+					else 
+						raise (InvalidExpression("constructor "^id^" is protected"))
+				else 
+					called_t
+		)
+		| None -> 
+			if called.clid = "Object" then
+				raise (InvalidExpression("method "^id^" not found"))
+			else 
+				findMethod caller (searchClass called.cparent called.classScope) id args
+
+
 (* ***********************
 * Class Checking functions
 * ************************ *)
@@ -302,8 +384,20 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 					);
 					Type.Array (t,dims)
 				)
-			| AST.Call (expOpt, str, expList) -> print_endline "TODO  Implement Call"; Type.Void
+			| AST.Call (expOpt, str, expList) -> (
+				match expOpt with
+					| None ->
+						findMethod aclass aclass str (List.map (solveExpression aclass args locals) expList) 
+					| Some x -> (
+						let t = solveExpression aclass args locals x in
+						match t with
+						| Ref r ->
+							findMethod aclass (searchClass r aclass.classScope) str (List.map (solveExpression aclass args locals) expList)
+						| _ -> raise (InvalidExpression("Reference type expected - Found: "^(Type.stringOf t)))
+					)
+			)
 			| AST.Attr (exp ,str) -> (
+								(*findVariable str aclass args locals;*)
 				print_endline ("Attr "^(AST.string_of_expression exp )^str);Type.Void
 			)
 			| AST.If (exp1, exp2, exp3) -> print_endline "TODO  Implement If"; Type.Void
