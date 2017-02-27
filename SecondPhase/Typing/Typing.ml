@@ -575,7 +575,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 							raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
 						)
 					) else (
-						if isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"}) && isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"}) then (
+						if isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"}) || isSubClassOf aclass.classScope t2 (Type.Ref {tpath=[];tid="String"}) then (
 							if i_op=Op_add then Type.Ref {tpath=[];tid="String"}
 							else raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
 						) else (
@@ -587,7 +587,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 
 			)
 			| AST.CondOp (exp1 , exp2, exp3) -> print_endline "TODO  Implement CondOp"; Type.Void
-			| AST.Cast (t, exp) -> print_endline "TODO  Implement Cast"; Type.Void
+			| AST.Cast (t, exp) -> t
 			| AST.Type t -> t
 			| AST.ClassOf t -> (
 				Type.Ref {Type.tpath=[];Type.tid="Class"}
