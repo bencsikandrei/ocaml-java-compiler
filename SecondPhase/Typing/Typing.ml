@@ -495,7 +495,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 			| AST.AssignExp (exp1 ,a_op, exp2) -> ( (*TODO FIXME*)
 				let t1=solveExpression aclass args locals exp1 in
 				let t2=solveExpression aclass args locals exp2 in
-				if (isSubClassOf aclass.classScope t2 t1) then
+				if (cmptypes t2 t1) then
 					t1
 				else 
 					match a_op with
@@ -503,6 +503,8 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 						if isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"})then
 							match t2 with
 							| Type.Primitive p -> t1
+							| Type.Ref f -> if isSubClassOf aclass.classScope t2 (Type.Ref {tpath=[];tid="String"}) then t1 else
+								raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
 							| _ -> raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
 						else
 							raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
