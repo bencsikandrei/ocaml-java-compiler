@@ -588,7 +588,15 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 
 
 			)
-			| AST.CondOp (exp1 , exp2, exp3) -> print_endline "TODO  Implement CondOp"; Type.Void
+			| AST.CondOp (exp1 , exp2, exp3) -> (
+				let t1=solveExpression aclass args locals exp1 in 
+				let t2=solveExpression aclass args locals exp2 in 
+				let t3=solveExpression aclass args locals exp3 in 
+				if( not (cmptypes t1 (Type.Primitive Type.Boolean))) then 
+					raise (InvalidExpression("If statements cannot be resolved without a boolean expression."))
+				else 
+					let (t,p) = inferType aclass.classScope (t2::t3::[]) in t
+			)
 			| AST.Cast (t, exp) -> print_endline "TODO  Implement Cast"; Type.Void
 			| AST.Type t -> t
 			| AST.ClassOf t -> (
