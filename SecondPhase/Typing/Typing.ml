@@ -495,7 +495,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 			| AST.AssignExp (exp1 ,a_op, exp2) -> ( (*TODO FIXME*)
 				let t1=solveExpression aclass args locals exp1 in
 				let t2=solveExpression aclass args locals exp2 in
-				if (isSubClassOf aclass.classScope t2 t1) then
+				if (cmptypes t2 t1) then
 					t1
 				else 
 					match a_op with
@@ -503,6 +503,8 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 						if isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"})then
 							match t2 with
 							| Type.Primitive p -> t1
+							| Type.Ref f -> if isSubClassOf aclass.classScope t2 (Type.Ref {tpath=[];tid="String"}) then t1 else
+								raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
 							| _ -> raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
 						else
 							raise (InvalidExpression("assign type mismatch "^(Type.stringOf t1)^" != "^(Type.stringOf t2)))
@@ -586,7 +588,15 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 
 
 			)
-			| AST.CondOp (exp1 , exp2, exp3) -> print_endline "TODO  Implement CondOp"; Type.Void
+			| AST.CondOp (exp1 , exp2, exp3) -> (
+				let t1=solveExpression aclass args locals exp1 in 
+				let t2=solveExpression aclass args locals exp2 in 
+				let t3=solveExpression aclass args locals exp3 in 
+				if( not (cmptypes t1 (Type.Primitive Type.Boolean))) then 
+					raise (InvalidExpression("If statements cannot be resolved without a boolean expression."))
+				else 
+					let (t,p) = inferType aclass.classScope (t2::t3::[]) in t
+			)
 			| AST.Cast (t, exp) -> t
 			| AST.Type t -> t
 			| AST.ClassOf t -> (
@@ -657,6 +667,19 @@ and completedInOrder (res:bool list) (completed:int) (v:bool) :int=
 			if some then raise (InvalidExpression("Array dimensions must be cannot be filled after empty ones."))
 			else completedInOrder rest completed false
 
+let rec getStates (decls:(Type.t option * string * AST.expression option) list) (aclass:AST.astclass) (args:AST.argument list) (rType:Type.t) (treated:AST.statement list) :AST.statement list =
+	match decls with
+	| [] -> []
+	| (t,str,exp)::tail ->
+		let res = getStates tail aclass args rType treated in 
+		let  (x:Type.t) = (
+			match t with
+			| Some x -> x
+			| None -> findVariable str aclass args treated
+		) in
+		(AST.VarDecl [(x,str,exp)])::res
+
+
 let rec solveStatements (aclass:AST.astclass) (args:AST.argument list) (rType:Type.t) (treated:AST.statement list) (nonTreated:AST.statement list) =
 	match nonTreated with
 	| [] -> ()
@@ -672,8 +695,22 @@ let rec solveStatements (aclass:AST.astclass) (args:AST.argument list) (rType:Ty
 				else 
 					solveStatements aclass args rType treated [state]
 			)
-			| AST.For (t_optStrExp_optList, expOpt, expList,  state) -> (
-				solveStatements aclass args rType treated [state]; print_endline "TODO implement FOR"
+			| AST.For (decls, expOpt, expList,  state) -> (
+				let states= getStates decls aclass args rType treated in
+				(
+					solveStatements aclass args rType treated states;
+					(
+						match expOpt with 
+						|None -> ()
+						|Some x -> let t = solveExpression aclass args (treated@states) x in 
+							if cmptypes t (Type.Primitive Type.Boolean) then 
+								()
+							else 
+								raise (InvalidStatement("Condition in the for statment must be of type boolean"))
+					); 
+					List.map (solveExpression aclass args (treated@states)) expList;
+					solveStatements aclass args rType (treated@states) [state]
+				)
 			)
 			| AST.If (exp, state, stateOpt) ->(
 				if not (cmptypes (solveExpression aclass args treated exp) (Type.Primitive Type.Boolean)) then
