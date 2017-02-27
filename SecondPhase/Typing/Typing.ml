@@ -239,9 +239,6 @@ let rec findVariableAttributeParents (classes:AST.astclass list) (id:string) (ba
 	match classes with
 	| [] -> None
 	| cl::tail -> (
-		print_string "searching";
-		List.iter (fun (x:AST.astattribute)-> print_string (" "^x.aname)) cl.cattributes;
-		print_endline "";
 		let res = findVariableAttributeList cl.cattributes id base in 
 		match res with 
 		| None -> findVariableAttributeParents tail id base
@@ -571,10 +568,12 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 				) else (
 					let nl = [Type.Primitive Char;Type.Primitive Byte;Type.Primitive Short;Type.Primitive Int;Type.Primitive Long;Type.Primitive Float;Type.Primitive Double] in
 					if (inlist t1 nl) && (inlist t2 nl) then (
-						if inlist i_op [Op_ne;Op_gt;Op_lt;Op_ge;Op_le;Op_shl;Op_shr;Op_shrr;Op_add;Op_sub;Op_mul;Op_div;Op_mod] then (
-							bigger t1 t2
+						if inlist i_op [Op_ne;Op_gt;Op_lt;Op_ge;Op_le] then (
+							Type.Primitive Type.Boolean
 						) else (
-							raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
+							if inlist i_op [Op_shl;Op_shr;Op_shrr;Op_add;Op_sub;Op_mul;Op_div;Op_mod] then
+								bigger t1 t2
+							else raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
 						)
 					) else (
 						if isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"}) || isSubClassOf aclass.classScope t2 (Type.Ref {tpath=[];tid="String"}) then (

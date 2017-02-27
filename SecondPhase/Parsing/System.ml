@@ -9,6 +9,17 @@ let systemInfo =
         AST.cinits = [];
         AST.cconsts = [];
         AST.cmethods = [
+
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
             {
                 AST.mmodifiers = [Public];
                 AST.mname = "println";
@@ -25,7 +36,177 @@ let systemInfo =
                 AST.mbody = [];
                 AST.mloc = Location.none;
                 AST.msemi = false;
-            }
+            };
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [ 
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Ref {Type.tpath=[];Type.tid="Object"};
+                        pident = "str";
+                    }
+                ];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [ 
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Array (Primitive Type.Char,1);
+                        pident = "str";
+                    }
+                ];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [ 
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Primitive Type.Boolean;
+                        pident = "str";
+                    }
+                ];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [ 
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Primitive Type.Char;
+                        pident = "str";
+                    }
+                ];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [ 
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Primitive Type.Byte;
+                        pident = "str";
+                    }
+                ];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [ 
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Primitive Type.Short;
+                        pident = "str";
+                    }
+                ];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [ 
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Primitive Type.Int;
+                        pident = "str";
+                    }
+                ];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [ 
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Primitive Type.Long;
+                        pident = "str";
+                    }
+                ];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [ 
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Primitive Type.Float;
+                        pident = "str";
+                    }
+                ];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
+            {
+                AST.mmodifiers = [Public];
+                AST.mname = "println";
+                AST.mreturntype = Type.Void;
+                AST.margstype = [ 
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Primitive Type.Double;
+                        pident = "str";
+                    }
+                ];
+                AST.mthrows = [];
+                AST.mbody = [];
+                AST.mloc = Location.none;
+                AST.msemi = false;
+            };
         ];
         AST.ctypes = [];
         AST.cloc = Location.none;
