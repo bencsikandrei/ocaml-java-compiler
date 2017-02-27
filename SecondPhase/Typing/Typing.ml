@@ -574,6 +574,19 @@ and completedInOrder (res:bool list) (completed:int) (v:bool) :int=
 			if some then raise (InvalidExpression("Array dimensions must be cannot be filled after empty ones."))
 			else completedInOrder rest completed false
 
+let rec getStates (decls:(Type.t option * string * AST.expression option) list) (aclass:AST.astclass) (args:AST.argument list) (rType:Type.t) (treated:AST.statement list) :AST.statement list =
+	match decls with
+	| [] -> []
+	| (t,str,exp)::tail ->
+		let res = getStates tail aclass args rType treated in 
+		let  (x:Type.t) = (
+			match t with
+			| Some x -> x
+			| None -> findVariable str aclass args treated
+		) in
+		(AST.VarDecl [(x,str,exp)])::res
+
+
 let rec solveStatements (aclass:AST.astclass) (args:AST.argument list) (rType:Type.t) (treated:AST.statement list) (nonTreated:AST.statement list) =
 	match nonTreated with
 	| [] -> ()
@@ -589,8 +602,22 @@ let rec solveStatements (aclass:AST.astclass) (args:AST.argument list) (rType:Ty
 				else 
 					solveStatements aclass args rType treated [state]
 			)
-			| AST.For (t_optStrExp_optList, expOpt, expList,  state) -> (
-				solveStatements aclass args rType treated [state]; print_endline "TODO implement FOR"
+			| AST.For (decls, expOpt, expList,  state) -> (
+				let states= getStates decls aclass args rType treated in
+				(
+					solveStatements aclass args rType treated states;
+					(
+						match expOpt with 
+						|None -> ()
+						|Some x -> let t = solveExpression aclass args (treated@states) x in 
+							if cmptypes t (Type.Primitive Type.Boolean) then 
+								()
+							else 
+								raise (InvalidStatement("Condition in the for statment must be of type boolean"))
+					); 
+					List.map (solveExpression aclass args (treated@states)) expList;
+					solveStatements aclass args rType (treated@states) [state]
+				)
 			)
 			| AST.If (exp, state, stateOpt) ->(
 				if not (cmptypes (solveExpression aclass args treated exp) (Type.Primitive Type.Boolean)) then
