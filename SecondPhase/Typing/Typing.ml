@@ -397,8 +397,10 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 					)
 			)
 			| AST.Attr (exp ,str) -> (
-								(*findVariable str aclass args locals;*)
-				print_endline ("Attr "^(AST.string_of_expression exp )^str);Type.Void
+				let r = solveExpression aclass args locals exp in 
+				match r with
+				| Ref r -> findVariable str (searchClass r aclass.classScope) args locals
+				| None -> raise (InvalidExpression("Reference type expected - Found: "^(Type.stringOf t)))
 			)
 			| AST.If (exp1, exp2, exp3) -> print_endline "TODO  Implement If"; Type.Void
 			| AST.Val v -> (
