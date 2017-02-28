@@ -7,9 +7,9 @@ public class TryCatchTestNoCatch {
         Object o = new Object();
         o.toString();
         try {
-        	Object b;
-        	Object a = new Object();
-        	b.toString();
+        	Object d;
+        	Object e = new Object();
+        	d.toString();
         	System.out.println("No exceptions here");
         } finally {
         	System.out.println("Finlly is executed");

@@ -4,7 +4,7 @@ public class ReturnTest {
 		int a = 10;
 			
 		if (a >= 10) 
-			return a;
+			return;
 			
 		
 		return;
