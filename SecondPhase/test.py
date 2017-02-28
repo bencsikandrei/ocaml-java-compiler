@@ -14,7 +14,7 @@ def check(path,fail=False):
 			for i in files:
 				out = io.open("./out.txt","w")
 				err = io.open("./err.txt","w")
-				output = subprocess.call("ocamlbuild -quiet -use-ocamlfind Main.byte -- "+path+"/"+i, shell=True, stdout=out, stderr=err)
+				output = subprocess.call("ocamlbuild -quiet -use-ocamlfind Main.byte -- -nr "+path+"/"+i, shell=True, stdout=out, stderr=err)
 				out.close()
 				err.close()
 				if (not fail and output != 0):

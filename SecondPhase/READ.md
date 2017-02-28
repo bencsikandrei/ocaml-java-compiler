@@ -48,11 +48,17 @@ After the (2) Installation, you can test the compiler by running :
 
 	./Main.native [options] file
 
+By default:
+	 verbose if OFF
+	 typing is ON
+	 running is ON
+
 Where file is a java file with at least one public class which contains the 
 same name as the file, and has a main method; option can be one or more of :
 
-	-v verbose
-	-r for seeing the execution even if typing fails
+	-v verbose - you can see the HEAP, the STACK, the classes in the JVM.. etc
+	-nr for not executing (running)
+	-nt for not typing
 
 	Example: ./Main.native -v tests/IfElseTestClass.java 
 

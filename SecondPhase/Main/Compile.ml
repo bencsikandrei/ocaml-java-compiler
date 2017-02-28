@@ -3,12 +3,12 @@ open ExecuteProgram
 open CompileTree
 
 (* run the program *)
-let execute lexbuf fname verbose dorun = 
+let execute lexbuf fname verbose dorun dotype = 
   try 
     let ast = compilationUnit Lexer.token lexbuf in
     Log.init verbose;
     Log.debug "successfull parsing";
-    Typing.typing ast;
+    if dotype then (Typing.typing ast; ());
     (* compile the AST with or without verbosity *)
     if dorun then 
       (let jprog = CompileTree.compile_tree verbose ast fname in
