@@ -109,7 +109,25 @@ let rec isSubClassOf (scope:AST.astclass list) (son:Type.t) (father:Type.t) =
 			if (r = Type.object_type) then false
 			else 
 				let aclass = searchClass r scope in
-				isSubClassOf aclass.classScope (Ref aclass.cparent) father 
+				isSubClassOf aclass.classScope (Ref aclass.cparent) father
+		| Array (son_t,son_d) -> (
+				match father with
+				| Array(father_t,father_d) -> if ((father_d=son_d) && (isSubClassOf scope son_t father_t)) then 
+					true 
+				else 
+					(
+						match son_t with 
+						| Ref s ->(
+							match father_t with 
+							| Ref f ->(
+								if( (List.length f.tpath)=0 && (List.length s.tpath)=0 &&  (s.tid=f.tid)) then true else false
+							)
+							| _ -> false
+						)
+						|_->	false
+					)
+				| _ -> false
+			)
 		| _ -> false
 
 
