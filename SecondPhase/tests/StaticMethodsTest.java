@@ -1,4 +1,3 @@
-package mypackage;
 
 public class StaticMethodsTest {
 
@@ -10,9 +9,9 @@ public class StaticMethodsTest {
         
         System.out.println("Starting!");
         
-        int min = mypackage.MinMax.min(a, b);
-        int max = mypackage.MinMax.max(a, b);
-        int eql = mypackage.MinMax.eql(a, b);
+        int min = MinMax.min(a, b);
+        int max = MinMax.max(a, b);
+        int eql = MinMax.eql(a, b);
         
         System.out.println("The minimum is " + min);
         System.out.println("The maximum is " + max);

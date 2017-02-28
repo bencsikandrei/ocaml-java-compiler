@@ -7,7 +7,7 @@ public class ReturnTest {
 			return a;
 			
 		
-		return 1;
+		return;
 	}
 }
 

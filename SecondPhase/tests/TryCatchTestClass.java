@@ -7,9 +7,9 @@ public class TryCatchTestClass {
         Object o = new Object();
         o.toString();
         try {
-        	Object b;
-        	Object a = new Object();
-        	b.toString();
+        	Object d = null;
+        	Object j = new Object();
+        	d.toString();
         	System.out.println("No exceptions here");
         } catch(NullPointerException e) {
         	System.out.println("A null pointer exception occured");
