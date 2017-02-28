@@ -515,7 +515,18 @@ and execute_expression (jprog : jvm) expr =
                                     | Some({ edesc = Name(id) }) -> Log.debug ("Just id: "^id);
                                             let (_,scope) = get_current_scope jprog
                                             in
-                                            Hashtbl.find scope.visible id
+                                            (try 
+                                                (* is it a class ? *)
+                                                Hashtbl.find jprog.classes id;
+                                                TypeVal(Ref({tpath=[]; tid=id}))
+                                            with 
+                                            | _ -> (try
+                                                    (* is it an object ? *)
+                                                        Hashtbl.find scope.visible id
+                                                    with
+                                                    | _ -> raise (Exception "No such variable or class")
+                                                    )
+                                            )
                                     | Some({ edesc = Attr(o, id)}) -> Log.debug ("Class name: "^id); TypeVal(Ref({tpath=[]; tid=id}))
             (* after we have the jvmheap made, we can actually try for NULL object exception *)
             in

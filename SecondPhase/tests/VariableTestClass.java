@@ -9,6 +9,6 @@ public class VariableTestClass {
         System.out.println(c&&false);
         float d = 10.0;
         System.out.println(d+2.5);
-        System.out.println(a&&c);
+        System.out.println(c&&c);
     }
 }
