@@ -1115,7 +1115,7 @@ let pckgInfo (pckgname:AST.qualified_name option) (var:AST.astclass list) =
 
 let addBasics (pckgname:AST.qualified_name option) (var:AST.astclass list) :AST.astclass list = 
 	let lis = pckgInfo pckgname var in 
-    Object.objectInfo::System.systemInfo::lis
+    Object.objectInfo::System.systemInfo::(BasicTypes.all@lis)
    
 
 (* ***********************
