@@ -96,6 +96,7 @@ From the typing part
 	- Verify not calling a protected or private attribute of an object -> obj.var
 	- Check constructor for primitive types.
 	- Particular cases of casts.
+	- identifier.new qualified_name
 
 From the execution part
  	- Arrays : only one dimension array is implemented.
