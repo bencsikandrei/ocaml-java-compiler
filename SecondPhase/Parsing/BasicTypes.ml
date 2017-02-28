@@ -20,7 +20,24 @@ let all =
         AST.cparent = {tpath=[];tid="Object"} ;
         AST.cattributes = [];
         AST.cinits = [];
-        AST.cconsts = [];
+        AST.cconsts = [
+             {
+                cmodifiers = [];
+                cname = "String";
+                cargstype = [
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Type.Ref ({Type.tpath=[];Type.tid="String"});
+                        pident = "str";
+                    }
+                ];
+                cthrows = [];
+                cbody = [];
+                mloc = Location.none;
+            }
+
+        ];
         AST.cmethods = [];
         AST.ctypes = [];
         AST.cloc = Location.none;
@@ -60,11 +77,79 @@ let all =
         AST.cparent = {tpath=[];tid="Object"} ;
         AST.cattributes = [];
         AST.cinits = [];
+        AST.cconsts = [
+             {
+                cmodifiers = [];
+                cname = "Exception";
+                cargstype = [];
+                cthrows = [];
+                cbody = [];
+                mloc = Location.none;
+            };
+            {
+                cmodifiers = [];
+                cname = "Exception";
+                cargstype = [
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Type.Ref ({Type.tpath=[];Type.tid="String"});
+                        pident = "str";
+                    }
+                ];
+                cthrows = [];
+                cbody = [];
+                mloc = Location.none;
+            }
+
+        ];
+        AST.cmethods = [];
+        AST.ctypes = [];
+        AST.cloc = Location.none;
+    } in
+
+    let aex = {
+        AST.clid="ArithmeticException";
+        AST.clname="ArithmeticException";
+        AST.classScope=ex::Object.objectInfo;
+        AST.clmodifiers=[Public];
+        AST.cparent = {tpath=[];tid="Exception"} ;
+        AST.cattributes = [];
+        AST.cinits = [];
         AST.cconsts = [];
         AST.cmethods = [];
         AST.ctypes = [];
         AST.cloc = Location.none;
     } in
 
-    integ::str::flt::boole::ex::[]
+    let null = {
+        AST.clid="NullPointerException";
+        AST.clname="NullPointerException";
+        AST.classScope=ex::Object.objectInfo;
+        AST.clmodifiers=[Public];
+        AST.cparent = {tpath=[];tid="Exception"} ;
+        AST.cattributes = [];
+        AST.cinits = [];
+        AST.cconsts = [];
+        AST.cmethods = [];
+        AST.ctypes = [];
+        AST.cloc = Location.none;
+    } in
 
+    let arrayOut = {
+        AST.clid="ArrayIndexOutOfBoundsException";
+        AST.clname="ArrayIndexOutOfBoundsException";
+        AST.classScope=ex::Object.objectInfo;
+        AST.clmodifiers=[Public];
+        AST.cparent = {tpath=[];tid="Exception"} ;
+        AST.cattributes = [];
+        AST.cinits = [];
+        AST.cconsts = [];
+        AST.cmethods = [];
+        AST.ctypes = [];
+        AST.cloc = Location.none;
+    } in
+
+
+    integ::str::flt::boole::ex::aex::null::arrayOut::[]
+    

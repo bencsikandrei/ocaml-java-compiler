@@ -9,6 +9,6 @@ public class TestArrayRef {
 		System.out.println(arr[0].a);
 
 		TestArrayRef cc = new TestArrayRef();
-		TypeArrayRef[] arreglito = new TestArrayRef[] {cc};
+		TestArrayRef[] arreglito = new TestArrayRef[] {cc};
 	}
 }
