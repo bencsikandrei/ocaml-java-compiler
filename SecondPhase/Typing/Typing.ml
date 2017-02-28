@@ -442,7 +442,10 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 						let t = solveExpression aclass args locals x in
 						match t with
 						| Ref r ->
-							findMethod aclass (searchClass r aclass.classScope) str (List.map (solveExpression aclass args locals) expList)
+							(
+								let cl = searchClass r aclass.classScope in 
+								findMethod aclass cl str (List.map (solveExpression aclass args locals) expList)
+							)
 						| _ -> raise (InvalidExpression("Reference type expected - Found: "^(Type.stringOf t)))
 					)
 			)
