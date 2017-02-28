@@ -20,7 +20,24 @@ let all =
         AST.cparent = {tpath=[];tid="Object"} ;
         AST.cattributes = [];
         AST.cinits = [];
-        AST.cconsts = [];
+        AST.cconsts = [
+             {
+                cmodifiers = [];
+                cname = "String";
+                cargstype = [
+                    {
+                        final = false;
+                        vararg = false;
+                        ptype = Type.Ref ({Type.tpath=[];Type.tid="String"});
+                        pident = "str";
+                    }
+                ];
+                cthrows = [];
+                cbody = [];
+                mloc = Location.none;
+            }
+
+        ];
         AST.cmethods = [];
         AST.ctypes = [];
         AST.cloc = Location.none;
@@ -66,5 +83,19 @@ let all =
         AST.cloc = Location.none;
     } in
 
-    integ::str::flt::boole::ex::[]
+    let aex = {
+        AST.clid="ArithmeticException";
+        AST.clname="ArithmeticException";
+        AST.classScope=ex::Object.objectInfo;
+        AST.clmodifiers=[Public];
+        AST.cparent = {tpath=[];tid="Exception"} ;
+        AST.cattributes = [];
+        AST.cinits = [];
+        AST.cconsts = [];
+        AST.cmethods = [];
+        AST.ctypes = [];
+        AST.cloc = Location.none;
+    } in
+
+    integ::str::flt::boole::ex::aex::[]
 
