@@ -81,7 +81,8 @@ let cmptypes (t1:Type.t) (t2:Type.t) =
 
 (* Checkes in a list if a class with clid "clname" exists *)
 let rec searchClass (clname:Type.ref_type) (scope:AST.astclass list) : AST.astclass=
-	(*print_string ((flatlistDot clname.tpath)^"."^clname.tid^" -> ");*)
+	(*print_int (List.length clname.tpath);
+	print_string ((flatlistDot clname.tpath)^"."^clname.tid^" -> ");*)
 	match scope with 
 	| [] -> raise (Invalid_inheritance ("Class: "^(flatlistDot clname.tpath)^"."^clname.tid^" not found"))
 	| elem::rest -> (
@@ -91,8 +92,10 @@ let rec searchClass (clname:Type.ref_type) (scope:AST.astclass list) : AST.astcl
 				if elem.clname=clname.tid then elem
 				else searchClass clname rest
 			| first::others -> 
-				(*print_string (elem.clname^"=?"^first^"\n");*)
-				if elem.clname=first then 
+				(* print_string (elem.clname^"=?"^first^"\n"); *)
+				if first="" then
+					searchClass {tpath=others; tid=clname.tid} scope
+				else if elem.clname=first then 
 					searchClass {tpath=others; tid=clname.tid} elem.classScope
 				else searchClass clname rest
 		)
@@ -445,9 +448,16 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 			)
 			| AST.Attr (exp ,str) -> (
 				let r = solveExpression aclass args locals exp in 
+				(
+
+				print_string ("Attr  *****"^(Type.stringOf r)^" ->");
+				List.map (fun (x:AST.astclass) -> print_string (" "^x.clname) ) aclass.classScope;
+				print_string ("\n");
+
 				match r with
-				| Ref r -> findVariable str (searchClass r aclass.classScope) args locals
+				| Ref r -> let cl = searchClass r aclass.classScope in (findVariable str cl args locals)
 				| _ -> raise (InvalidExpression("Reference type expected - Found: "^(Type.stringOf r)))
+				)
 			)
 			| AST.If (exp1, exp2, exp3) -> (
 				let t1=solveExpression aclass args locals exp1 in 
@@ -468,7 +478,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 					| Boolean b -> (Type.Primitive Boolean)
 				)
 			)
-			| AST.Name n -> findVariable n aclass args locals
+			| AST.Name n -> ( findVariable n aclass args locals);
 			| AST.ArrayInit expList -> (
 				let (t,parents) = inferType aclass.classScope (List.map (solveExpression aclass args locals) expList) in 
 				(match t with 
@@ -1081,7 +1091,7 @@ let rec createPckg (x:AST.qualified_name) (var:AST.astclass list) (id:string)=
 	| last::[] -> 	[{
 			AST.clid=id^last ;
 	    	AST.clname=last ;
-	    	AST.classScope=Object.objectInfo::var;
+	    	AST.classScope=Object.objectInfo@var;
 	    	AST.clmodifiers=[];
 	    	AST.cparent = {tpath=[];tid="Object"} ;
 	    	AST.cattributes = [];
@@ -1096,7 +1106,7 @@ let rec createPckg (x:AST.qualified_name) (var:AST.astclass list) (id:string)=
 		[{
 			AST.clid=id^head ;
     		AST.clname=head ;
-    		AST.classScope=Object.objectInfo::next;
+    		AST.classScope=Object.objectInfo@next;
     		AST.clmodifiers=[];
 	    	AST.cparent = {tpath=[];tid="Object"} ;
 	    	AST.cattributes = [];
@@ -1115,7 +1125,7 @@ let pckgInfo (pckgname:AST.qualified_name option) (var:AST.astclass list) =
 
 let addBasics (pckgname:AST.qualified_name option) (var:AST.astclass list) :AST.astclass list = 
 	let lis = pckgInfo pckgname var in 
-    Object.objectInfo::System.systemInfo::(BasicTypes.all@lis)
+    Object.objectInfo@System.systemInfo::(BasicTypes.all@lis)
    
 
 (* ***********************

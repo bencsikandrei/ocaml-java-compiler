@@ -1,11 +1,19 @@
-let objectInfo = 
-    let tmp = {
+let (objectInfo:AST.astclass list) = 
+    let obje = {
 		AST.clid="Object";
     	AST.clname="Object";
     	AST.classScope=[];
     	AST.clmodifiers=[Public];
     	AST.cparent = {tpath=[];tid="Object"} ;
-    	AST.cattributes = [];
+    	AST.cattributes = [
+            {
+                amodifiers = [AST.Static];
+                aname = "class";
+                atype = Type.Ref Type.class_type;
+                adefault = None;
+                aloc = Location.none;
+            }
+        ];
     	AST.cinits = [];
     	AST.cconsts = [];
     	AST.cmethods = [
@@ -140,5 +148,24 @@ let objectInfo =
 
     	AST.ctypes = [];
     	AST.cloc = Location.none;
-    } in tmp.classScope<-[tmp];tmp
+    } in 
+    
+    let cla = {
+        AST.clid="Class";
+        AST.clname="Class";
+        AST.classScope=[];
+        AST.clmodifiers=[Public];
+        AST.cparent = {tpath=[];tid="Object"} ;
+        AST.cattributes = [];
+        AST.cinits = [];
+        AST.cconsts = [];
+        AST.cmethods = [];
+        AST.ctypes = [];
+        AST.cloc = Location.none;
+    } in
+    (
+        obje.classScope<-obje::cla::[];
+        cla.classScope<-obje::cla::[];
+        obje::cla::[]
+    )
 

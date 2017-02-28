@@ -2,7 +2,7 @@ let systemInfo =
     let out = {
         AST.clid="System.out";
         AST.clname="out";
-        AST.classScope=[Object.objectInfo];
+        AST.classScope=Object.objectInfo;
         AST.clmodifiers=[Public];
         AST.cparent = {tpath=[];tid="Object"} ;
         AST.cattributes = [];
@@ -227,5 +227,5 @@ let systemInfo =
             AST.info= AST.Class out
         }];
     	AST.cloc = Location.none;
-    } in tmp.classScope<-[tmp;Object.objectInfo;out];tmp
+    } in tmp.classScope<-tmp::out::Object.objectInfo;tmp
 

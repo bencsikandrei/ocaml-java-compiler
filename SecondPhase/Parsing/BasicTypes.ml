@@ -2,7 +2,7 @@ let all =
     let integ = {
         AST.clid="Integer";
         AST.clname="Integer";
-        AST.classScope=[Object.objectInfo];
+        AST.classScope=Object.objectInfo;
         AST.clmodifiers=[Public];
         AST.cparent = {tpath=[];tid="Object"} ;
         AST.cattributes = [];
@@ -15,7 +15,7 @@ let all =
     let str = {
         AST.clid="String";
         AST.clname="String";
-        AST.classScope=[Object.objectInfo];
+        AST.classScope=Object.objectInfo;
         AST.clmodifiers=[Public];
         AST.cparent = {tpath=[];tid="Object"} ;
         AST.cattributes = [];
@@ -28,7 +28,7 @@ let all =
     let flt = {
         AST.clid="Float";
         AST.clname="Float";
-        AST.classScope=[Object.objectInfo];
+        AST.classScope=Object.objectInfo;
         AST.clmodifiers=[Public];
         AST.cparent = {tpath=[];tid="Object"} ;
         AST.cattributes = [];
@@ -41,7 +41,7 @@ let all =
     let boole = {
         AST.clid="Boolean";
         AST.clname="Boolean";
-        AST.classScope=[Object.objectInfo];
+        AST.classScope=Object.objectInfo;
         AST.clmodifiers=[Public];
         AST.cparent = {tpath=[];tid="Object"} ;
         AST.cattributes = [];
@@ -52,5 +52,19 @@ let all =
         AST.cloc = Location.none;
     } in
 
-    integ::str::flt::boole::[]
+    let ex = {
+        AST.clid="Exception";
+        AST.clname="Exception";
+        AST.classScope=Object.objectInfo;
+        AST.clmodifiers=[Public];
+        AST.cparent = {tpath=[];tid="Object"} ;
+        AST.cattributes = [];
+        AST.cinits = [];
+        AST.cconsts = [];
+        AST.cmethods = [];
+        AST.ctypes = [];
+        AST.cloc = Location.none;
+    } in
+
+    integ::str::flt::boole::ex::[]
 
