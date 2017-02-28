@@ -4,7 +4,5 @@
 - Two dimension arrays
 - verify not calling a protected or private attribute of an object -> obj.var
 - check constructor for primitive types
-- classOf
-- instanceOf
-
+- particular cases of cast
 
