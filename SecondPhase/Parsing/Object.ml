@@ -163,9 +163,23 @@ let (objectInfo:AST.astclass list) =
         AST.ctypes = [];
         AST.cloc = Location.none;
     } in
+    let nul = {
+        AST.clid="Null";
+        AST.clname="Null";
+        AST.classScope=[];
+        AST.clmodifiers=[Public];
+        AST.cparent = {tpath=[];tid="Object"} ;
+        AST.cattributes = [];
+        AST.cinits = [];
+        AST.cconsts = [];
+        AST.cmethods = [];
+        AST.ctypes = [];
+        AST.cloc = Location.none;
+    } in
     (
-        obje.classScope<-obje::cla::[];
-        cla.classScope<-obje::cla::[];
-        obje::cla::[]
+        obje.classScope<-obje::cla::nul::[];
+        cla.classScope<-obje::cla::nul::[];
+        nul.classScope<-obje::cla::nul::[];
+        obje::cla::nul::[]
     )
 
