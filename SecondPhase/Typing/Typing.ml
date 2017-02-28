@@ -578,7 +578,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 				) else (
 					let nl = [Type.Primitive Char;Type.Primitive Byte;Type.Primitive Short;Type.Primitive Int;Type.Primitive Long;Type.Primitive Float;Type.Primitive Double] in
 					if (inlist t1 nl) && (inlist t2 nl) then (
-						if inlist i_op [Op_ne;Op_gt;Op_lt;Op_ge;Op_le] then (
+						if inlist i_op [Op_eq;Op_ne;Op_gt;Op_lt;Op_ge;Op_le] then (
 							Type.Primitive Type.Boolean
 						) else (
 							if inlist i_op [Op_shl;Op_shr;Op_shrr;Op_add;Op_sub;Op_mul;Op_div;Op_mod] then
