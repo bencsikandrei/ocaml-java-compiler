@@ -120,7 +120,7 @@ let rec isSubClassOf (scope:AST.astclass list) (son:Type.t) (father:Type.t) =
 						| Ref s ->(
 							match father_t with 
 							| Ref f ->(
-								if( (List.length f.tpath)=0 && (List.length s.tpath)=0 &&  (s.tid=f.tid)) then true else false
+								if( (List.length f.tpath)=0 && (List.length s.tpath)=0 &&  (s.tid=f.tid) ) then true else false
 							)
 							| _ -> false
 						)
