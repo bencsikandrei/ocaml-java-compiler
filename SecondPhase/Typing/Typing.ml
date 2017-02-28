@@ -477,6 +477,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 
 				match r with
 				| Ref r -> let cl = searchClass r aclass.classScope in (findVariable str cl args locals)
+				| Array (t,j) -> if str="length" then Type.Primitive Type.Int else raise (InvalidExpression("Reference type expected - Found array: "^(Type.stringOf r)))
 				| _ -> raise (InvalidExpression("Reference type expected - Found: "^(Type.stringOf r)))
 				)
 			)
