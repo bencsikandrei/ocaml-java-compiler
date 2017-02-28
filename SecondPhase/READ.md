@@ -85,7 +85,11 @@ issues and the not implemented list before trying anything exotic.
  Here is a list of the things that are not implemented or not working properly:
 
 From the typing part
-	-
+	- Final modifier (in arguments and attributes). It's checked but doesn't has an effect.
+	- Error: "Implicit super constructor A() is not visible. Must explicitly invoke another constructor" in son's constructor when parent's constructor is private.
+	- Verify not calling a protected or private attribute of an object -> obj.var
+	- Check constructor for primitive types.
+	- Particular cases of casts.
 
 From the execution part
  	- Arrays : only one dimension array is implemented.
