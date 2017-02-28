@@ -30,7 +30,7 @@ public class InnerClassTest {
         InnerClassTest st = new InnerClassTest();
         InnerClassTest.FirstLevel fl = st.new FirstLevel();
         fl.methodInFirstLevel(23);
-        InnerClassTest.StaticLevel bl = InnerClassTest.new StaticLevel();
+        InnerClassTest.StaticLevel bl = new StaticLevel();
         bl.methodStatic(100);
     }
 }
