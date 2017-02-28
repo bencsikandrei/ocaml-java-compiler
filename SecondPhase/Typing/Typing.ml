@@ -343,7 +343,7 @@ let rec checkConstructors (caller:AST.astclass) (cons:AST.astconst list) (id:str
 			checkConstructors caller tail id args
 
 let rec findMethod (caller:AST.astclass) (called:AST.astclass) (id:string) (args:Type.t list) : Type.t =
-	if id ="super" then
+	if id ="super" then (
 		let father = searchClass caller.cparent called.classScope in
 		let father_t =Type.Ref {Type.tpath=(getPath father.clid);Type.tid=father.clname} in
 		if ((List.length father.cconsts)=0) && ((List.length args)=0) then
@@ -362,7 +362,7 @@ let rec findMethod (caller:AST.astclass) (called:AST.astclass) (id:string) (args
 				raise (InvalidExpression("constructor not found "))
 
 
-		)
+		))
 	else
 	let caller_t = Type.Ref {Type.tpath=(getPath caller.clid);Type.tid=caller.clname} in
 	let called_t = Type.Ref {Type.tpath=(getPath called.clid);Type.tid=called.clname} in 	
@@ -371,17 +371,17 @@ let rec findMethod (caller:AST.astclass) (called:AST.astclass) (id:string) (args
 	| Some res ->( 
 		if (inlist AST.Private res.mmodifiers) then 
 			if cmptypes caller_t called_t then
-				called_t
+				res.mreturntype
 			else 
 				raise (InvalidExpression("method "^id^" is private"))
 		else 
 			if (inlist AST.Protected res.mmodifiers) then 
 				if isSubClassOf caller.classScope caller_t called_t then
-					called_t
+					res.mreturntype
 				else 
 					raise (InvalidExpression("method "^id^" is protected"))
 			else 
-				called_t
+				res.mreturntype
 	)
 	| None ->  
 		let res = checkConstructors caller called.cconsts id args in
@@ -457,7 +457,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 					| None ->
 						findMethod aclass aclass str (List.map (solveExpression aclass args locals) expList) 
 					| Some x -> (
-						let t = solveExpression aclass args locals x in
+						let t = solveExpression aclass args locals x in(
 						match t with
 						| Ref r ->
 							(
@@ -465,15 +465,14 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 								findMethod aclass cl str (List.map (solveExpression aclass args locals) expList)
 							)
 						| _ -> raise (InvalidExpression("Reference type expected - Found: "^(Type.stringOf t)))
-					)
+					))
 			)
 			| AST.Attr (exp ,str) -> (
 				let r = solveExpression aclass args locals exp in 
 				(
-
-				print_string ("Attr  *****"^(Type.stringOf r)^" ->");
+				(*print_string ("Attr  *****"^(Type.stringOf r)^" ->");
 				List.map (fun (x:AST.astclass) -> print_string (" "^x.clname) ) aclass.classScope;
-				print_string ("\n");
+				print_string ("\n"); *)
 
 				match r with
 				| Ref r -> let cl = searchClass r aclass.classScope in (findVariable str cl args locals)
