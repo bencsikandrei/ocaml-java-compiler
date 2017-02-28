@@ -494,12 +494,12 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 						(
 							if dims<>dimsDeclared then raise(InvalidExpression("cannot access an empty slot of an array"));
 							if dims>b then raise(InvalidExpression("dimension mismatch"));
-							Array (a,b-dims)
+							if b=dims then a else Array (a,b-dims)
 						)
 					)
 				| _ -> raise (InvalidExpression("cannot acces class "^(Type.stringOf r)^" as an array"))
 			)
-			| AST.AssignExp (exp1 ,a_op, exp2) -> ( (*TODO FIXME*)
+			| AST.AssignExp (exp1 ,a_op, exp2) -> (
 				let t1=solveExpression aclass args locals exp1 in
 				let t2=solveExpression aclass args locals exp2 in
 				if (cmptypes t2 t1) then
@@ -573,7 +573,7 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 					if inlist i_op [Op_cor;Op_cand;Op_or;Op_and;Op_xor;Op_eq;Op_ne] then (
 						t1
 					) else (
-						raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
+						raise (InvalidExpression ("1Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
 					)
 				) else (
 					let nl = [Type.Primitive Char;Type.Primitive Byte;Type.Primitive Short;Type.Primitive Int;Type.Primitive Long;Type.Primitive Float;Type.Primitive Double] in
@@ -583,14 +583,14 @@ let rec solveExpression (aclass:AST.astclass) (args:AST.argument list) (locals:A
 						) else (
 							if inlist i_op [Op_shl;Op_shr;Op_shrr;Op_add;Op_sub;Op_mul;Op_div;Op_mod] then
 								bigger t1 t2
-							else raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
+							else raise (InvalidExpression ("2Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
 						)
 					) else (
 						if isSubClassOf aclass.classScope t1 (Type.Ref {tpath=[];tid="String"}) || isSubClassOf aclass.classScope t2 (Type.Ref {tpath=[];tid="String"}) then (
 							if i_op=Op_add then Type.Ref {tpath=[];tid="String"}
-							else raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
+							else raise (InvalidExpression ("3Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
 						) else (
-							raise (InvalidExpression ("Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
+							raise (InvalidExpression ("4Invalid operation "^AST.string_of_infix_op i_op^" for type "^Type.stringOf t1^", "^Type.stringOf t2^"."))
 						)
 					)
 				) 
